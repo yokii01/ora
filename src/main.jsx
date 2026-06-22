@@ -5,6 +5,13 @@ import db from '@/api/base44Client'
 // Expose mock DB globally so legacy inline fallbacks use it
 globalThis.__B44_DB__ = db;
 
+// Handle PWA installation globally
+window.deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  window.deferredPrompt = e;
+});
+
 // Dynamically import CSS and the app after the global DB is set so
 // any modules that read `globalThis.__B44_DB__` use the mock DB.
 (async () => {

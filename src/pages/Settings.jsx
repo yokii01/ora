@@ -350,6 +350,22 @@ export default function Settings() {
             <Download className="w-3.5 h-3.5" /> Export
           </Button>
         </SettingRow>
+        <SettingRow icon={Smartphone} label="Download as App" description="Install ORAs to your home screen">
+          <Button size="sm" variant="default" onClick={async () => {
+            if (window.deferredPrompt) {
+              window.deferredPrompt.prompt();
+              const { outcome } = await window.deferredPrompt.userChoice;
+              if (outcome === 'accepted') {
+                window.deferredPrompt = null;
+                toast.success("App installed successfully!");
+              }
+            } else {
+              toast.error("Install not available or already installed.");
+            }
+          }} className="rounded-xl h-8 text-xs">
+            Install
+          </Button>
+        </SettingRow>
         <SettingRow icon={Smartphone} label="App Version" description="ORAs v2.0.0">
           <span className="text-xs text-muted-foreground">Latest</span>
         </SettingRow>

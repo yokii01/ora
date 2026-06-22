@@ -56,16 +56,6 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
-  React.useEffect(() => {
-    // Quickly fade out static splash screen
-    const splash = document.getElementById('splash-screen');
-    if (splash) {
-      splash.style.opacity = '0';
-      splash.style.transition = 'opacity 0.3s ease';
-      setTimeout(() => splash.remove(), 300);
-    }
-  }, []);
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
