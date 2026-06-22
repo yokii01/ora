@@ -33,7 +33,7 @@ const downloadDataUrl = (url, name) => {
 
 export default function Scanner() {
   const queryClient = useQueryClient();
-  const [mode, setMode] = useState('list'); // 'list' | 'camera' | 'editor' | 'saving' | 'qr'
+  const [mode, setMode] = useState('onboarding'); // 'onboarding' | 'dashboard' | 'camera' | 'editor' | 'saving' | 'qr'
   const [pages, setPages] = useState([]); // Array of data URLs
   const [currentImage, setCurrentImage] = useState(null);
   const [saveStep, setSaveStep] = useState('Processing...');
@@ -272,125 +272,173 @@ export default function Scanner() {
         );
       })()}
 
-      {mode === 'list' && (
-        <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="min-h-screen pb-24 bg-background">
-          {/* Header */}
-          <div className="sticky top-0 z-10 bg-background/80 backdrop-blur-2xl border-b border-border/40 px-6 py-5 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-[1.25rem] bg-primary/20 flex items-center justify-center shadow-inner border border-primary/20">
-                <ScanLine className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="font-bold text-2xl leading-none tracking-tight">Scanner</h1>
-                <span className="text-sm text-muted-foreground mt-1 block">{scans.length} Documents</span>
-              </div>
+      {mode === 'onboarding' && (
+        <motion.div key="onboarding" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="min-h-screen bg-white flex flex-col items-center justify-between p-6 pb-12">
+          <div className="w-full flex justify-end mt-4">
+            <button onClick={() => setMode('dashboard')} className="text-gray-400 hover:text-gray-600 font-medium">Skip</button>
+          </div>
+          
+          <div className="flex-1 flex flex-col items-center justify-center text-center w-full max-w-sm">
+            <h1 className="text-[22px] font-bold text-gray-900 tracking-wide mb-3">SAVE FILE ONLINE</h1>
+            <p className="text-gray-400 text-[15px] leading-relaxed mb-12 px-2">Save the details. it's professional and minimal site UI design template</p>
+            
+            <div className="relative w-64 h-64 mb-10 flex items-center justify-center">
+              <div className="absolute inset-0 bg-blue-50/80 rounded-full scale-110" />
+              <div className="absolute inset-4 bg-blue-100/50 rounded-full scale-100" />
+              {/* Illustration placeholder */}
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-32 h-32 z-10 text-blue-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/><path d="M12 11v9"/><path d="M9 14l3-3 3 3"/></svg>
+            </div>
+            
+            <div className="flex gap-2 mb-4">
+              <div className="w-6 h-1.5 bg-blue-600 rounded-full" />
+              <div className="w-1.5 h-1.5 bg-gray-200 rounded-full" />
+              <div className="w-1.5 h-1.5 bg-gray-200 rounded-full" />
             </div>
           </div>
-
-          <div className="p-6">
-            <div className="grid grid-cols-2 gap-5">
-              <motion.button 
-                whileTap={{ scale: 0.95 }}
-                onClick={startCamera}
-                className="col-span-2 relative overflow-hidden group rounded-[2rem] bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 border border-primary/20 p-8 flex flex-col items-center justify-center min-h-[180px] shadow-lg shadow-primary/5"
-              >
-                <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors duration-500" />
-                <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white mb-4 shadow-[0_0_30px_rgba(var(--primary),0.5)] group-hover:scale-110 transition-transform duration-500">
-                  <Camera className="w-10 h-10" />
-                </div>
-                <h3 className="font-bold text-xl tracking-tight">Scan Document</h3>
-                <p className="text-sm text-muted-foreground mt-2 font-medium">Auto-crop - OCR - PDF Export</p>
-                <div className="mt-5 flex flex-wrap justify-center gap-2">
-                  {[
-                    { icon: Crop, label: 'Auto Crop' },
-                    { icon: Sparkles, label: 'Enhance' },
-                    { icon: Wand2, label: 'OCR' },
-                  ].map((item) => (
-                    <span key={item.label} className="inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/60 px-3 py-1 text-xs font-semibold text-primary">
-                      <item.icon className="w-3.5 h-3.5" />
-                      {item.label}
-                    </span>
-                  ))}
-                </div>
-              </motion.button>
-
-              {isLoading ? (
-                <div className="col-span-2 py-20 flex justify-center"><LoadingSpinner label="Loading scans..." size="md" /></div>
-              ) : scans.length === 0 ? (
-                <div className="col-span-2 py-16 flex flex-col items-center justify-center text-center rounded-[2rem] border border-dashed border-border/70 bg-card/40">
-                  <div className="w-24 h-24 rounded-full bg-muted/30 flex items-center justify-center mb-6 border-2 border-dashed border-border">
-                    <FileText className="w-10 h-10 text-muted-foreground/40" />
-                  </div>
-                  <h3 className="text-lg font-bold mb-2">No Scans Yet</h3>
-                  <p className="text-muted-foreground max-w-[200px]">Tap the camera button above to scan your first document.</p>
-                </div>
-              ) : (
-                <AnimatePresence>
-                  {scans.map((scan) => (
-                    <motion.div
-                      key={scan.id}
-                      initial={{ opacity: 0, scale: 0.9, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }}
-                      transition={{ duration: 0.2 }}
-                      className="bg-card border border-border/50 rounded-3xl overflow-hidden shadow-md hover:shadow-lg transition-shadow flex flex-col group cursor-pointer"
-                      onClick={() => setPreviewScan(scan)}
-                    >
-                      <div className="relative aspect-[3/4] bg-muted/30 w-full overflow-hidden">
-                        <img src={scan.thumbnailUrl || scan.pdfUrl} alt={scan.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full text-xs text-white font-medium shadow-sm">
-                          {scan.pagesCount} {scan.pagesCount === 1 ? 'Page' : 'Pages'}
-                        </div>
-                      </div>
-                      <div className="p-4 bg-card z-10">
-                        <h4 className="font-semibold text-sm truncate">{scan.title}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">{new Date(scan.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              )}
-            </div>
+          
+          <div className="w-full max-w-sm mt-auto pt-8">
+            <Button onClick={() => setMode('dashboard')} className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[15px] shadow-[0_8px_30px_rgba(37,99,235,0.24)] transition-all">
+              UPLOAD NOW
+            </Button>
           </div>
-
-          {/* Preview Dialog */}
-          <Dialog open={!!previewScan} onOpenChange={(open) => !open && setPreviewScan(null)}>
-            <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-[2rem] bg-card/95 backdrop-blur-2xl border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
-              {previewScan && (
-                <div className="flex flex-col h-[85vh]">
-                  <DialogHeader className="p-5 border-b border-border/40 shrink-0 bg-background/50 backdrop-blur-md">
-                    <DialogTitle className="truncate text-xl">{previewScan.title}</DialogTitle>
-                    <div className="text-sm text-muted-foreground mt-1">{new Date(previewScan.date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} • {previewScan.pagesCount} {previewScan.pagesCount === 1 ? 'Page' : 'Pages'}</div>
-                  </DialogHeader>
-                  
-                  <div className="flex-1 overflow-y-auto p-5 bg-muted/10 space-y-6">
-                    <div className="rounded-2xl overflow-hidden shadow-lg border border-white/5">
-                      <img src={previewScan.thumbnailUrl || previewScan.pdfUrl} className="w-full h-auto" alt="Preview" />
-                    </div>
-                    
-                    {previewScan.ocrText && (
-                      <div className="bg-background rounded-3xl p-5 border border-border/50 shadow-sm">
-                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-2">
-                          <FileText className="w-4 h-4" /> Extracted Text
-                        </h4>
-                        <p className="text-sm font-mono whitespace-pre-wrap text-foreground/80 leading-relaxed">{previewScan.ocrText}</p>
-                      </div>
-                    )}
-                  </div>
-                  
-                  <div className="p-5 border-t border-border/40 bg-background shrink-0 flex gap-4">
-                    <Button variant="destructive" className="flex-1 rounded-capsule h-14 font-medium" onClick={() => { deleteScan.mutate(previewScan.id); setPreviewScan(null); }}>
-                      <Trash2 className="w-5 h-5 mr-2" /> Delete
-                    </Button>
-                    <Button className="flex-1 rounded-capsule h-14 font-medium shadow-lg shadow-primary/20" onClick={() => downloadDataUrl(previewScan.pdfUrl, `${previewScan.title}.pdf`)}>
-                      <Download className="w-5 h-5 mr-2" /> Export PDF
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </DialogContent>
-          </Dialog>
         </motion.div>
       )}
+
+      {mode === 'dashboard' && (
+        <motion.div key="dashboard" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="min-h-screen bg-[#F8FAFC]">
+          {/* Header */}
+          <div className="px-6 pt-12 pb-6 bg-white sticky top-0 z-10 border-b border-gray-100 shadow-[0_4px_30px_rgba(0,0,0,0.02)]">
+            <div className="flex justify-between items-center mb-6">
+              <button onClick={() => setMode('onboarding')} className="text-gray-400 hover:text-gray-600 p-2 -ml-2 rounded-full"><ChevronLeft className="w-6 h-6" /></button>
+              <button className="text-gray-400 hover:text-gray-600 p-2 -mr-2 rounded-full"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+            </div>
+            <h1 className="text-[28px] font-bold text-gray-900 tracking-tight">Hello, Welcome</h1>
+          </div>
+
+          <div className="px-6 py-6 space-y-8">
+            <div className="grid grid-cols-2 gap-4">
+              <button className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-md transition-all flex flex-col items-start gap-5 text-left">
+                <div className="w-12 h-12 rounded-full bg-orange-50 flex items-center justify-center text-orange-500">
+                  <Link2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-[15px] mb-1">Meeting link</h3>
+                  <p className="text-[13px] text-gray-400 font-medium">4 items</p>
+                </div>
+              </button>
+              
+              <button onClick={startCamera} className="bg-white border-2 border-blue-50/50 rounded-3xl p-5 shadow-[0_8px_30px_rgba(37,99,235,0.08)] hover:shadow-[0_8px_30px_rgba(37,99,235,0.12)] transition-all flex flex-col items-start gap-5 text-left relative overflow-hidden group">
+                <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-blue-50/80 rounded-full group-hover:scale-110 transition-transform duration-500" />
+                <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-600 z-10">
+                  <ScanLine className="w-5 h-5" />
+                </div>
+                <div className="z-10">
+                  <h3 className="font-bold text-gray-900 text-[15px] mb-1">Doc scanner</h3>
+                  <p className="text-[13px] text-blue-500 font-semibold flex items-center gap-1.5">New project <span className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse"></span></p>
+                </div>
+              </button>
+              
+              <button className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-md transition-all flex flex-col items-start gap-5 text-left">
+                <div className="w-12 h-12 rounded-full bg-red-50 flex items-center justify-center text-red-500">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-[15px] mb-1">Text scanner</h3>
+                  <p className="text-[13px] text-gray-400 font-medium">2 items</p>
+                </div>
+              </button>
+              
+              <button className="bg-white border border-gray-100 rounded-3xl p-5 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-md transition-all flex flex-col items-start gap-5 text-left">
+                <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center text-blue-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m5 8 6 6"/><path d="m4 14 6-6 2-3"/><path d="M2 5h12"/><path d="M7 2h1"/><path d="m22 22-5-10-5 10"/><path d="M14 18h6"/></svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-900 text-[15px] mb-1">Translate scanner</h3>
+                  <p className="text-[13px] text-gray-400 font-medium">1 items</p>
+                </div>
+              </button>
+            </div>
+
+            <div className="mt-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-[13px] font-bold text-gray-400 tracking-wider uppercase">Recent</h2>
+                <button className="text-gray-400 hover:text-gray-600"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/></svg></button>
+              </div>
+
+              {isLoading ? (
+                <div className="py-10 flex justify-center"><LoadingSpinner label="Loading scans..." size="md" /></div>
+              ) : scans.length === 0 ? (
+                <div className="py-12 flex flex-col items-center justify-center text-center rounded-3xl border border-dashed border-gray-200 bg-white shadow-sm">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-4">
+                    <FileText className="w-8 h-8 text-gray-300" />
+                  </div>
+                  <p className="text-[15px] font-medium text-gray-900">No recent scans</p>
+                  <p className="text-[13px] text-gray-400 mt-1">Tap Doc scanner to start</p>
+                </div>
+              ) : (
+                <div className="space-y-3 pb-32">
+                  {scans.map((scan) => (
+                    <div key={scan.id} onClick={() => setPreviewScan(scan)} className="flex items-center gap-4 p-3.5 rounded-3xl border border-gray-100 bg-white shadow-sm hover:shadow-md cursor-pointer transition-all">
+                      <div className="w-14 h-14 rounded-[14px] bg-gray-100 overflow-hidden shrink-0">
+                        <img src={scan.thumbnailUrl || scan.pdfUrl} alt={scan.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-1 overflow-hidden pr-2">
+                        <h4 className="font-bold text-[15px] text-gray-900 truncate mb-1">{scan.title}</h4>
+                        <p className="text-[13px] text-gray-400 font-medium">{new Date(scan.date).toLocaleDateString()} • {scan.pagesCount} pages</p>
+                      </div>
+                      <button className="p-2 text-gray-400 hover:text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-full transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <div className="fixed bottom-0 inset-x-0 p-6 bg-gradient-to-t from-[#F8FAFC] via-[#F8FAFC]/90 to-transparent pt-12 pb-8 z-20">
+             <Button onClick={startCamera} className="w-full h-14 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-[15px] shadow-[0_8px_30px_rgba(37,99,235,0.24)] transition-all">
+               QUICK ACTION
+             </Button>
+          </div>
+        </motion.div>
+      )}
+      
+      {/* Preview Dialog */}
+      <Dialog open={!!previewScan} onOpenChange={(open) => !open && setPreviewScan(null)}>
+        <DialogContent className="sm:max-w-md p-0 overflow-hidden rounded-[2rem] bg-card/95 backdrop-blur-2xl border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          {previewScan && (
+            <div className="flex flex-col h-[85vh]">
+              <DialogHeader className="p-5 border-b border-border/40 shrink-0 bg-background/50 backdrop-blur-md">
+                <DialogTitle className="truncate text-xl">{previewScan.title}</DialogTitle>
+                <div className="text-sm text-muted-foreground mt-1">{new Date(previewScan.date).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} • {previewScan.pagesCount} {previewScan.pagesCount === 1 ? 'Page' : 'Pages'}</div>
+              </DialogHeader>
+              
+              <div className="flex-1 overflow-y-auto p-5 bg-muted/10 space-y-6">
+                <div className="rounded-2xl overflow-hidden shadow-lg border border-white/5">
+                  <img src={previewScan.thumbnailUrl || previewScan.pdfUrl} className="w-full h-auto" alt="Preview" />
+                </div>
+                
+                {previewScan.ocrText && (
+                  <div className="bg-background rounded-3xl p-5 border border-border/50 shadow-sm">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary mb-3 flex items-center gap-2">
+                      <FileText className="w-4 h-4" /> Extracted Text
+                    </h4>
+                    <p className="text-sm font-mono whitespace-pre-wrap text-foreground/80 leading-relaxed">{previewScan.ocrText}</p>
+                  </div>
+                )}
+              </div>
+              
+              <div className="p-5 border-t border-border/40 bg-background shrink-0 flex gap-4">
+                <Button variant="destructive" className="flex-1 rounded-capsule h-14 font-medium" onClick={() => { deleteScan.mutate(previewScan.id); setPreviewScan(null); }}>
+                  <Trash2 className="w-5 h-5 mr-2" /> Delete
+                </Button>
+                <Button className="flex-1 rounded-capsule h-14 font-medium shadow-lg shadow-primary/20" onClick={() => downloadDataUrl(previewScan.pdfUrl, `${previewScan.title}.pdf`)}>
+                  <Download className="w-5 h-5 mr-2" /> Export PDF
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </AnimatePresence>
   );
 }

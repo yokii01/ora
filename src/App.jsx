@@ -56,24 +56,15 @@ const AuthenticatedApp = () => {
 };
 
 function App() {
-  const [showSplash, setShowSplash] = React.useState(true);
-
   React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setShowSplash(false);
-      const splash = document.getElementById('splash-screen');
-      if (splash) {
-        splash.style.opacity = '0';
-        splash.style.transition = 'opacity 0.5s ease';
-        setTimeout(() => splash.remove(), 500);
-      }
-    }, 3000);
-    return () => clearTimeout(timer);
+    // Quickly fade out static splash screen
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+      splash.style.opacity = '0';
+      splash.style.transition = 'opacity 0.3s ease';
+      setTimeout(() => splash.remove(), 300);
+    }
   }, []);
-
-  if (showSplash) {
-    return null; // Keep rendering empty while the HTML splash screen shows
-  }
 
   return (
     <AuthProvider>

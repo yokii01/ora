@@ -232,87 +232,56 @@ export default function CameraView({ onCapture, onCancel, pagesCount }) {
 
         {/* QR Badge Overlay */}
         {qrCodeData && (
-          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 bg-blue-500/90 text-white px-4 py-2 rounded-capsule backdrop-blur-md font-medium shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4">
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 bg-blue-600/90 text-white px-4 py-2 rounded-capsule backdrop-blur-md font-medium shadow-lg flex items-center gap-2 animate-in fade-in slide-in-from-bottom-4">
             <QrCode className="w-4 h-4" /> QR Found
           </div>
         )}
 
         {/* Document Boundary Guide (Premium animated corner brackets) */}
-        <div className="absolute inset-6 md:inset-12 pointer-events-none flex flex-col justify-between opacity-90 transition-all duration-500">
+        <div className="absolute inset-6 md:inset-12 pointer-events-none flex flex-col justify-between opacity-100 transition-all duration-500 z-20">
           <div className="flex justify-between">
-            <div className={`w-16 h-16 border-t-[3px] border-l-[3px] transition-all duration-500 rounded-tl-3xl ${isStable ? 'border-primary scale-105 shadow-[inset_4px_4px_15px_-5px_rgba(var(--primary),0.5)]' : 'border-white/60'}`} />
-            <div className={`w-16 h-16 border-t-[3px] border-r-[3px] transition-all duration-500 rounded-tr-3xl ${isStable ? 'border-primary scale-105 shadow-[inset_-4px_4px_15px_-5px_rgba(var(--primary),0.5)]' : 'border-white/60'}`} />
+            <div className="w-16 h-16 border-t-[6px] border-l-[6px] border-blue-600 transition-all duration-500 rounded-tl-xl shadow-lg" />
+            <div className="w-16 h-16 border-t-[6px] border-r-[6px] border-blue-600 transition-all duration-500 rounded-tr-xl shadow-lg" />
           </div>
           
-          {/* Scanning crosshair / center indicator */}
-          <div className="absolute inset-0 flex items-center justify-center">
-             <div className={`transition-all duration-500 flex items-center justify-center ${isStable ? 'scale-100 opacity-100' : 'scale-50 opacity-0'}`}>
-              <div className="w-24 h-24 rounded-full border border-primary/40 animate-ping absolute" />
-              <div className="w-3 h-3 rounded-full bg-primary shadow-[0_0_20px_4px_rgba(var(--primary),0.8)]" />
-            </div>
-          </div>
-
           <div className="flex justify-between">
-            <div className={`w-16 h-16 border-b-[3px] border-l-[3px] transition-all duration-500 rounded-bl-3xl ${isStable ? 'border-primary scale-105 shadow-[inset_4px_-4px_15px_-5px_rgba(var(--primary),0.5)]' : 'border-white/60'}`} />
-            <div className={`w-16 h-16 border-b-[3px] border-r-[3px] transition-all duration-500 rounded-br-3xl ${isStable ? 'border-primary scale-105 shadow-[inset_-4px_-4px_15px_-5px_rgba(var(--primary),0.5)]' : 'border-white/60'}`} />
+            <div className="w-16 h-16 border-b-[6px] border-l-[6px] border-blue-600 transition-all duration-500 rounded-bl-xl shadow-lg" />
+            <div className="w-16 h-16 border-b-[6px] border-r-[6px] border-blue-600 transition-all duration-500 rounded-br-xl shadow-lg" />
           </div>
         </div>
 
-        {/* Hint text */}
-        <div className="absolute bottom-32 left-0 right-0 text-center flex justify-center">
-          <div className="px-5 py-2.5 bg-black/50 backdrop-blur-xl border border-white/10 rounded-full flex items-center gap-2 shadow-2xl">
-            {isStable ? (
-              <>
-                <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-white/90 text-sm font-medium tracking-wide">{scanMode === 'qr' && qrCodeData ? 'QR locked. Tap capture.' : 'Hold steady...'}</span>
-              </>
-            ) : (
-              <span className="text-white/80 text-sm font-medium tracking-wide">{scanMode === 'qr' ? 'Center the QR code in frame' : 'Align document within frame'}</span>
-            )}
-          </div>
-        </div>
+        {/* White translucent overlay for document area simulation */}
+        {isStable && (
+           <div className="absolute inset-8 md:inset-14 bg-white/10 backdrop-blur-[2px] transition-all duration-500 z-10 rounded-xl" />
+        )}
       </div>
 
       {/* Bottom Controls */}
-      <div className="h-40 bg-black w-full flex items-center justify-between px-10 pb-6 z-10">
-        <button onClick={flipCamera} className="w-12 h-12 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md">
+      <div className="h-40 bg-white w-full flex items-center justify-between px-10 pb-6 z-10 shadow-[0_-10px_20px_rgba(0,0,0,0.05)]">
+        <button onClick={flipCamera} className="w-12 h-12 flex items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors">
           <FlipHorizontal className="w-6 h-6" />
         </button>
 
-        {/* Premium Shutter Button */}
+        {/* Solid Blue Shutter Button */}
         <div className="relative flex items-center justify-center w-24 h-24">
-          {/* Auto capture progress ring */}
-          {isStable && !autoCapturing && (
-            <svg className="absolute inset-0 w-full h-full -rotate-90 scale-110 transition-transform">
-              <circle cx="48" cy="48" r="44" fill="none" stroke="currentColor" className="text-white/10" strokeWidth="3" />
-              <circle 
-                cx="48" cy="48" r="44" 
-                fill="none" 
-                stroke="currentColor" 
-                className="text-primary transition-all duration-200" 
-                strokeWidth="3" 
-                strokeDasharray="276" 
-                strokeDashoffset={276 - (276 * progress / 100)} 
-                strokeLinecap="round"
-              />
-            </svg>
-          )}
-          
           <button 
             onClick={capturePhoto} 
             disabled={autoCapturing}
-            className="w-16 h-16 rounded-full bg-white shadow-[0_0_0_4px_rgba(255,255,255,0.2)] hover:shadow-[0_0_0_6px_rgba(255,255,255,0.3)] active:scale-95 transition-all duration-300 flex items-center justify-center relative overflow-hidden group"
+            className="w-20 h-20 rounded-full bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-[0_8px_30px_rgba(37,99,235,0.4)] transition-all duration-300 flex items-center justify-center text-white relative overflow-hidden"
           >
-            <div className="absolute inset-1 rounded-full border-2 border-black/10 group-active:border-black/20 transition-colors" />
-            {autoCapturing && <LoadingSpinner inline className="w-6 h-6 text-black animate-spin" />}
+            {autoCapturing ? (
+              <LoadingSpinner inline className="w-8 h-8 text-white animate-spin" />
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            )}
           </button>
         </div>
 
         <div className="w-12 h-12 flex items-center justify-center">
           {pagesCount > 0 && (
             <div className="relative">
-              <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-md border border-white/20" />
-              <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold ring-2 ring-black">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200" />
+              <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold ring-2 ring-white">
                 {pagesCount}
               </span>
             </div>

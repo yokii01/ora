@@ -1,0 +1,48 @@
+{
+  "name": "FileItem",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "file_url": {
+      "type": "string"
+    },
+    "file_type": {
+      "type": "string"
+    },
+    "file_size": {
+      "type": "number"
+    },
+    "folder": {
+      "type": "string",
+      "default": "root"
+    },
+    "starred": {
+      "type": "boolean",
+      "default": false
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "local",
+        "google_drive",
+        "dropbox",
+        "onedrive"
+      ],
+      "default": "local"
+    },
+    "preview_url": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

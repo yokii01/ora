@@ -1,0 +1,164 @@
+{
+  "name": "Plan",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "plan_type": {
+      "type": "string",
+      "enum": [
+        "trip",
+        "vacation",
+        "project",
+        "career",
+        "study",
+        "business",
+        "startup",
+        "event",
+        "wedding",
+        "financial",
+        "fitness",
+        "learning",
+        "content",
+        "launch",
+        "moving",
+        "daily",
+        "weekly",
+        "monthly",
+        "team",
+        "custom"
+      ],
+      "default": "project"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "upcoming",
+        "completed",
+        "paused",
+        "draft"
+      ],
+      "default": "active"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "urgent"
+      ],
+      "default": "medium"
+    },
+    "cover_image": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string",
+      "enum": [
+        "blue",
+        "green",
+        "orange",
+        "purple",
+        "pink",
+        "red",
+        "teal",
+        "amber"
+      ],
+      "default": "blue"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "progress": {
+      "type": "number",
+      "default": 0
+    },
+    "budget": {
+      "type": "number",
+      "default": 0
+    },
+    "spent": {
+      "type": "number",
+      "default": 0
+    },
+    "location": {
+      "type": "string"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "completed": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    "checklist": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "done": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    },
+    "links": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "favorite": {
+      "type": "boolean",
+      "default": false
+    },
+    "ai_generated": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "title"
+  ]
+}

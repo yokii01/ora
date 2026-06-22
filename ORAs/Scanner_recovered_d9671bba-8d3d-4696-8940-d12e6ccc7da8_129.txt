@@ -1,0 +1,63 @@
+Created At: 2026-06-10T16:41:48Z
+Completed At: 2026-06-10T16:41:48Z
+File Path: `file:///C:/Users/Yoghes/.gemini/antigravity/brain/d9671bba-8d3d-4696-8940-d12e6ccc7da8/task.md`
+Total Lines: 55
+Total Bytes: 2291
+Showing lines 1 to 55
+The following code has been modified to include a line number before every line, in the format: <line_number>: <original_line>. Please note that any changes targeting the original code should remove the line number, colon, and leading space.
+1: # ORAs Advanced UI Enhancement — Task Tracker
+2: 
+3: ## Phase 1: Finance + File Holder
+4: 
+5: ### Finance Module
+6: - `[x]` Replace all 13 category emojis with Lucide icons
+7: - `[x]` Replace 4 dashboard tab emojis with Lucide icons
+8: - `[x]` Remove inline 🎉 emoji from income vs expense message
+9: - `[x]` Replace list emojis with Lucide icons
+10: - `[x]` Improve pie chart with Framer Motion or Recharts animations
+11: - `[x]` Update category visualization in `SpendingCategoryChart` to match new icons
+12: 
+13: ### File Holder Module
+14: - `[x]` Extract `FileActions` component with Rename, Move, Copy, Duplicate, Share, Download, Delete, File Info, Favorite
+15: - `[x]` Extract `FilePreview` component to support PDF, Word, Excel, Images, Text, Markdown, Code, Video, Audio
+16: - `[x]` Extract `UploadExperience` component for persistent upload UI
+17: - `[x]` Fix file card long filename overflow (truncate with tooltip)
+18: - `[x]` Integrate new components into `Files.jsx`
+19: 
+20: ## Phase 2: Scanner + AI Assistant
+21: 
+22: ### Scanner Module
+23: - `[x]` Extract `CameraView` with grid overlay, flash toggle, camera flip, multi-page burst
+24: - `[x]` Extract `DocumentCropper` for canvas-based polygon edge selection and perspective warp
+25: - `[x]` Extract `FilterGallery` for Adobe-style color filters (Magic, B&W, Grayscale, etc.)
+26: - `[x]` Extract `DocumentEditor` for multi-page reordering, rotation, deletion
+27: - `[x]` Extract `ExportOptions` for PDF quality settings, format, OCR toggle
+28: - `[x]` Integrate components into `Scanner.jsx`
+29: - `[x]` Expand `ScanDocument` entity to support the new features
+30: 
+31: ### AI Assistant
+32: - `[x]` Glassmorphism floating message bar
+33: - `[x]` Plus icon popup menu (Upload File, Image, Code Snippet, Search)
+34: - `[x]` Loading spinner message placeholder
+35: - `[x]` Improve error handling visuals (retry button)
+36: - `[x]` Improve syntax highlighting themeit fallback
+37: - `[ ]` Regenerate response button
+38: 
+39: ## Phase 3: Calendar + Tasks + Global
+40: 
+41: ### Calendar
+42: - `[ ]` Compact header optimization
+43: - `[ ]` Create ScheduleView.jsx
+44: - `[ ]` Create SmartScheduleIllustrations.jsx
+45: 
+46: ### Tasks
+47: - `[ ]` Create TaskVisualAssignment.jsx
+48: - `[ ]` Add visual area to task cards
+49: 
+50: ### Global Polish
+51: - `[ ]` Update index.css (performance, spacing)
+52: - `[ ]` Update tailwind.config.js (animations)
+53: - `[ ]` Fix overflow/clipping across modules
+54: - `[ ]` Verify build passes
+55: 
+The above content shows the entire, complete file contents of the requested file.

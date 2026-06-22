@@ -1,0 +1,52 @@
+{
+  "name": "CalendarEvent",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "all_day": {
+      "type": "boolean",
+      "default": false
+    },
+    "color": {
+      "type": "string",
+      "enum": [
+        "blue",
+        "green",
+        "red",
+        "orange",
+        "purple",
+        "pink"
+      ],
+      "default": "blue"
+    },
+    "location": {
+      "type": "string"
+    },
+    "linked_task_id": {
+      "type": "string"
+    },
+    "linked_note_id": {
+      "type": "string"
+    },
+    "reminder_minutes": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "title",
+    "start_date"
+  ]
+}
