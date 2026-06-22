@@ -15,6 +15,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
 // Dynamically import CSS and the app after the global DB is set so
 // any modules that read `globalThis.__B44_DB__` use the mock DB.
 (async () => {
+  if (window.__appLoadTimer) clearTimeout(window.__appLoadTimer);
   await import('@/index.css');
   const { default: App } = await import('@/App.jsx');
   const { ErrorBoundary } = await import('@/components/shared/ErrorBoundary.jsx');
