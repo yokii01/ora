@@ -5,14 +5,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Flame, CheckCircle2, Trophy, TrendingUp, X, BarChart3, CalendarDays
+  Plus, Flame, CheckCircle2, Trophy, TrendingUp, X, BarChart3, CalendarDays,
+  Activity, Book, Droplets, Dumbbell, PenLine, Moon, Target, Star, Brain, Palette, Utensils, Briefcase, DollarSign, Music, Wind, Plane, Crosshair
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
-import { format, subDays, eachDayOfInterval } from 'date-fns';
+import { format, subDays, eachDayOfInterval, startOfWeek, endOfWeek, addMonths, subMonths, isSameMonth, isSameDay } from 'date-fns';
 import HabitoAnalytics from '@/components/habits/HabitoAnalytics';
 
 const HABIT_COLORS = {
@@ -24,7 +25,9 @@ const HABIT_COLORS = {
   pink: { bg: 'bg-pink-500', light: 'bg-pink-500/15', text: 'text-pink-500', glow: '0 0 20px rgba(236,72,153,0.5)', hex: '#ec4899' },
 };
 
-const HABIT_EMOJIS = ['🏃', '📚', '💧', '🧘', '🍎', '💪', '✍️', '😴', '🎯', '🌟', '🧠', '🎨'];
+const HABIT_ICONS = {
+  Activity, Book, Droplets, Dumbbell, PenLine, Moon, Target, Star, Brain, Palette, Utensils, Briefcase, DollarSign, Music, Wind, Plane, Crosshair
+};
 
 function CircleProgress({ percent, color, size = 56, stroke = 4 }) {
   const r = (size - stroke * 2) / 2;
@@ -47,13 +50,15 @@ function CircleProgress({ percent, color, size = 56, stroke = 4 }) {
   );
 }
 
-function HabitCard({ habit, today, onToggle, onDelete, index }) {
+function HabitCard({ habit, selectedDate, onToggle, onDelete, index }) {
   const [pressed, setPressed] = useState(false);
   const colorConf = HABIT_COLORS[habit.color] || HABIT_COLORS.purple;
-  const doneToday = habit.completions?.some(c => c.date === today);
-  const last7 = eachDayOfInterval({ start: subDays(new Date(), 6), end: new Date() });
+  const doneToday = habit.completions?.some(c => c.date === selectedDate);
+  const last7 = eachDayOfInterval({ start: startOfWeek(new Date(selectedDate), { weekStartsOn: 1 }), end: endOfWeek(new Date(selectedDate), { weekStartsOn: 1 }) });
   const completedDays = last7.filter(d => habit.completions?.some(c => c.date === format(d, 'yyyy-MM-dd'))).length;
   const weekPercent = (completedDays / 7) * 100;
+  
+  const IconComponent = HABIT_ICONS[habit.icon] || Target;
 
   return (
     <motion.div
@@ -61,12 +66,11 @@ function HabitCard({ habit, today, onToggle, onDelete, index }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.9, y: -10 }}
       transition={{ delay: index * 0.05, type: 'spring', stiffness: 400, damping: 28 }}
-      whileHover={{ y: -3, boxShadow: doneToday ? colorConf.glow : '0 8px 32px rgba(0,0,0,0.1)' }}
       className={cn(
         'relative overflow-hidden rounded-[28px] border transition-all duration-300 p-4',
         doneToday
           ? `${colorConf.light} border-transparent`
-          : 'bg-card border-border/50'
+          : 'bg-card border-border/50 hover:shadow-md'
       )}
     >
       {/* Background glow when done */}
@@ -83,13 +87,9 @@ function HabitCard({ habit, today, onToggle, onDelete, index }) {
         {/* Check button with circle progress */}
         <div className="relative flex-shrink-0">
           <CircleProgress percent={weekPercent} color={habit.color} size={52} stroke={3} />
-          <motion.button
-            whileTap={{ scale: 0.8 }}
-            onTapStart={() => setPressed(true)}
-            onTap={() => { setPressed(false); onToggle(habit); }}
-            onTapCancel={() => setPressed(false)}
+          <button
             onClick={() => onToggle(habit)}
-            className="absolute inset-0 flex items-center justify-center"
+            className="absolute inset-0 flex items-center justify-center transition-transform hover:scale-90 active:scale-75"
           >
             <AnimatePresence mode="wait">
               {doneToday ? (
@@ -108,12 +108,13 @@ function HabitCard({ habit, today, onToggle, onDelete, index }) {
                 </motion.div>
               )}
             </AnimatePresence>
-          </motion.button>
+          </button>
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
+            <IconComponent className={cn('w-4 h-4', colorConf.text)} />
             <p className={cn('text-sm font-semibold', doneToday && 'line-through opacity-60')}>{habit.name}</p>
             {habit.current_streak >= 3 && (
               <motion.span
@@ -138,7 +139,7 @@ function HabitCard({ habit, today, onToggle, onDelete, index }) {
             {last7.map((day, i) => {
               const d = format(day, 'yyyy-MM-dd');
               const done = habit.completions?.some(c => c.date === d);
-              const isToday = d === today;
+              const isSelectedDay = d === selectedDate;
               return (
                 <motion.div
                   key={d}
@@ -148,7 +149,7 @@ function HabitCard({ habit, today, onToggle, onDelete, index }) {
                   className={cn(
                     'flex-1 h-1.5 rounded-full transition-all',
                     done ? colorConf.bg : 'bg-muted/60',
-                    isToday && !done && 'ring-1 ring-offset-1 ring-border'
+                    isSelectedDay && !done && 'ring-1 ring-offset-1 ring-border'
                   )}
                 />
               );
@@ -159,24 +160,11 @@ function HabitCard({ habit, today, onToggle, onDelete, index }) {
         {/* Delete */}
         <button
           onClick={() => onDelete(habit.id)}
-          className="opacity-0 group-hover:opacity-100 p-1.5 rounded-xl hover:bg-destructive/10 transition-all absolute top-0 right-0"
+          className="opacity-0 md:opacity-100 group-hover:opacity-100 p-1.5 rounded-xl hover:bg-destructive/10 transition-all absolute top-0 right-0"
         >
           <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
         </button>
       </div>
-
-      {/* Completion ripple */}
-      <AnimatePresence>
-        {pressed && (
-          <motion.div
-            initial={{ scale: 0, opacity: 0.6 }}
-            animate={{ scale: 4, opacity: 0 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            className={cn('absolute left-6 top-6 w-10 h-10 rounded-full pointer-events-none', colorConf.bg)}
-          />
-        )}
-      </AnimatePresence>
     </motion.div>
   );
 }
@@ -184,9 +172,12 @@ function HabitCard({ habit, today, onToggle, onDelete, index }) {
 export default function Habito() {
   const [showAdd, setShowAdd] = useState(false);
   const [showVisualization, setShowVisualization] = useState(false);
-  const [newHabit, setNewHabit] = useState({ name: '', color: 'purple', frequency: 'daily', icon: '🎯' });
+  const [newHabit, setNewHabit] = useState({ name: '', color: 'purple', frequency: 'daily', icon: 'Target' });
+  const [selectedDateObj, setSelectedDateObj] = useState(new Date());
+  const [pickerOpen, setPickerOpen] = useState(false);
   const queryClient = useQueryClient();
-  const today = format(new Date(), 'yyyy-MM-dd');
+  const selectedDate = format(selectedDateObj, 'yyyy-MM-dd');
+  const todayDateStr = format(new Date(), 'yyyy-MM-dd');
 
   const { data: habits = [] } = useQuery({
     queryKey: ['habits'],
@@ -195,7 +186,7 @@ export default function Habito() {
 
   const createMutation = useMutation({
     mutationFn: (data) => db.entities.Habit.create(data),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['habits'] }); setShowAdd(false); setNewHabit({ name: '', color: 'purple', frequency: 'daily', icon: '🎯' }); },
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['habits'] }); setShowAdd(false); setNewHabit({ name: '', color: 'purple', frequency: 'daily', icon: 'Target' }); },
   });
 
   const updateMutation = useMutation({
@@ -210,12 +201,12 @@ export default function Habito() {
 
   const toggleToday = (habit) => {
     const completions = habit.completions || [];
-    const doneToday = completions.some(c => c.date === today);
+    const doneToday = completions.some(c => c.date === selectedDate);
     let updated;
     if (doneToday) {
-      updated = completions.filter(c => c.date !== today);
+      updated = completions.filter(c => c.date !== selectedDate);
     } else {
-      updated = [...completions, { date: today, count: 1 }];
+      updated = [...completions, { date: selectedDate, count: 1 }];
     }
     const streak = doneToday ? Math.max(0, (habit.current_streak || 0) - 1) : (habit.current_streak || 0) + 1;
     const best = Math.max(streak, habit.best_streak || 0);
@@ -223,12 +214,18 @@ export default function Habito() {
   };
 
   const activeHabits = habits.filter(h => h.active !== false);
-  const completedToday = activeHabits.filter(h => h.completions?.some(c => c.date === today)).length;
+  const completedToday = activeHabits.filter(h => h.completions?.some(c => c.date === selectedDate)).length;
   const totalActive = activeHabits.length;
   const overallProgress = totalActive > 0 ? Math.round((completedToday / totalActive) * 100) : 0;
   const topStreak = habits.reduce((max, h) => Math.max(max, h.current_streak || 0), 0);
-  const dateMarkers = eachDayOfInterval({ start: subDays(new Date(), 6), end: new Date() });
-  const visualizationDays = eachDayOfInterval({ start: subDays(new Date(), 13), end: new Date() });
+  
+  // Real calendar week (Monday to Sunday)
+  const dateMarkers = eachDayOfInterval({ 
+    start: startOfWeek(selectedDateObj, { weekStartsOn: 1 }), 
+    end: endOfWeek(selectedDateObj, { weekStartsOn: 1 }) 
+  });
+  
+  const visualizationDays = eachDayOfInterval({ start: subDays(selectedDateObj, 13), end: selectedDateObj });
   const averageCompletion = totalActive
     ? Math.round(visualizationDays.reduce((sum, day) => {
       const date = format(day, 'yyyy-MM-dd');
@@ -243,7 +240,21 @@ export default function Habito() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Habits</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">{format(new Date(), 'EEEE, MMMM d')}</p>
+          <div className="flex items-center gap-2 mt-0.5 relative">
+            <input 
+              type="date" 
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+              value={selectedDate}
+              onChange={(e) => {
+                if (e.target.value) {
+                  setSelectedDateObj(new Date(e.target.value));
+                }
+              }}
+            />
+            <p className="text-sm text-primary font-medium flex items-center gap-1 bg-primary/10 px-2 py-0.5 rounded-md hover:bg-primary/20 transition-colors pointer-events-none">
+              {isSameDay(selectedDateObj, new Date()) ? 'Today' : format(selectedDateObj, 'MMM d, yyyy')} <CalendarDays className="w-3 h-3" />
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => setShowVisualization(true)} size="sm" variant="outline" className="gap-1.5 rounded-full px-4">
@@ -255,30 +266,53 @@ export default function Habito() {
         </div>
       </div>
 
-      {/* Date Markers */}
-      <div className="rounded-[24px] border border-border/50 bg-card/60 p-3">
-        <div className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          <CalendarDays className="h-3.5 w-3.5 text-primary" />
-          Last 7 Days
+      {/* Real Calendar Week View */}
+      <div className="rounded-[24px] border border-border/50 bg-card/60 p-3 relative overflow-hidden">
+        {/* Subtle week view background decoration */}
+        <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+          <CalendarDays className="w-24 h-24" />
         </div>
-        <div className="grid grid-cols-7 gap-2">
+        <div className="mb-3 flex items-center justify-between text-xs font-bold uppercase tracking-widest text-muted-foreground relative z-10">
+          <div className="flex items-center gap-2">
+            <CalendarDays className="h-3.5 w-3.5 text-primary" />
+            {format(dateMarkers[0], 'MMM d')} - {format(dateMarkers[6], 'MMM d')}
+          </div>
+          {/* Jump to Today Button */}
+          {!isSameDay(selectedDateObj, new Date()) && (
+             <button 
+                onClick={() => setSelectedDateObj(new Date())}
+                className="text-[10px] bg-primary text-white px-2 py-0.5 rounded-md hover:opacity-80 transition-opacity"
+             >
+               Go to Today
+             </button>
+          )}
+        </div>
+        <div className="grid grid-cols-7 gap-2 relative z-10">
           {dateMarkers.map(day => {
             const date = format(day, 'yyyy-MM-dd');
             const doneCount = activeHabits.filter(habit => habit.completions?.some(c => c.date === date)).length;
             const percent = totalActive ? doneCount / totalActive : 0;
-            const isCurrent = date === today;
+            const isSelected = date === selectedDate;
+            const isTodayInGrid = date === todayDateStr;
             return (
-              <div key={date} className="flex flex-col items-center gap-1.5">
+              <div 
+                key={date} 
+                onClick={() => setSelectedDateObj(day)}
+                className="flex flex-col items-center gap-1.5 cursor-pointer group"
+              >
                 <div className={cn(
-                  'flex h-9 w-9 items-center justify-center rounded-full border text-xs font-bold transition-all',
+                  'flex h-9 w-9 items-center justify-center rounded-full border text-xs font-bold transition-all group-hover:scale-110 group-active:scale-95',
                   percent === 1 && 'border-emerald-500 bg-emerald-500 text-white shadow-lg shadow-emerald-500/20',
                   percent > 0 && percent < 1 && 'border-primary/50 bg-primary/15 text-primary',
                   percent === 0 && 'border-border bg-muted/40 text-muted-foreground',
-                  isCurrent && 'ring-2 ring-primary/30 ring-offset-2 ring-offset-background'
+                  isSelected && 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-110 shadow-md',
+                  isTodayInGrid && !isSelected && 'underline decoration-primary decoration-2 underline-offset-4'
                 )}>
                   {format(day, 'd')}
                 </div>
-                <span className="text-[10px] font-medium text-muted-foreground">{format(day, 'EEE')}</span>
+                <span className={cn("text-[10px] font-medium", isSelected ? "text-primary font-bold" : "text-muted-foreground")}>
+                  {format(day, 'EEE')}
+                </span>
               </div>
             );
           })}
@@ -366,8 +400,10 @@ export default function Habito() {
           <motion.div
             animate={{ y: [0, -8, 0] }}
             transition={{ repeat: Infinity, duration: 3 }}
-            className="text-5xl mb-4"
-          >🎯</motion.div>
+            className="flex justify-center mb-4 text-primary"
+          >
+            <Target className="w-12 h-12" />
+          </motion.div>
           <p className="text-lg font-semibold">Build powerful habits</p>
           <p className="text-sm text-muted-foreground mt-1">Start your journey to a better you</p>
           <Button onClick={() => setShowAdd(true)} className="mt-4 rounded-full gap-1.5 px-6">
@@ -381,20 +417,27 @@ export default function Habito() {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <span className="text-xl">{newHabit.icon}</span> New Habit
+              {React.createElement(HABIT_ICONS[newHabit.icon] || Target, { className: 'w-5 h-5 text-primary' })}
+              New Habit
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {/* Emoji picker */}
+            {/* Icon picker */}
             <div>
               <label className="text-xs text-muted-foreground mb-2 block">Icon</label>
               <div className="flex gap-2 flex-wrap">
-                {HABIT_EMOJIS.map(e => (
-                  <button key={e} onClick={() => setNewHabit({ ...newHabit, icon: e })}
-                    className={cn('text-xl p-1.5 rounded-xl transition-all', newHabit.icon === e ? 'bg-primary/15 scale-125 ring-1 ring-primary' : 'hover:bg-muted')}>
-                    {e}
-                  </button>
-                ))}
+                {Object.keys(HABIT_ICONS).map(iconKey => {
+                  const Icon = HABIT_ICONS[iconKey];
+                  return (
+                    <button 
+                      key={iconKey} 
+                      onClick={() => setNewHabit({ ...newHabit, icon: iconKey })}
+                      className={cn('p-2 rounded-xl transition-all', newHabit.icon === iconKey ? 'bg-primary/15 scale-110 ring-1 ring-primary text-primary' : 'hover:bg-muted text-muted-foreground')}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

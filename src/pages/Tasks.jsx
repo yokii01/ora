@@ -16,7 +16,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { format, isToday, isTomorrow, isPast } from 'date-fns';
-import { TaskVisualBadge } from '@/components/tasks/TaskVisualAssignment';
 
 const PRIORITY_CONFIG = {
   urgent: { color: 'text-red-100', bg: 'bg-red-500/50 border-red-500/40', label: 'Urgent', dot: 'bg-red-500' },
@@ -229,11 +228,11 @@ const TaskItem = React.memo(({
       initial={{ opacity: 0, y: 16 }}
       animate={softDeleted ? { opacity: 0, height: 0, marginBottom: 0 } : (isCompletingNow ? { opacity: 1, y: 0, height: 'auto', marginBottom: 12, backgroundColor: 'rgba(34, 197, 94, 0.06)' } : { opacity: 1, y: 0, height: 'auto', marginBottom: 12, backgroundColor: 'transparent' })}
       exit={{ opacity: 0, x: 60, scale: 0.95, height: 0, marginBottom: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
-      className="relative rounded-[20px] overflow-hidden"
+      className="relative rounded-[22px] overflow-hidden"
       style={{ touchAction: 'pan-y' }}
     >
       {/* Swipe-to-delete Red Background Reveal */}
-      <div className="absolute inset-0 bg-gradient-to-l from-red-500/90 to-red-600/40 flex items-center justify-end pr-6 shadow-inner z-0 pointer-events-none">
+      <div className="absolute inset-0 bg-gradient-to-l from-red-500/90 to-red-600/40 flex items-center justify-end pr-6 shadow-inner z-0 pointer-events-none rounded-[22px]">
          <Trash2 className="w-5 h-5 text-white" />
       </div>
 
@@ -245,78 +244,80 @@ const TaskItem = React.memo(({
         dragDirectionLock
         onDragEnd={handleDragEnd}
         onClick={() => !isCompletingNow && onOpenDetail(task)}
-        whileHover={!isCompletingNow ? { scale: 1.01, y: -1 } : undefined}
-        whileTap={!isCompletingNow ? { scale: 0.985 } : undefined}
         className={cn(
-          'relative flex items-stretch cursor-pointer group overflow-hidden gpu-accelerated transition-all duration-300',
-          'min-h-[64px]',
-          'rounded-[20px]',
+          'relative flex items-stretch cursor-pointer group overflow-hidden transition-all duration-300',
+          'min-h-[68px]',
+          'rounded-[22px]',
           'z-10',
-          // Solid premium card background
-          'bg-card',
-          'border border-border/60 shadow-sm',
-          isCompleted ? 'opacity-50 grayscale-[0.4]' : 'hover:border-primary/30',
-          isCompletingNow && 'border-green-500/30 shadow-[0_0_24px_rgba(34,197,94,0.15)] glow-success'
+          // Solid premium surface, no transparency
+          'bg-[#ffffff] dark:bg-[#12141a]',
+          'shadow-[0_2px_8px_rgba(0,0,0,0.04),0_10px_20px_rgba(0,0,0,0.02)]',
+          'dark:shadow-[0_2px_12px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.03)]',
+          isCompleted ? 'opacity-60 grayscale-[0.3]' : 'hover:shadow-[0_4px_16px_rgba(0,0,0,0.06),0_12px_24px_rgba(0,0,0,0.04)]',
+          isCompletingNow && 'shadow-[0_0_24px_rgba(34,197,94,0.15)] glow-success'
         )}
       >
-        {/* Subtle Decorative Gradient Accent (solid, no transparency bleed) */}
-        <div className="absolute inset-y-0 right-0 w-[40%] bg-gradient-to-l from-primary/[0.04] dark:from-primary/[0.08] to-transparent pointer-events-none" />
-
-        <div className="flex-1 min-w-0 py-3 pl-[16px] pr-[12px] flex items-center gap-[12px] relative z-10">
-          <div className="flex flex-col items-center justify-center shrink-0">
-            <CompletionCheckbox task={task} completing={completing} isCompleted={isCompleted} onToggle={onToggleStatus} />
-          </div>
-
-          <div className="flex-1 min-w-0 flex flex-col justify-center">
-            <div className="flex items-center gap-2">
-              <p className={cn(
-                'text-[15px] font-bold leading-tight line-clamp-1',
-                isCompleted && 'line-through text-muted-foreground',
-                isCompletingNow && 'text-green-400'
-              )}>
-                {task.title}
-              </p>
-              
-              {/* Hashtags inline */}
-              {task.tags?.length > 0 && (
-                <div className="flex items-center gap-1 overflow-hidden shrink-0">
-                  {task.tags.slice(0, 2).map(tag => (
-                    <span key={tag} className="text-[9px] font-medium text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-md truncate max-w-[60px]">
-                      #{tag.replace(/^#/, '')}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3 mt-0.5">
-              {dueDateInfo && (
-                <span className={cn('text-[10px] font-medium', dueDateInfo.class)}>
-                  {dueDateInfo.text}
-                </span>
-              )}
-              {totalSubtasks > 0 && (
-                <span className="text-[10px] text-muted-foreground">{completedSubtasks}/{totalSubtasks} subtasks</span>
-              )}
-            </div>
-          </div>
+        {/* Soft Brushed Gradient ONLY on the right side */}
+        <div className="absolute inset-y-0 right-0 w-[40%] md:w-[35%] overflow-hidden rounded-r-[22px] pointer-events-none">
+          {/* Subtle gradient to blend into the card base color */}
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#ffffff] dark:to-[#12141a] z-10 w-16" />
+          {/* The flowing color */}
+          <div className={cn('absolute inset-0 opacity-15 dark:opacity-20 transition-opacity duration-500', config.bg.split(' ')[0])} style={{ filter: 'blur(16px)' }} />
+          {/* Edge highlight */}
+          <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/10 to-transparent mix-blend-overlay" />
         </div>
 
-        {/* Right Visual Area */}
-        <div className="w-[28%] sm:w-[32%] flex-shrink-0 relative overflow-hidden rounded-r-[20px] bg-card">
-          <div className="absolute inset-0 z-10 bg-gradient-to-r from-card to-transparent w-12 left-0 pointer-events-none" />
+        <div className="flex-1 min-w-0 py-3 pl-[16px] pr-[16px] flex items-center justify-between relative z-20">
           
-          <TaskVisualBadge
-            task={task}
-            className="w-full h-full object-cover transition-opacity duration-500 opacity-90 dark:opacity-100"
-          />
+          {/* Left: Checkbox & Content */}
+          <div className="flex items-center gap-[14px] flex-1 min-w-0 pr-4">
+            <div className="flex flex-col items-center justify-center shrink-0">
+              <CompletionCheckbox task={task} completing={completing} isCompleted={isCompleted} onToggle={onToggleStatus} />
+            </div>
 
-          {/* Priority Badge directly on the image */}
-          <div className="absolute top-3 left-4 sm:left-6 z-20">
-             <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-md bg-card/90 backdrop-blur-md', config.color)}>
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <div className="flex items-center gap-2">
+                <p className={cn(
+                  'text-[16px] font-bold tracking-tight leading-tight line-clamp-1',
+                  'text-zinc-900 dark:text-zinc-100',
+                  isCompleted && 'line-through text-muted-foreground',
+                  isCompletingNow && 'text-green-500 dark:text-green-400'
+                )}>
+                  {task.title}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 mt-1 flex-wrap">
+                {/* Due Date & Subtasks */}
+                {dueDateInfo && (
+                  <span className={cn('text-[11px] font-semibold tracking-wide uppercase', dueDateInfo.class)}>
+                    {dueDateInfo.text}
+                  </span>
+                )}
+                {totalSubtasks > 0 && (
+                  <span className="text-[11px] font-medium text-muted-foreground">{completedSubtasks}/{totalSubtasks} subtasks</span>
+                )}
+                {/* Hashtags */}
+                {task.tags?.length > 0 && (
+                  <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
+                    {task.tags.slice(0, 2).map(tag => (
+                      <span key={tag} className="text-[10px] font-bold text-primary bg-primary/5 dark:bg-primary/10 px-2 py-0.5 rounded-full truncate max-w-[70px]">
+                        #{tag.replace(/^#/, '')}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Priority Badge ONLY */}
+          <div className="flex-shrink-0 flex flex-col justify-center items-end relative z-20">
+             <span className={cn('text-[10px] font-bold px-3 py-1 rounded-full shadow-sm', config.bg, config.color)}>
                {config.label}
              </span>
           </div>
+
         </div>
       </motion.div>
     </motion.div>
