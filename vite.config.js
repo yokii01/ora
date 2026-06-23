@@ -9,7 +9,7 @@ export default defineConfig(({ command, mode }) => {
   Object.assign(process.env, loadEnv(mode, process.cwd(), ''));
 
   return {
-    base: command === 'build' ? '/ORAs/' : '/',
+    base: command === 'build' ? '/ora/' : '/',
     logLevel: 'error',
     resolve: {
       alias: {
