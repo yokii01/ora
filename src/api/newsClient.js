@@ -2,13 +2,21 @@ const NEWSDATA_BASE = 'https://newsdata.io/api/1/latest';
 const NEWSAPI_BASE = 'https://newsapi.org/v2/top-headlines';
 
 const CATEGORY_MAP_NEWSDATA = {
-  All: '', Technology: 'technology', Business: 'business',
-  Design: 'entertainment', Politics: 'politics', Science: 'science', Health: 'health'
+  All: '', Trending: 'top', Technology: 'technology', Business: 'business',
+  Entertainment: 'entertainment', Politics: 'politics', Science: 'science', Health: 'health',
+  Finance: 'business', Games: 'entertainment', Sports: 'sports', World: 'world', Lifestyle: 'lifestyle'
 };
 
 const CATEGORY_MAP_NEWSAPI = {
-  All: 'general', Technology: 'technology', Business: 'business',
-  Design: 'entertainment', Politics: 'politics', Science: 'science', Health: 'health'
+  All: 'general', Trending: 'general', Technology: 'technology', Business: 'business',
+  Entertainment: 'entertainment', Politics: 'politics', Science: 'science', Health: 'health',
+  Finance: 'business', Games: 'entertainment', Sports: 'sports', World: 'general', Lifestyle: 'health'
+};
+
+const CATEGORY_MAP_GNEWS = {
+  All: 'general', Trending: 'breaking-news', Technology: 'technology', Business: 'business', 
+  Entertainment: 'entertainment', Politics: 'nation', Science: 'science', Health: 'health',
+  Finance: 'business', Games: 'entertainment', Sports: 'sports', World: 'world', Lifestyle: 'health'
 };
 
 // In-memory cache: { cacheKey: { data, timestamp } }
@@ -60,8 +68,7 @@ export async function fetchNewsArticles({
     const gKey = import.meta.env.VITE_GOOGLE_NEWS_API_KEY || '0168db77d25132d0541568d7fda567c5';
     if (gKey) {
       const params = new URLSearchParams({ apikey: gKey, lang: 'en', max: String(size), page: String(page) });
-      const GNEWS_MAP = { All: 'general', Technology: 'technology', Business: 'business', Design: 'entertainment', Politics: 'nation', Science: 'science', Health: 'health' };
-      if (category && GNEWS_MAP[category]) params.set('category', GNEWS_MAP[category]);
+      if (category && CATEGORY_MAP_GNEWS[category]) params.set('category', CATEGORY_MAP_GNEWS[category]);
       if (query && query.trim()) params.set('q', query.trim());
       if (country && country.trim()) params.set('country', country.trim().toLowerCase());
 
@@ -191,7 +198,41 @@ export async function fetchNewsArticles({
     }
   }
 
-  // 4. Update Cache & Return
+  // 4. Filtering & Deduplication & Sort
+  if (articles && articles.length > 0) {
+    const now = Date.now();
+    const MIN_AGE = 30 * 60 * 1000; // 30 minutes
+    const MAX_AGE = 48 * 60 * 60 * 1000; // 2 days
+
+    // Filter by time (30m to 2d)
+    let filtered = articles.filter(a => {
+      if (!a.pubDate) return false;
+      const pubTime = new Date(a.pubDate).getTime();
+      const age = now - pubTime;
+      return age >= MIN_AGE && age <= MAX_AGE;
+    });
+
+    // Fallback: If filtering removes everything, we keep the original sorted list to avoid an empty screen
+    if (filtered.length === 0) {
+      filtered = articles;
+    }
+
+    // Sort by recency
+    filtered.sort((a, b) => new Date(b.pubDate).getTime() - new Date(a.pubDate).getTime());
+
+    // Deduplicate by headline
+    const uniqueMap = new Map();
+    filtered.forEach(a => {
+      const key = a.title.toLowerCase().trim();
+      if (!uniqueMap.has(key)) {
+        uniqueMap.set(key, a);
+      }
+    });
+
+    articles = Array.from(uniqueMap.values());
+  }
+
+  // 5. Update Cache & Return
   if (articles && articles.length > 0) {
     newsCache.set(cacheKey, { data: articles, timestamp: Date.now() });
   }
