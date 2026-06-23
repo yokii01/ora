@@ -252,19 +252,15 @@ const TaskItem = React.memo(({
           'min-h-[64px]',
           'rounded-[20px]',
           'z-10',
-          // Premium dynamic backgrounds
-          'bg-gradient-to-r from-white/95 via-[#f8faff]/90 to-[#fdfdff]/95',
-          'dark:from-[#0c1425]/95 dark:via-[#151c3b]/90 dark:to-[#0f172a]/95',
-          'backdrop-blur-2xl',
-          'border border-black/[0.04] dark:border-white/[0.06]',
-          'shadow-[0_4px_12px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.05)]',
-          'dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),inset_0_-1px_0_rgba(0,0,0,0.2),0_2px_8px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)]',
-          isCompleted ? 'opacity-50 grayscale-[0.4]' : 'hover:border-primary/20 dark:hover:border-primary/30',
+          // Solid premium card background
+          'bg-card',
+          'border border-border/60 shadow-sm',
+          isCompleted ? 'opacity-50 grayscale-[0.4]' : 'hover:border-primary/30',
           isCompletingNow && 'border-green-500/30 shadow-[0_0_24px_rgba(34,197,94,0.15)] glow-success'
         )}
       >
-        {/* Glow Effects */}
-        <div className="absolute top-0 right-0 w-[40%] h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none dark:from-primary/10" />
+        {/* Subtle Decorative Gradient Accent (solid, no transparency bleed) */}
+        <div className="absolute inset-y-0 right-0 w-[40%] bg-gradient-to-l from-primary/[0.04] dark:from-primary/[0.08] to-transparent pointer-events-none" />
 
         <div className="flex-1 min-w-0 py-3 pl-[16px] pr-[12px] flex items-center gap-[12px] relative z-10">
           <div className="flex flex-col items-center justify-center shrink-0">
@@ -285,7 +281,7 @@ const TaskItem = React.memo(({
               {task.tags?.length > 0 && (
                 <div className="flex items-center gap-1 overflow-hidden shrink-0">
                   {task.tags.slice(0, 2).map(tag => (
-                    <span key={tag} className="text-[9px] font-medium text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-md backdrop-blur-sm truncate max-w-[60px]">
+                    <span key={tag} className="text-[9px] font-medium text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-md truncate max-w-[60px]">
                       #{tag.replace(/^#/, '')}
                     </span>
                   ))}
@@ -307,18 +303,17 @@ const TaskItem = React.memo(({
         </div>
 
         {/* Right Visual Area */}
-        <div className="w-[28%] sm:w-[32%] flex-shrink-0 relative overflow-hidden rounded-r-[20px]">
-          {/* Smooth gradient fade into card background */}
-          <div className="absolute inset-0 z-10 bg-gradient-to-r from-white/95 dark:from-[#111d35]/95 to-transparent w-12 left-0 pointer-events-none" />
+        <div className="w-[28%] sm:w-[32%] flex-shrink-0 relative overflow-hidden rounded-r-[20px] bg-card">
+          <div className="absolute inset-0 z-10 bg-gradient-to-r from-card to-transparent w-12 left-0 pointer-events-none" />
           
           <TaskVisualBadge
             task={task}
-            className="w-full h-full object-cover transition-opacity duration-500 mix-blend-overlay dark:mix-blend-normal opacity-70 dark:opacity-80"
+            className="w-full h-full object-cover transition-opacity duration-500 opacity-90 dark:opacity-100"
           />
 
           {/* Priority Badge directly on the image */}
           <div className="absolute top-3 left-4 sm:left-6 z-20">
-             <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-sm backdrop-blur-md', config.bg, config.color)}>
+             <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-md bg-card/90 backdrop-blur-md', config.color)}>
                {config.label}
              </span>
           </div>
@@ -479,7 +474,7 @@ export default function Tasks() {
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               className={cn('px-5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all',
-                activeTab === tab.id ? 'bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.5)]' : 'bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground border border-white/5')}>
+                activeTab === tab.id ? 'bg-primary text-primary-foreground shadow-[0_0_15px_hsl(var(--primary)/0.5)]' : 'bg-card text-muted-foreground hover:bg-muted hover:text-foreground border border-border shadow-sm')}>
               {tab.label}
             </motion.button>
           ))}
