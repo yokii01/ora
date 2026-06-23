@@ -382,7 +382,7 @@ export default function Habito() {
             <HabitCard
               key={habit.id}
               habit={habit}
-              today={today}
+              selectedDate={selectedDate}
               onToggle={toggleToday}
               onDelete={(id) => deleteMutation.mutate(id)}
               index={i}

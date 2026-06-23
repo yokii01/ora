@@ -232,8 +232,8 @@ const TaskItem = React.memo(({
       style={{ touchAction: 'pan-y' }}
     >
       {/* Swipe-to-delete Red Background Reveal */}
-      <div className="absolute inset-0 bg-gradient-to-l from-red-500/90 to-red-600/40 flex items-center justify-end pr-6 shadow-inner z-0 pointer-events-none rounded-[22px]">
-         <Trash2 className="w-5 h-5 text-white" />
+      <div className="absolute inset-0 bg-red-600 flex items-center justify-end pr-6 shadow-inner z-0 pointer-events-none rounded-[22px]">
+         <Trash2 className="w-6 h-6 text-white" strokeWidth={2.5} />
       </div>
 
       <motion.div
@@ -246,14 +246,13 @@ const TaskItem = React.memo(({
         onClick={() => !isCompletingNow && onOpenDetail(task)}
         className={cn(
           'relative flex items-stretch cursor-pointer group overflow-hidden transition-all duration-300',
-          'min-h-[68px]',
+          'min-h-[72px]', // slightly thicker
           'rounded-[22px]',
           'z-10',
-          // Solid premium surface, no transparency
-          'bg-[#ffffff] dark:bg-[#12141a]',
-          'shadow-[0_2px_8px_rgba(0,0,0,0.04),0_10px_20px_rgba(0,0,0,0.02)]',
-          'dark:shadow-[0_2px_12px_rgba(0,0,0,0.2),inset_0_1px_0_rgba(255,255,255,0.03)]',
-          isCompleted ? 'opacity-60 grayscale-[0.3]' : 'hover:shadow-[0_4px_16px_rgba(0,0,0,0.06),0_12px_24px_rgba(0,0,0,0.04)]',
+          // Solid premium surface, completely opaque
+          'bg-card border-2 border-border/60',
+          'shadow-sm',
+          isCompleted ? 'opacity-60 grayscale-[0.3]' : 'hover:border-border hover:shadow-md',
           isCompletingNow && 'shadow-[0_0_24px_rgba(34,197,94,0.15)] glow-success'
         )}
       >
