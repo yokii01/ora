@@ -360,7 +360,12 @@ export default function Settings() {
                 toast.success("App installed successfully!");
               }
             } else {
-              toast.error("Install not available or already installed.");
+              const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+              if (isIOS) {
+                toast.info("To install on iOS: Tap the Share icon at the bottom, then 'Add to Home Screen'.", { duration: 6000 });
+              } else {
+                toast.error("Install not available. App may already be installed, or your browser doesn't support this.");
+              }
             }
           }} className="rounded-xl h-8 text-xs">
             Install

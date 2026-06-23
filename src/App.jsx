@@ -55,11 +55,55 @@ const AuthenticatedApp = () => {
   );
 };
 
+import { motion, AnimatePresence } from 'framer-motion';
+
+function AppSplashScreen({ onComplete }) {
+  React.useEffect(() => {
+    const timer = setTimeout(onComplete, 1500);
+    return () => clearTimeout(timer);
+  }, [onComplete]);
+
+  return (
+    <motion.div 
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5, ease: "easeInOut" }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 99999,
+        backgroundColor: '#0F172A',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white'
+      }}
+    >
+      <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTU8_M7m9TFx-lH6k6ZHA_q1MZDa_t5zCXhKw&s" alt="ORAs Logo" style={{ width: 120, height: 120, borderRadius: 24, marginBottom: 24, boxShadow: '0 10px 25px rgba(0,0,0,0.3)' }} />
+      <h2 style={{ margin: 0, fontWeight: 800, letterSpacing: '2px', fontSize: '28px' }}>ORAs</h2>
+    </motion.div>
+  );
+}
+
 function App() {
+  const [showSplash, setShowSplash] = React.useState(() => {
+    if (sessionStorage.getItem('oras_splashed')) return false;
+    return true;
+  });
+
+  const handleSplashComplete = React.useCallback(() => {
+    setShowSplash(false);
+    sessionStorage.setItem('oras_splashed', 'true');
+  }, []);
+
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={import.meta.env.BASE_URL}>
+          <AnimatePresence>
+            {showSplash && <AppSplashScreen key="splash" onComplete={handleSplashComplete} />}
+          </AnimatePresence>
           <StartupValidator>
             <AuthenticatedApp />
           </StartupValidator>
