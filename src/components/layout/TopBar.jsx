@@ -92,8 +92,8 @@ export default function TopBar({ onSearchOpen, onEditMode }) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 bg-background/70 backdrop-blur-2xl border-b border-border/40">
-        <div className="flex items-center justify-between h-14 px-4 lg:px-6 gap-3">
+      <header className="bg-background/70 backdrop-blur-2xl border-b border-border/40 w-full relative z-30">
+        <div className="flex items-center justify-between h-16 px-4 lg:px-6 gap-2">
 
           {/* Mobile: logo or expanded search */}
           <div className="lg:hidden flex items-center flex-1 gap-2 min-w-0">
@@ -218,9 +218,9 @@ export default function TopBar({ onSearchOpen, onEditMode }) {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 title="Customize Home"
-                className="ml-2 p-2 rounded-xl bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/30 dark:border-white/10 hover:border-primary/30 hover:bg-primary/5 transition-all text-muted-foreground hover:text-primary"
+                className="ml-2 w-12 h-12 flex flex-shrink-0 items-center justify-center rounded-full bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/30 dark:border-white/10 hover:border-primary/30 hover:bg-primary/5 active:scale-95 transition-all text-muted-foreground hover:text-primary overflow-hidden relative"
               >
-                <Pencil className="w-4 h-4" />
+                <Pencil className="w-[22px] h-[22px]" />
               </motion.button>
             )}
           </div>
@@ -236,9 +236,10 @@ export default function TopBar({ onSearchOpen, onEditMode }) {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   onClick={() => setSearchActive(true)}
-                  className="lg:hidden p-2.5 rounded-xl hover:bg-muted transition-colors"
+                  whileTap={{ scale: 0.95 }}
+                  className="lg:hidden w-12 h-12 flex items-center justify-center rounded-full hover:bg-muted/80 active:bg-muted transition-colors relative overflow-hidden flex-shrink-0"
                 >
-                  <Search className="w-5 h-5 text-muted-foreground" />
+                  <Search className="w-[22px] h-[22px] text-muted-foreground" />
                 </motion.button>
               ) : (
                 <motion.button
@@ -247,9 +248,10 @@ export default function TopBar({ onSearchOpen, onEditMode }) {
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
                   onClick={closeSearch}
-                  className="lg:hidden p-2.5 rounded-xl hover:bg-muted transition-colors"
+                  whileTap={{ scale: 0.95 }}
+                  className="lg:hidden w-12 h-12 flex items-center justify-center rounded-full hover:bg-muted/80 active:bg-muted transition-colors relative overflow-hidden flex-shrink-0"
                 >
-                  <X className="w-5 h-5 text-muted-foreground" />
+                  <X className="w-[22px] h-[22px] text-muted-foreground" />
                 </motion.button>
               )}
             </AnimatePresence>
@@ -258,11 +260,11 @@ export default function TopBar({ onSearchOpen, onEditMode }) {
             {isHome && !searchActive && (
               <motion.button
                 onClick={onEditMode}
-                whileTap={{ scale: 0.92 }}
-                className="lg:hidden p-2.5 rounded-xl hover:bg-muted transition-colors text-muted-foreground"
+                whileTap={{ scale: 0.95 }}
+                className="lg:hidden w-12 h-12 flex items-center justify-center rounded-full hover:bg-muted/80 active:bg-muted transition-colors text-muted-foreground relative overflow-hidden flex-shrink-0"
                 title="Customize"
               >
-                <Pencil className="w-[18px] h-[18px]" />
+                <Pencil className="w-[22px] h-[22px]" />
               </motion.button>
             )}
 
@@ -271,10 +273,10 @@ export default function TopBar({ onSearchOpen, onEditMode }) {
             <div className="relative">
               <motion.button
                 onClick={() => setNotifOpen(!notifOpen)}
-                whileTap={{ scale: 0.92 }}
-                className="p-2 rounded-xl hover:bg-muted transition-colors relative"
+                whileTap={{ scale: 0.95 }}
+                className="w-12 h-12 flex items-center justify-center rounded-full hover:bg-muted/80 active:bg-muted transition-colors relative overflow-hidden flex-shrink-0"
               >
-                <Bell className="w-5 h-5 text-muted-foreground" />
+                <Bell className="w-[22px] h-[22px] text-muted-foreground" />
                 <AnimatePresence>
                   {notifCount > 0 && (
                     <motion.span
@@ -282,7 +284,7 @@ export default function TopBar({ onSearchOpen, onEditMode }) {
                       animate={{ scale: 1 }}
                       exit={{ scale: 0 }}
                       transition={{ type: 'spring', stiffness: 500, damping: 20 }}
-                      className="absolute -top-0.5 -right-0.5 min-w-[17px] h-[17px] bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none"
+                      className="absolute top-[8px] right-[8px] min-w-[17px] h-[17px] bg-destructive text-destructive-foreground text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none"
                     >
                       {notifCount > 8 ? '8+' : notifCount}
                     </motion.span>

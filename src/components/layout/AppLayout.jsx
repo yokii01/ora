@@ -85,12 +85,23 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       {!hideChrome && <Sidebar />}
       <div className={!hideChrome ? 'lg:pl-[240px] flex flex-col min-h-screen' : 'flex flex-col min-h-screen'}>
-        {!hideChrome && (
-          <TopBar
-            onSearchOpen={() => setSearchOpen(true)}
-            onEditMode={() => isHome && setEditModeOpen(true)}
-          />
-        )}
+        <AnimatePresence mode="popLayout">
+          {!hideChrome && isHome && (
+            <motion.div
+              key="topbar"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
+              className="sticky top-0 z-40 transform-gpu will-change-transform"
+            >
+              <TopBar
+                onSearchOpen={() => setSearchOpen(true)}
+                onEditMode={() => setEditModeOpen(true)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
         <main className={`flex-1 overflow-hidden ${hideChrome ? '' : 'pb-28 lg:pb-6'}`}>
           {isAssistant ? (
             <Outlet context={{ editModeOpen, setEditModeOpen }} />
