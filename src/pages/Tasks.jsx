@@ -3,7 +3,8 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 import React, { useState, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { toast } from 'sonner';
 import {
   Plus, Search, Circle, CheckCircle2,
   Trash2, Calendar, MoreHorizontal, Pencil, X, Check
@@ -179,6 +180,163 @@ function SubtaskItem({ subtask, onToggle }) {
   );
 }
 
+const TaskItem = React.memo(({
+  task,
+  completing,
+  onToggleStatus,
+  onDelete,
+  onOpenDetail
+}) => {
+  const [softDeleted, setSoftDeleted] = useState(false);
+  const dragControls = useAnimation();
+  const isCompletingNow = completing === task.id;
+  const isCompleted = task.status === 'completed';
+
+  const config = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium;
+  const dueDateInfo = getDueDateLabel(task.due_date);
+  const totalSubtasks = (task.subtasks || []).length;
+  const completedSubtasks = (task.subtasks || []).filter(s => s.completed).length;
+
+  const handleDragEnd = async (event, info) => {
+    const threshold = -80;
+    if (info.offset.x < threshold || info.velocity.x < -600) {
+      if (navigator.vibrate) navigator.vibrate(8);
+      await dragControls.start({ x: -window.innerWidth, transition: { duration: 0.25, ease: 'easeOut' } });
+      setSoftDeleted(true);
+      
+      let undoClicked = false;
+      toast("Task deleted", {
+        action: {
+          label: "Undo",
+          onClick: () => {
+            undoClicked = true;
+            setSoftDeleted(false);
+            dragControls.set({ x: 0 }); // Snap back instantly before expanding
+          }
+        },
+        duration: 5000,
+        onAutoClose: () => { if (!undoClicked) onDelete(task.id); },
+        onDismiss: () => { if (!undoClicked) onDelete(task.id); }
+      });
+    } else {
+      dragControls.start({ x: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } });
+    }
+  };
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={softDeleted ? { opacity: 0, height: 0, marginBottom: 0 } : (isCompletingNow ? { opacity: 1, y: 0, height: 'auto', marginBottom: 12, backgroundColor: 'rgba(34, 197, 94, 0.06)' } : { opacity: 1, y: 0, height: 'auto', marginBottom: 12, backgroundColor: 'transparent' })}
+      exit={{ opacity: 0, x: 60, scale: 0.95, height: 0, marginBottom: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
+      className="relative rounded-[20px] overflow-hidden"
+      style={{ touchAction: 'pan-y' }}
+    >
+      {/* Swipe-to-delete Red Background Reveal */}
+      <div className="absolute inset-0 bg-gradient-to-l from-red-500/90 to-red-600/40 flex items-center justify-end pr-6 shadow-inner z-0 pointer-events-none">
+         <Trash2 className="w-5 h-5 text-white" />
+      </div>
+
+      <motion.div
+        animate={dragControls}
+        drag={!isCompletingNow && !softDeleted ? "x" : false}
+        dragConstraints={{ left: 0, right: 0 }}
+        dragElastic={{ left: 1, right: 0 }}
+        dragDirectionLock
+        onDragEnd={handleDragEnd}
+        onClick={() => !isCompletingNow && onOpenDetail(task)}
+        whileHover={!isCompletingNow ? { scale: 1.01, y: -1 } : undefined}
+        whileTap={!isCompletingNow ? { scale: 0.985 } : undefined}
+        className={cn(
+          'relative flex items-stretch cursor-pointer group overflow-hidden gpu-accelerated transition-all duration-300',
+          'min-h-[64px]',
+          'rounded-[20px]',
+          'z-10',
+          // Premium dynamic backgrounds
+          'bg-gradient-to-r from-white/95 via-[#f8faff]/90 to-[#fdfdff]/95',
+          'dark:from-[#0c1425]/95 dark:via-[#151c3b]/90 dark:to-[#0f172a]/95',
+          'backdrop-blur-2xl',
+          'border border-black/[0.04] dark:border-white/[0.06]',
+          'shadow-[0_4px_12px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.05)]',
+          'dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.04),inset_0_-1px_0_rgba(0,0,0,0.2),0_2px_8px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)]',
+          isCompleted ? 'opacity-50 grayscale-[0.4]' : 'hover:border-primary/20 dark:hover:border-primary/30',
+          isCompletingNow && 'border-green-500/30 shadow-[0_0_24px_rgba(34,197,94,0.15)] glow-success'
+        )}
+      >
+        {/* Glow Effects */}
+        <div className="absolute top-0 right-0 w-[40%] h-full bg-gradient-to-l from-primary/5 to-transparent pointer-events-none dark:from-primary/10" />
+
+        <div className="flex-1 min-w-0 py-3 pl-[16px] pr-[12px] flex items-center gap-[12px] relative z-10">
+          <div className="flex flex-col items-center justify-center shrink-0">
+            <CompletionCheckbox task={task} completing={completing} isCompleted={isCompleted} onToggle={onToggleStatus} />
+          </div>
+
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <div className="flex items-center gap-2">
+              <p className={cn(
+                'text-[15px] font-bold leading-tight line-clamp-1',
+                isCompleted && 'line-through text-muted-foreground',
+                isCompletingNow && 'text-green-400'
+              )}>
+                {task.title}
+              </p>
+              
+              {/* Hashtags inline */}
+              {task.tags?.length > 0 && (
+                <div className="flex items-center gap-1 overflow-hidden shrink-0">
+                  {task.tags.slice(0, 2).map(tag => (
+                    <span key={tag} className="text-[9px] font-medium text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-md backdrop-blur-sm truncate max-w-[60px]">
+                      #{tag.replace(/^#/, '')}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center gap-3 mt-0.5">
+              {dueDateInfo && (
+                <span className={cn('text-[10px] font-medium', dueDateInfo.class)}>
+                  {dueDateInfo.text}
+                </span>
+              )}
+              {totalSubtasks > 0 && (
+                <span className="text-[10px] text-muted-foreground">{completedSubtasks}/{totalSubtasks} subtasks</span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Visual Area */}
+        <div className="w-[28%] sm:w-[32%] flex-shrink-0 relative overflow-hidden rounded-r-[20px]">
+          {/* Smooth gradient fade into card background */}
+          <div className="absolute inset-0 z-10 bg-gradient-to-r from-white/95 dark:from-[#111d35]/95 to-transparent w-12 left-0 pointer-events-none" />
+          
+          <TaskVisualBadge
+            task={task}
+            className="w-full h-full object-cover transition-opacity duration-500 mix-blend-overlay dark:mix-blend-normal opacity-70 dark:opacity-80"
+          />
+
+          {/* Priority Badge directly on the image */}
+          <div className="absolute top-3 left-4 sm:left-6 z-20">
+             <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-sm backdrop-blur-md', config.bg, config.color)}>
+               {config.label}
+             </span>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}, (prev, next) => (
+  prev.task.id === next.task.id &&
+  prev.task.status === next.task.status &&
+  prev.task.priority === next.task.priority &&
+  prev.task.title === next.task.title &&
+  prev.task.due_date === next.task.due_date &&
+  prev.completing === next.completing &&
+  JSON.stringify(prev.task.tags) === JSON.stringify(next.task.tags) &&
+  JSON.stringify(prev.task.subtasks) === JSON.stringify(next.task.subtasks)
+));
+
 export default function Tasks() {
   const [activeTab, setActiveTab] = useState('all');
   const [search, setSearch] = useState('');
@@ -337,135 +495,18 @@ export default function Tasks() {
       )}
 
       {/* Task List — Capsule Cards */}
-      <div className="space-y-3">
+      <div className="pb-4">
         <AnimatePresence>
-          {filtered.map((task, i) => {
-            const config = PRIORITY_CONFIG[task.priority] || PRIORITY_CONFIG.medium;
-            const dueDateInfo = getDueDateLabel(task.due_date);
-            const completedSubtasks = (task.subtasks || []).filter(s => s.completed).length;
-            const totalSubtasks = (task.subtasks || []).length;
-            const isCompleted = task.status === 'completed';
-            const isCompletingNow = completing === task.id;
-
-            return (
-              <motion.div
-                key={task.id}
-                layout
-                initial={{ opacity: 0, y: 16 }}
-                animate={isCompletingNow ? {
-                  opacity: 1,
-                  y: 0,
-                  backgroundColor: 'rgba(34, 197, 94, 0.06)',
-                } : {
-                  opacity: 1,
-                  y: 0,
-                  backgroundColor: 'transparent',
-                }}
-                exit={{
-                  opacity: 0,
-                  x: 60,
-                  scale: 0.95,
-                  height: 0,
-                  marginBottom: 0,
-                  transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-                }}
-                whileHover={!isCompletingNow ? { scale: 1.015, y: -2 } : undefined}
-                whileTap={!isCompletingNow ? { scale: 0.985 } : undefined}
-                transition={{ delay: i * 0.03, type: 'spring', stiffness: 400, damping: 30 }}
-                onClick={() => !isCompletingNow && setDetailTask(task)}
-                className={cn(
-                  'relative flex items-stretch cursor-pointer group overflow-hidden gpu-accelerated transition-all duration-300',
-                  'min-h-[60px] max-h-[76px]',
-                  /* ── Capsule / pill shape ── */
-                  'rounded-[1.5rem]',
-                  /* ── Premium surface ── */
-                  'bg-gradient-to-r from-[#0c1425]/90 via-[#111d35]/80 to-[#0f172a]/90',
-                  'backdrop-blur-xl',
-                  'border border-white/[0.07]',
-                  'shadow-[inset_0_1px_0_rgba(255,255,255,0.04),inset_0_-1px_0_rgba(0,0,0,0.2),0_2px_8px_rgba(0,0,0,0.3),0_1px_2px_rgba(0,0,0,0.2)]',
-                  /* ── Hover & completed states ── */
-                  isCompleted
-                    ? 'opacity-50 grayscale-[0.4]'
-                    : 'hover:border-primary/30 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.06),0_8px_24px_rgba(0,0,0,0.4),0_0_0_1px_hsl(var(--primary)/0.15)]',
-                  isCompletingNow && 'border-green-500/30 shadow-[0_0_24px_rgba(34,197,94,0.15)] glow-success'
-                )}
-              >
-                {/* Subtle shimmer overlay */}
-                <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-r from-transparent via-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-                <div className="flex-1 min-w-0 py-2 pl-[16px] pr-[12px] flex items-center gap-[12px]">
-                  {/* Completion checkbox - Centered vertically */}
-                  <div className="flex flex-col items-center justify-center shrink-0">
-                    <CompletionCheckbox
-                      task={task}
-                      completing={completing}
-                      isCompleted={isCompleted}
-                      onToggle={toggleStatus}
-                    />
-                  </div>
-
-                  <div className="flex-1 min-w-0 flex flex-col justify-center">
-                    <div className="flex items-center gap-2">
-                      <p className={cn(
-                        'text-[15px] font-bold leading-tight line-clamp-1',
-                        isCompleted && 'line-through text-muted-foreground',
-                        isCompletingNow && 'text-green-400',
-                      )}>
-                        {task.title}
-                      </p>
-                      
-                      {/* Hashtags inline */}
-                      {task.tags?.length > 0 && (
-                        <div className="flex items-center gap-1 overflow-hidden shrink-0">
-                          {task.tags.slice(0, 2).map(tag => (
-                            <span key={tag} className="text-[9px] font-medium text-primary bg-primary/10 border border-primary/20 px-1.5 py-0.5 rounded-md backdrop-blur-sm truncate max-w-[60px]">
-                              #{tag.replace(/^#/, '')}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-3 mt-0.5">
-                      {dueDateInfo && (
-                        <span className={cn('text-[10px] font-medium', dueDateInfo.class)}>
-                          {dueDateInfo.text}
-                        </span>
-                      )}
-                      {totalSubtasks > 0 && (
-                        <span className="text-[10px] text-muted-foreground">{completedSubtasks}/{totalSubtasks} subtasks</span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Right Visual Area */}
-                <div className="w-[28%] sm:w-[32%] flex-shrink-0 relative overflow-hidden rounded-r-[1.5rem]">
-                  {/* Smooth gradient fade into card background */}
-                  <div className="absolute inset-0 z-10 bg-gradient-to-r from-[#111d35] to-transparent w-12 left-0 pointer-events-none" />
-                  
-                  <TaskVisualBadge
-                    task={task}
-                    className="w-full h-full object-cover transition-opacity duration-500"
-                  />
-
-                  {/* Priority Badge directly on the image */}
-                  <div className="absolute top-3 left-4 sm:left-6 z-20">
-                     <span className={cn('text-[10px] font-bold px-2.5 py-1 rounded-full border shadow-sm backdrop-blur-md', config.bg, config.color)}>
-                       {config.label}
-                     </span>
-                  </div>
-
-                  <button
-                    onClick={(e) => { e.stopPropagation(); deleteMutation.mutate(task.id); }}
-                    className="absolute top-2 right-3 opacity-0 group-hover:opacity-100 p-1.5 rounded-full bg-background/60 hover:bg-destructive/80 text-muted-foreground hover:text-white transition-all flex-shrink-0 backdrop-blur-sm z-30"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
+          {filtered.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              completing={completing}
+              onToggleStatus={toggleStatus}
+              onDelete={(id) => deleteMutation.mutate(id)}
+              onOpenDetail={setDetailTask}
+            />
+          ))}
         </AnimatePresence>
       </div>
 
