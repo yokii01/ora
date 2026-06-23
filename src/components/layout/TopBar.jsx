@@ -24,7 +24,7 @@ const QUICK_SUGGESTIONS = [
   { label: 'Vault passwords', icon: Lock, color: 'text-purple-500', path: '/vault' },
 ];
 
-export default function TopBar({ onSearchOpen, onEditMode }) {
+export default React.memo(function TopBar({ onSearchOpen, onEditMode }) {
   const [searchActive, setSearchActive] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
@@ -368,4 +368,4 @@ export default function TopBar({ onSearchOpen, onEditMode }) {
       </header>
     </>
   );
-}
+});

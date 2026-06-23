@@ -125,7 +125,7 @@ export default function Home() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pt-16">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -10 }}

@@ -26,7 +26,7 @@ const bottomItems = [
 { path: '/assistant', icon: Sparkles, label: 'AI Assistant' },
 { path: '/settings', icon: Settings, label: 'Settings' }];
 
-export default function Sidebar() {
+const Sidebar = React.memo(function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
 
@@ -137,6 +137,8 @@ export default function Sidebar() {
 
         })}
       </div>
-    </motion.aside>);
+    </motion.aside>
+  );
+});
 
-}
+export default Sidebar;

@@ -85,7 +85,7 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       {!hideChrome && <Sidebar />}
       <div className={!hideChrome ? 'lg:pl-[240px] flex flex-col min-h-screen' : 'flex flex-col min-h-screen'}>
-        <AnimatePresence mode="popLayout">
+        <AnimatePresence>
           {!hideChrome && isHome && (
             <motion.div
               key="topbar"
@@ -93,7 +93,7 @@ export default function AppLayout() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="sticky top-0 z-40 transform-gpu will-change-transform"
+              className="fixed top-0 left-0 right-0 z-40 lg:pl-[240px] transform-gpu will-change-transform pointer-events-auto"
             >
               <TopBar
                 onSearchOpen={() => setSearchOpen(true)}
@@ -102,27 +102,29 @@ export default function AppLayout() {
             </motion.div>
           )}
         </AnimatePresence>
-        <main className={`flex-1 overflow-hidden ${hideChrome ? '' : 'pb-28 lg:pb-6'}`}>
+        <main className={`flex-1 overflow-hidden relative ${hideChrome ? '' : 'pb-[calc(env(safe-area-inset-bottom,16px)+80px)] lg:pb-6'}`}>
           {isAssistant ? (
             <Outlet context={{ editModeOpen, setEditModeOpen }} />
           ) : (
-            <motion.div
-              key={location.pathname}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
-              className={isClimora || isRouto ? 'w-full h-full gpu-accelerated' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated'}
-              drag={isClimora || isRouto || fullscreenOverlayOpen ? false : 'x'}
-              dragDirectionLock
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.15}
-              onDragStart={handleDragStart}
-              onDragEnd={handleDragEnd}
-              whileTap={{ cursor: 'grabbing' }}
-              style={{ touchAction: 'pan-y' }}
-            >
-              <Outlet context={{ editModeOpen, setEditModeOpen }} />
-            </motion.div>
+            <AnimatePresence mode="popLayout" initial={false}>
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -12, scale: 0.99 }}
+                transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
+                className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar'}
+                drag={isClimora || isRouto || fullscreenOverlayOpen ? false : 'x'}
+                dragDirectionLock
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.15}
+                onDragStart={handleDragStart}
+                onDragEnd={handleDragEnd}
+                style={{ touchAction: 'pan-y', backfaceVisibility: 'hidden' }}
+              >
+                <Outlet context={{ editModeOpen, setEditModeOpen }} />
+              </motion.div>
+            </AnimatePresence>
           )}
         </main>
       </div>
