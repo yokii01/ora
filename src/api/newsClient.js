@@ -66,7 +66,7 @@ export async function fetchNewsArticles({
       if (query && query.trim()) params.set('q', query.trim());
       if (country && country.trim()) params.set('country', country.trim().toLowerCase());
 
-      const data = await safeFetch(`https://gnews.io/api/v4/top-headlines?${params}`, { signal }, 12000);
+      const data = await safeFetch(`https://gnews.io/api/v4/top-headlines?${params}`, {}, 12000);
       
       if (!data.errors) {
         const rawResults = Array.isArray(data.articles) ? data.articles : [];
@@ -107,11 +107,11 @@ export async function fetchNewsArticles({
 
         let data;
         try {
-          data = await safeFetch(`${NEWSDATA_BASE}?${params}`, { signal }, 12000);
+          data = await safeFetch(`${NEWSDATA_BASE}?${params}`, {}, 12000);
         } catch (netErr) {
           if (netErr.name === 'AbortError') throw netErr;
           const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${NEWSDATA_BASE}?${params}`)}`;
-          data = await safeFetch(proxyUrl, { signal }, 12000);
+          data = await safeFetch(proxyUrl, {}, 12000);
         }
         
         if (data && data.status !== 'error') {
@@ -150,11 +150,11 @@ export async function fetchNewsArticles({
 
         let data;
         try {
-          data = await safeFetch(`${NEWSAPI_BASE}?${params}`, { signal }, 12000);
+          data = await safeFetch(`${NEWSAPI_BASE}?${params}`, {}, 12000);
         } catch (netErr) {
           if (netErr.name === 'AbortError') throw netErr;
           const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${NEWSAPI_BASE}?${params}`)}`;
-          data = await safeFetch(proxyUrl, { signal }, 12000);
+          data = await safeFetch(proxyUrl, {}, 12000);
         }
         
         if (data && data.status !== 'error') {
