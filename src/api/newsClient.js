@@ -1,3 +1,5 @@
+import { safeFetch } from '@/lib/safeFetch';
+
 const NEWSDATA_BASE = 'https://newsdata.io/api/1/latest';
 const NEWSAPI_BASE = 'https://newsapi.org/v2/top-headlines';
 
@@ -21,6 +23,9 @@ const CATEGORY_MAP_GNEWS = {
 
 // In-memory cache: { cacheKey: { data, timestamp } }
 const newsCache = new Map();
+// Active requests map for deduplication
+const activeRequests = new Map();
+
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
 export async function fetchNewsArticles({
@@ -37,31 +42,20 @@ export async function fetchNewsArticles({
   // 1. Check cache (instantly returns if data is fresh)
   if (!force && newsCache.has(cacheKey)) {
     const cached = newsCache.get(cacheKey);
+    // If not forced, return cached data if it's within TTL, or if it's our only fallback
     if (Date.now() - cached.timestamp < CACHE_TTL) {
       return { articles: cached.data };
     }
   }
 
-  // Helper for strict timeouts
-  const fetchJsonWithTimeout = async (url, options, timeoutMs = 8000) => {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeoutMs);
+  // Deduplication: If a request for this exact query is already in flight, wait for it
+  if (activeRequests.has(cacheKey)) {
+    return activeRequests.get(cacheKey);
+  }
 
-    const onCallerAbort = () => controller.abort();
-    if (signal) signal.addEventListener('abort', onCallerAbort);
-
-    try {
-      const res = await fetch(url, { ...options, signal: controller.signal });
-      const data = await res.json().catch(() => ({}));
-      return { res, data };
-    } finally {
-      clearTimeout(id);
-      if (signal) signal.removeEventListener('abort', onCallerAbort);
-    }
-  };
-
-  let articles = null;
-  let lastError = null;
+  const fetchPromise = (async () => {
+    let articles = null;
+    let lastError = null;
 
   // 1. Primary API: GNews.io (Extremely CORS friendly, allows IP addresses)
   try {
@@ -72,9 +66,9 @@ export async function fetchNewsArticles({
       if (query && query.trim()) params.set('q', query.trim());
       if (country && country.trim()) params.set('country', country.trim().toLowerCase());
 
-      const { res, data } = await fetchJsonWithTimeout(`https://gnews.io/api/v4/top-headlines?${params}`, { signal });
+      const data = await safeFetch(`https://gnews.io/api/v4/top-headlines?${params}`, { signal }, 12000);
       
-      if (res.ok && !data.errors) {
+      if (!data.errors) {
         const rawResults = Array.isArray(data.articles) ? data.articles : [];
         articles = rawResults.filter(r => r.title).map(r => ({
           title: r.title,
@@ -86,7 +80,7 @@ export async function fetchNewsArticles({
           category: category,
         }));
       } else {
-        throw new Error(data?.errors?.[0] || `GNews HTTP ${res.status}`);
+        throw new Error(data?.errors?.[0] || `GNews API Error`);
       }
     }
   } catch (err) {
@@ -111,19 +105,16 @@ export async function fetchNewsArticles({
           params.set('q', 'news');
         }
 
-        let res, data;
+        let data;
         try {
-          const result = await fetchJsonWithTimeout(`${NEWSDATA_BASE}?${params}`, { signal });
-          res = result.res;
-          data = result.data;
+          data = await safeFetch(`${NEWSDATA_BASE}?${params}`, { signal }, 12000);
         } catch (netErr) {
+          if (netErr.name === 'AbortError') throw netErr;
           const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${NEWSDATA_BASE}?${params}`)}`;
-          const result = await fetchJsonWithTimeout(proxyUrl, { signal });
-          res = result.res;
-          data = result.data;
+          data = await safeFetch(proxyUrl, { signal }, 12000);
         }
         
-        if (res.ok && data.status !== 'error') {
+        if (data && data.status !== 'error') {
           const rawResults = Array.isArray(data.results) ? data.results : [];
           articles = rawResults.filter(r => r.title).map(r => ({
             title: r.title,
@@ -135,7 +126,7 @@ export async function fetchNewsArticles({
             category: r.category?.[0] || category,
           }));
         } else {
-          throw new Error(data?.results?.message || data?.message || `NewsData HTTP ${res.status}`);
+          throw new Error(data?.results?.message || data?.message || `NewsData API Error`);
         }
       }
     } catch (err) {
@@ -157,19 +148,16 @@ export async function fetchNewsArticles({
         if (query && query.trim()) params.set('q', query.trim());
         if (country && country.trim()) params.set('country', country.trim().toLowerCase());
 
-        let res, data;
+        let data;
         try {
-          const result = await fetchJsonWithTimeout(`${NEWSAPI_BASE}?${params}`, { signal });
-          res = result.res;
-          data = result.data;
+          data = await safeFetch(`${NEWSAPI_BASE}?${params}`, { signal }, 12000);
         } catch (netErr) {
+          if (netErr.name === 'AbortError') throw netErr;
           const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(`${NEWSAPI_BASE}?${params}`)}`;
-          const result = await fetchJsonWithTimeout(proxyUrl, { signal });
-          res = result.res;
-          data = result.data;
+          data = await safeFetch(proxyUrl, { signal }, 12000);
         }
         
-        if (res.ok && data.status !== 'error') {
+        if (data && data.status !== 'error') {
           const rawResults = Array.isArray(data.articles) ? data.articles : [];
           articles = rawResults.filter(r => r.title).map(r => ({
             title: r.title,
@@ -181,7 +169,7 @@ export async function fetchNewsArticles({
             category: category,
           }));
         } else {
-          throw new Error(data?.message || `NewsAPI HTTP ${res.status}`);
+          throw new Error(data?.message || `NewsAPI API Error`);
         }
       } else {
         throw lastError; 
@@ -235,7 +223,18 @@ export async function fetchNewsArticles({
   // 5. Update Cache & Return
   if (articles && articles.length > 0) {
     newsCache.set(cacheKey, { data: articles, timestamp: Date.now() });
+  } else if (newsCache.has(cacheKey)) {
+    // If all failed, but we have a cache (even expired), return it gracefully
+    return { articles: newsCache.get(cacheKey).data };
   }
 
   return { articles: articles || [] };
+  })();
+
+  activeRequests.set(cacheKey, fetchPromise);
+  try {
+    return await fetchPromise;
+  } finally {
+    activeRequests.delete(cacheKey);
+  }
 }

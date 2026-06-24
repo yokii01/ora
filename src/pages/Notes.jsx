@@ -2,6 +2,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocalStorageState } from '@/hooks/useLocalStorageState';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Pin, Trash2, X, Folder, Hash, FileText, Pencil, Image, Mic, CheckSquare, Palette, Play, Pause, Square, Volume2, ZoomIn, PenTool, Heart, Type, Share, Calendar } from 'lucide-react';
@@ -726,11 +727,11 @@ function NotePreviewScreen({ viewNote, onClose, onShare, onEdit }) {
 
 export default function Notes() {
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useLocalStorageState('notes_search', '');
   const [editNote, setEditNote] = useState(null);
   const [showEditor, setShowEditor] = useState(false);
   const [viewNote, setViewNote] = useState(null);
-  const [activeFolder, setActiveFolder] = useState('all');
+  const [activeFolder, setActiveFolder] = useLocalStorageState('notes_folder', 'all');
   const [newTag, setNewTag] = useState('');
   const [showTemplates, setShowTemplates] = useState(false);
   const [cropImage, setCropImage] = useState(null);

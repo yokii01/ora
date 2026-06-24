@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Cloud, Sun, Moon, CloudRain, CloudSnow, CloudLightning, Wind, Droplets, Thermometer, MapPin, Search } from 'lucide-react';
+import { safeFetch } from '@/lib/safeFetch';
+import { FeatureState } from '@/components/shared/FeatureState';
 
 const THEMES = {
   clear: { bg: 'from-blue-400 to-blue-600', text: 'text-blue-100', icon: Sun },
@@ -24,15 +26,18 @@ export default function ClimoraUltra() {
   const [weatherData, setWeatherData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [screenState, setScreenState] = useState('loading');
   
   const fetchWeather = async (lat = 51.5085, lon = -0.1257, name = 'London') => {
     setLoading(true);
+    setScreenState('loading');
     try {
-      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,is_day,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
-      const data = await res.json();
+      const data = await safeFetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,is_day,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
       setWeatherData({ ...data, name });
+      setScreenState('ready');
     } catch (e) {
       console.error(e);
+      setScreenState('error');
     } finally {
       setLoading(false);
     }
@@ -42,8 +47,7 @@ export default function ClimoraUltra() {
     e.preventDefault();
     if (!search) return;
     try {
-      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(search)}&count=1`);
-      const data = await res.json();
+      const data = await safeFetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(search)}&count=1`);
       if (data.results?.[0]) {
         const { latitude, longitude, name } = data.results[0];
         fetchWeather(latitude, longitude, name);
@@ -57,16 +61,13 @@ export default function ClimoraUltra() {
     fetchWeather();
   }, []);
 
-  if (loading && !weatherData) {
-    return <div className="flex h-screen items-center justify-center bg-zinc-950"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-white"></div></div>;
-  }
-
   const current = weatherData?.current || {};
   const theme = getWeatherTheme(current.weather_code || 0, current.is_day ?? 1);
   const WeatherIcon = theme.icon;
 
   return (
-    <div className={`min-h-screen bg-gradient-to-br ${theme.bg} text-white transition-colors duration-1000 p-4 lg:p-8 flex flex-col items-center`}>
+    <FeatureState state={screenState} onRetry={() => fetchWeather()}>
+      <div className={`min-h-screen bg-gradient-to-br ${theme.bg} text-white transition-colors duration-1000 p-4 lg:p-8 flex flex-col items-center`}>
       <div className="w-full max-w-4xl flex-1 flex flex-col gap-8 pt-safe">
         {/* Search Bar */}
         <form onSubmit={handleSearch} className="relative w-full max-w-md mx-auto mt-4">
@@ -109,6 +110,7 @@ export default function ClimoraUltra() {
           ))}
         </div>
       </div>
-    </div>
+      </div>
+    </FeatureState>
   );
 }

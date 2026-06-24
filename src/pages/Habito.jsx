@@ -50,7 +50,7 @@ function CircleProgress({ percent, color, size = 56, stroke = 4 }) {
   );
 }
 
-function HabitCard({ habit, selectedDate, onToggle, onDelete, index }) {
+const HabitCard = React.memo(({ habit, selectedDate, onToggle, onDelete, index }) => {
   const [pressed, setPressed] = useState(false);
   const colorConf = HABIT_COLORS[habit.color] || HABIT_COLORS.purple;
   const doneToday = habit.completions?.some(c => c.date === selectedDate);
@@ -167,7 +167,7 @@ function HabitCard({ habit, selectedDate, onToggle, onDelete, index }) {
       </div>
     </motion.div>
   );
-}
+});
 
 export default function Habito() {
   const [showAdd, setShowAdd] = useState(false);
@@ -384,7 +384,7 @@ export default function Habito() {
               habit={habit}
               selectedDate={selectedDate}
               onToggle={toggleToday}
-              onDelete={(id) => deleteMutation.mutate(id)}
+              onDelete={deleteMutation.mutate}
               index={i}
             />
           ))}

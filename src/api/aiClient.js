@@ -7,6 +7,8 @@
  * Each provider uses the standard OpenAI-compatible chat completions format.
  */
 
+import { safeFetch } from '@/lib/safeFetch';
+
 const AI_TIMEOUT_MS = 45_000;
 
 // ─── System prompt (shared across providers) ────────────────────────────────
@@ -55,33 +57,32 @@ function getProviders() {
 
 // ─── Single-provider call ───────────────────────────────────────────────────
 async function callProvider(provider, messages, signal) {
-  const res = await fetch(provider.endpoint, {
-    method: 'POST',
-    headers: provider.headers(provider.apiKey),
-    body: JSON.stringify({
-      model: provider.model,
-      messages,
-      temperature: 0.7,
-      max_tokens: 2048,
-    }),
-    signal,
-  });
-
-  if (!res.ok) {
-    const body = await res.text().catch(() => '');
-    throw new Error(
-      `${provider.name} returned ${res.status}: ${body.slice(0, 200)}`
+  try {
+    const data = await safeFetch(
+      provider.endpoint,
+      {
+        method: 'POST',
+        headers: provider.headers(provider.apiKey),
+        body: JSON.stringify({
+          model: provider.model,
+          messages,
+          temperature: 0.7,
+          max_tokens: 2048,
+        }),
+      },
+      AI_TIMEOUT_MS
     );
+
+    const text = data?.choices?.[0]?.message?.content;
+
+    if (typeof text !== 'string' || !text.trim()) {
+      throw new Error(`${provider.name} returned an empty response`);
+    }
+
+    return { text: text.trim(), provider: provider.name };
+  } catch (error) {
+    throw new Error(`${provider.name} failed: ${error.message}`);
   }
-
-  const data = await res.json();
-  const text = data?.choices?.[0]?.message?.content;
-
-  if (typeof text !== 'string' || !text.trim()) {
-    throw new Error(`${provider.name} returned an empty response`);
-  }
-
-  return { text: text.trim(), provider: provider.name };
 }
 
 // ─── Public API ─────────────────────────────────────────────────────────────

@@ -39,7 +39,18 @@
   <body>
     <!-- Preview/Splash Screen -->
 
-    
+    <!-- GitHub Pages SPA redirect handler -->
+    <script>
+      (function() {
+        var redirect = sessionStorage.getItem('spa-redirect');
+        if (redirect) {
+          sessionStorage.removeItem('spa-redirect');
+          var base = document.querySelector('base');
+          var basePath = base ? base.getAttribute('href') : '/';
+          window.history.replaceState(null, '', basePath + redirect);
+        }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

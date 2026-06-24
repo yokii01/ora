@@ -24,16 +24,6 @@ const COUNTRIES = [
   { code: 'sg', label: '🇸🇬 Singapore' },
 ];
 
-const FALLBACK_IMAGES = [
-  'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&q=80&w=1200&h=800',
-  'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&q=80&w=1200&h=800',
-  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800&h=600',
-  'https://images.unsplash.com/photo-1611974789855-9c2a0a2236a0?auto=format&fit=crop&q=80&w=800&h=600',
-  'https://images.unsplash.com/photo-1682687982501-1e58f81010b0?auto=format&fit=crop&q=80&w=800&h=600',
-  'https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&q=80&w=400&h=400',
-];
-
-const getFallbackImage = (index) => FALLBACK_IMAGES[index % FALLBACK_IMAGES.length];
 const BANNER_COUNT = 5;
 const CAROUSEL_INTERVAL = 4000;
 
@@ -91,15 +81,59 @@ function RelativeTime({ pubDate, className }) {
   return <span className={className}>{timeStr}</span>;
 }
 
-function SafeImage({ src, fallback, alt, className, ...props }) {
-  const [imgSrc, setImgSrc] = useState(src || fallback);
-  useEffect(() => { setImgSrc(src || fallback); }, [src, fallback]);
+// Generate a consistent gradient based on a string (like category or domain)
+function getCategoryGradient(str) {
+  const hash = Array.from(str || 'news').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const hues = [0, 45, 150, 210, 260, 310]; // Vibrant base hues
+  const hue = hues[hash % hues.length];
+  return `linear-gradient(135deg, hsl(${hue}, 80%, 60%), hsl(${(hue + 40) % 360}, 80%, 40%))`;
+}
+
+function SafeImage({ src, domain, category, alt, className, ...props }) {
+  const [errorLevel, setErrorLevel] = useState(0);
+  const [loaded, setLoaded] = useState(false);
+
+  // Reset state if primary src changes
+  useEffect(() => {
+    setErrorLevel(0);
+    setLoaded(false);
+  }, [src, domain]);
+
+  const fallbackUrls = [
+    src,
+    domain ? `https://logo.clearbit.com/${domain}` : null,
+    domain ? `https://www.google.com/s2/favicons?domain=${domain}&sz=256` : null,
+  ].filter(Boolean);
+
+  const handleError = () => {
+    if (errorLevel < fallbackUrls.length) {
+      setErrorLevel(prev => prev + 1);
+    }
+  };
+
+  const currentSrc = fallbackUrls[errorLevel];
+
+  if (errorLevel >= fallbackUrls.length || !currentSrc) {
+    // Ultimate fallback: CSS Gradient based on Category
+    return (
+      <div 
+        className={cn(className, "flex items-center justify-center p-8")} 
+        style={{ background: getCategoryGradient(category), opacity: 0.8 }}
+      >
+        <span className="text-white/80 font-bold text-2xl tracking-widest uppercase truncate mix-blend-overlay">
+          {domain || category || 'NEWS'}
+        </span>
+      </div>
+    );
+  }
+
   return (
     <img
-      src={imgSrc}
+      src={currentSrc}
       alt={alt}
-      className={className}
-      onError={() => setImgSrc(fallback)}
+      className={cn(className, "transition-opacity duration-500", loaded ? "opacity-100" : "opacity-0")}
+      onError={handleError}
+      onLoad={() => setLoaded(true)}
       loading="lazy"
       {...props}
     />
@@ -166,7 +200,8 @@ const BannerCarousel = React.memo(({ items, onArticleClick }) => {
           >
             <SafeImage
               src={current.image}
-              fallback={getFallbackImage(currentIndex)}
+              domain={current.domain}
+              category={current.category}
               alt={current.title}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
@@ -234,7 +269,8 @@ const DiscoverCard = React.memo(({ article, index, onClick }) => {
       <div className="aspect-[4/3] relative overflow-hidden">
         <SafeImage
           src={article.image}
-          fallback={getFallbackImage(index)}
+          domain={article.domain}
+          category={article.category}
           alt={article.title}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
@@ -268,6 +304,28 @@ const DiscoverCard = React.memo(({ article, index, onClick }) => {
     </motion.div>
   );
 });
+
+const CategoryList = React.memo(({ activeCategory, onSelect }) => (
+  <div className="relative -mx-2 px-2 sm:mx-0 sm:px-0">
+    <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x touch-pan-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+      {CATEGORIES.map(category => (
+        <button
+          key={category}
+          onClick={() => onSelect(category)}
+          className={cn(
+            "snap-start whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all active:scale-95 flex-shrink-0 shadow-sm border",
+            activeCategory === category
+              ? "bg-primary text-primary-foreground border-primary"
+              : "bg-card/60 text-muted-foreground border-border/50 hover:border-border hover:text-foreground"
+          )}
+        >
+          {category}
+        </button>
+      ))}
+    </div>
+    <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
+  </div>
+));
 
 const LoadingSkeleton = () => (
   <div className="space-y-8">
@@ -304,7 +362,8 @@ const NewsDetailModal = ({ article, onClose }) => {
           <div className="relative aspect-video w-full flex-shrink-0 bg-muted">
              <SafeImage 
                src={article.image}
-               fallback={getFallbackImage(0)}
+               domain={article.domain}
+               category={article.category}
                alt={article.title}
                className="w-full h-full object-cover"
              />
@@ -390,7 +449,7 @@ export default function NEORA() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchNews = useCallback(async (pageNum = 1, isForced = false) => {
+  const fetchNews = useCallback(async (pageNum = 1, isForced = false, signal) => {
     try {
       if (pageNum === 1) setIsLoading(true);
       else setIsLoadingMore(true);
@@ -402,22 +461,30 @@ export default function NEORA() {
         country: selectedCountry,
         size: 15,
         page: pageNum,
-        force: isForced
+        force: isForced,
+        signal
       });
 
       const fetchedArticles = res.articles || [];
       
-      const formatted = fetchedArticles.map((art, idx) => ({
-        id: art.link || String(Date.now() + Math.random()),
-        title: art.title,
-        source: art.source_name || 'News Source',
-        pubDate: art.pubDate,
-        image: art.image_url || getFallbackImage(idx + (pageNum-1)*15),
-        category: art.category || (activeCategory === 'All' ? 'General' : activeCategory),
-        url: art.link,
-        description: art.description || '',
-        link: art.link,
-      }));
+      const formatted = fetchedArticles.map((art, idx) => {
+        let domain = 'news.google.com';
+        try { domain = new URL(art.link || 'https://news.google.com').hostname; } catch(e) {}
+        
+        return {
+          id: art.link || String(Date.now() + Math.random()),
+          title: art.title,
+          source: art.source_name || 'News Source',
+          pubDate: art.pubDate,
+          // Pass original image_url (or null), SafeImage handles fallbacks
+          image: art.image_url || null,
+          domain: domain,
+          category: art.category || (activeCategory === 'All' ? 'General' : activeCategory),
+          url: art.link,
+          description: art.description || '',
+          link: art.link,
+        };
+      });
 
       setArticles(prev => {
         if (pageNum === 1) return formatted;
@@ -428,9 +495,12 @@ export default function NEORA() {
       setHasMore(fetchedArticles.length >= 5);
       
     } catch (err) {
+      if (err.name === 'AbortError') return; // Silently ignore aborts
       console.error("News fetch error:", err);
       if (pageNum === 1) setError(err.message || "Failed to load news");
     } finally {
+      // Don't update loading state if aborted, to prevent flashing
+      if (signal && signal.aborted) return;
       if (pageNum === 1) setIsLoading(false);
       else setIsLoadingMore(false);
     }
@@ -438,9 +508,11 @@ export default function NEORA() {
 
   // Trigger fetch when dependencies change
   useEffect(() => {
+    const controller = new AbortController();
     setPage(1);
-    setArticles([]);
-    fetchNews(1, false);
+    // Don't clear articles immediately to prevent blank flashes if cache hits instantly
+    fetchNews(1, false, controller.signal);
+    return () => controller.abort();
   }, [fetchNews]);
 
   const handleLoadMore = () => {
@@ -466,18 +538,34 @@ export default function NEORA() {
             </h1>
             <p className="text-sm text-muted-foreground mt-1">Your premium editorial digest</p>
           </div>
-          
-          <div className="flex items-center gap-3">
+        </div>
+
+        {/* Search & Actions Bar */}
+        <div className="flex items-center gap-3 w-full max-w-2xl">
+          {/* Search */}
+          <div className="relative group flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <input
+              type="text"
+              placeholder="Search stories..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-4 py-2.5 bg-card/40 backdrop-blur-md border border-border/50 rounded-full text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
+            />
+          </div>
+
+          {/* Action Icons */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <div className="relative" ref={countryDropdownRef}>
               <button
                 onClick={() => setShowCountryDropdown(!showCountryDropdown)}
                 className={cn(
-                  "h-10 px-4 rounded-full bg-card/60 backdrop-blur-md border border-border/50 flex items-center gap-2 text-sm font-medium transition-colors active:scale-95",
+                  "w-10 h-10 rounded-full bg-card/60 backdrop-blur-md border border-border/50 flex items-center justify-center transition-colors active:scale-95 shadow-sm",
                   selectedCountry ? "text-primary border-primary/30" : "text-foreground hover:bg-card"
                 )}
+                title="Region"
               >
                 <Globe className="w-4 h-4" />
-                <span className="hidden sm:inline">{currentCountryLabel}</span>
               </button>
 
               <AnimatePresence>
@@ -507,57 +595,32 @@ export default function NEORA() {
 
             <button
               onClick={() => fetchNews(1, true)}
-              className="w-10 h-10 rounded-full bg-card/60 border border-border/50 flex items-center justify-center text-foreground hover:bg-card transition-colors active:scale-95"
+              className="w-10 h-10 rounded-full bg-card/60 backdrop-blur-md border border-border/50 flex items-center justify-center text-foreground hover:bg-card transition-colors active:scale-95 shadow-sm"
+              title="Refresh"
             >
-              <RefreshCw className={cn("w-5 h-5", isLoading && "animate-spin text-primary")} />
+              <RefreshCw className={cn("w-4 h-4", isLoading && "animate-spin text-primary")} />
             </button>
           </div>
         </div>
 
-        {/* Search */}
-        <div className="relative group">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-          <input
-            type="text"
-            placeholder="Search stories, topics, or sources..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-12 pr-4 py-3.5 bg-card/40 backdrop-blur-md border border-border/50 rounded-full text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
-          />
-        </div>
-
         {/* Horizontal scrollable Categories */}
-        <div className="relative -mx-2 px-2 sm:mx-0 sm:px-0">
-          <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide snap-x touch-pan-x" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
-            {CATEGORIES.map(category => (
-              <button
-                key={category}
-                onClick={() => setActiveCategory(category)}
-                className={cn(
-                  "snap-start whitespace-nowrap px-5 py-2 rounded-full text-sm font-bold transition-all active:scale-95 flex-shrink-0 shadow-sm border",
-                  activeCategory === category
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card/60 text-muted-foreground border-border/50 hover:border-border hover:text-foreground"
-                )}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-          <div className="absolute right-0 top-0 bottom-4 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none sm:hidden" />
-        </div>
+        <CategoryList activeCategory={activeCategory} onSelect={setActiveCategory} />
       </div>
 
-      {error ? (
+      {error && articles.length === 0 ? (
         <div className="text-center py-20 bg-card rounded-3xl border border-border/50 shadow-sm">
           <Globe className="w-12 h-12 text-muted-foreground/30 mx-auto mb-4" />
-          <h3 className="text-xl font-bold mb-2">No Stories Available</h3>
-          <p className="text-muted-foreground text-sm max-w-sm mx-auto">{error}</p>
+          <h3 className="text-xl font-bold mb-2">Unable to Load News</h3>
+          <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+            {error.includes('Failed to fetch') || error.includes('Network') 
+              ? 'Please check your internet connection or disable adblockers.' 
+              : 'There was a temporary issue fetching the latest stories.'}
+          </p>
           <button onClick={() => fetchNews(1, true)} className="mt-6 px-6 py-2 bg-primary text-primary-foreground rounded-full text-sm font-bold shadow-md hover:opacity-90 transition-opacity">
             Try Again
           </button>
         </div>
-      ) : isLoading ? (
+      ) : isLoading && articles.length === 0 ? (
         <LoadingSkeleton />
       ) : articles.length === 0 ? (
         <div className="text-center py-20 bg-card rounded-3xl border border-border/50">

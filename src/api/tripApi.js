@@ -1,3 +1,5 @@
+import { safeFetch } from '@/lib/safeFetch';
+
 export const fetchTripData = async (destination, fromLocation) => {
   try {
     const results = {};
@@ -6,11 +8,8 @@ export const fetchTripData = async (destination, fromLocation) => {
     if (destination) {
       try {
         const destFormat = destination.split(',')[0].trim().toLowerCase();
-        const hotelRes = await fetch(`https://api.makcorps.com/free/${destFormat}`);
-        if (hotelRes.ok) {
-          const data = await hotelRes.json();
-          results.hotels = data;
-        }
+        const data = await safeFetch(`https://api.makcorps.com/free/${destFormat}`);
+        results.hotels = data;
       } catch (e) {
         console.warn('Hotel API failed:', e);
       }
@@ -28,11 +27,8 @@ export const fetchTripData = async (destination, fromLocation) => {
           arrival_id: destination,
           api_key: import.meta.env.VITE_SERPAPI_KEY || serpToken
         });
-        const flightRes = await fetch(`https://serpapi.com/search?${params.toString()}`);
-        if (flightRes.ok) {
-          const data = await flightRes.json();
-          results.flights = data;
-        }
+        const data = await safeFetch(`https://serpapi.com/search?${params.toString()}`);
+        results.flights = data;
       } catch (e) {
         console.warn('Flight API failed:', e);
       }

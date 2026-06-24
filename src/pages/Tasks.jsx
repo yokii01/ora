@@ -2,8 +2,9 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 
 import React, { useState, useCallback, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocalStorageState } from '@/hooks/useLocalStorageState';
 
-import { motion, AnimatePresence, useAnimation } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import {
   Plus, Search, Circle, CheckCircle2,
@@ -104,7 +105,7 @@ function ConfettiParticles({ active }) {
 }
 
 /* ─── Completion Checkbox with Multi-stage Animation ─── */
-function CompletionCheckbox({ task, completing, isCompleted, onToggle }) {
+const CompletionCheckbox = React.memo(({ task, completing, isCompleted, onToggle }) => {
   const showConfetti = completing === task.id;
 
   return (
@@ -157,14 +158,19 @@ function CompletionCheckbox({ task, completing, isCompleted, onToggle }) {
             <CheckCircle2 className="w-5 h-5 text-success" />
           </motion.div>
         ) : (
-          <motion.div key="pending" whileTap={{ scale: 0.8 }} whileHover={{ scale: 1.15 }}>
-            <Circle className="w-5 h-5 text-muted-foreground/30 hover:text-primary transition-colors" />
+          <motion.div
+            key="empty"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            exit={{ scale: 0.8, opacity: 0 }}
+          >
+            <Circle className={cn('w-6 h-6', config.color, 'opacity-40 hover:opacity-80 transition-opacity')} />
           </motion.div>
         )}
       </AnimatePresence>
     </button>
   );
-}
+});
 
 function SubtaskItem({ subtask, onToggle }) {
   return (
@@ -186,8 +192,6 @@ const TaskItem = React.memo(({
   onDelete,
   onOpenDetail
 }) => {
-  const [softDeleted, setSoftDeleted] = useState(false);
-  const dragControls = useAnimation();
   const isCompletingNow = completing === task.id;
   const isCompleted = task.status === 'completed';
 
@@ -196,77 +200,38 @@ const TaskItem = React.memo(({
   const totalSubtasks = (task.subtasks || []).length;
   const completedSubtasks = (task.subtasks || []).filter(s => s.completed).length;
 
-  const handleDragEnd = async (event, info) => {
-    const threshold = -80;
-    if (info.offset.x < threshold || info.velocity.x < -600) {
-      if (navigator.vibrate) navigator.vibrate(8);
-      await dragControls.start({ x: -window.innerWidth, transition: { duration: 0.25, ease: 'easeOut' } });
-      setSoftDeleted(true);
-      
-      let undoClicked = false;
-      toast("Task deleted", {
-        action: {
-          label: "Undo",
-          onClick: () => {
-            undoClicked = true;
-            setSoftDeleted(false);
-            dragControls.set({ x: 0 }); // Snap back instantly before expanding
-          }
-        },
-        duration: 5000,
-        onAutoClose: () => { if (!undoClicked) onDelete(task.id); },
-        onDismiss: () => { if (!undoClicked) onDelete(task.id); }
-      });
-    } else {
-      dragControls.start({ x: 0, transition: { type: 'spring', stiffness: 400, damping: 30 } });
-    }
-  };
-
   return (
     <motion.div
       layout
       initial={{ opacity: 0, y: 16 }}
-      animate={softDeleted ? { opacity: 0, height: 0, marginBottom: 0 } : (isCompletingNow ? { opacity: 1, y: 0, height: 'auto', marginBottom: 12, backgroundColor: 'rgba(34, 197, 94, 0.06)' } : { opacity: 1, y: 0, height: 'auto', marginBottom: 12, backgroundColor: 'transparent' })}
+      animate={isCompletingNow ? { opacity: 1, y: 0, height: 'auto', marginBottom: 12, backgroundColor: 'rgba(34, 197, 94, 0.06)' } : { opacity: 1, y: 0, height: 'auto', marginBottom: 12, backgroundColor: 'transparent' }}
       exit={{ opacity: 0, x: 60, scale: 0.95, height: 0, marginBottom: 0, transition: { duration: 0.3, ease: 'easeOut' } }}
       className="relative rounded-[22px] overflow-hidden"
-      style={{ touchAction: 'pan-y' }}
     >
-      {/* Swipe-to-delete Red Background Reveal */}
-      <div className="absolute inset-0 bg-red-600 flex items-center justify-end pr-6 shadow-inner z-0 pointer-events-none rounded-[22px]">
-         <Trash2 className="w-6 h-6 text-white" strokeWidth={2.5} />
-      </div>
-
-      <motion.div
-        animate={dragControls}
-        drag={!isCompletingNow && !softDeleted ? "x" : false}
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={{ left: 1, right: 0 }}
-        dragDirectionLock
-        onDragEnd={handleDragEnd}
+      <div
         onClick={() => !isCompletingNow && onOpenDetail(task)}
         className={cn(
           'relative flex items-stretch cursor-pointer group overflow-hidden transition-all duration-300',
-          'min-h-[72px]', // slightly thicker
+          'min-h-[72px]',
           'rounded-[22px]',
           'z-10',
-          // Solid premium surface, completely opaque
-          'bg-card border-2 border-border/60',
+          'bg-card border-2',
+          isCompleted ? 'border-emerald-500/15 bg-emerald-500/5' : 'border-border/60',
           'shadow-sm',
-          isCompleted ? 'opacity-60 grayscale-[0.3]' : 'hover:border-border hover:shadow-md',
+          isCompleted ? 'shadow-none' : 'hover:border-border hover:shadow-md',
           isCompletingNow && 'shadow-[0_0_24px_rgba(34,197,94,0.15)] glow-success'
         )}
       >
         {/* Soft Brushed Gradient ONLY on the right side */}
         <div className="absolute inset-y-0 right-0 w-[40%] md:w-[35%] overflow-hidden rounded-r-[22px] pointer-events-none">
-          {/* Subtle gradient to blend into the card base color */}
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-[#ffffff] dark:to-[#12141a] z-10 w-16" />
-          {/* The flowing color */}
-          <div className={cn('absolute inset-0 opacity-15 dark:opacity-20 transition-opacity duration-500', config.bg.split(' ')[0])} style={{ filter: 'blur(16px)' }} />
-          {/* Edge highlight */}
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent to-card z-10 w-16" />
+          {!isCompleted && (
+            <div className={cn('absolute inset-0 opacity-15 dark:opacity-20 transition-opacity duration-500', config.bg.split(' ')[0])} style={{ filter: 'blur(16px)' }} />
+          )}
           <div className="absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-white/10 to-transparent mix-blend-overlay" />
         </div>
 
-        <div className="flex-1 min-w-0 py-3 pl-[16px] pr-[16px] flex items-center justify-between relative z-20">
+        <div className={cn("flex-1 min-w-0 py-3 pl-[16px] pr-[16px] flex items-center justify-between relative z-20 transition-all duration-300", isCompleted && "opacity-70 grayscale-[0.2]")}>
           
           {/* Left: Checkbox & Content */}
           <div className="flex items-center gap-[14px] flex-1 min-w-0 pr-4">
@@ -287,7 +252,6 @@ const TaskItem = React.memo(({
               </div>
 
               <div className="flex items-center gap-3 mt-1 flex-wrap">
-                {/* Due Date & Subtasks */}
                 {dueDateInfo && (
                   <span className={cn('text-[11px] font-semibold tracking-wide uppercase', dueDateInfo.class)}>
                     {dueDateInfo.text}
@@ -296,7 +260,6 @@ const TaskItem = React.memo(({
                 {totalSubtasks > 0 && (
                   <span className="text-[11px] font-medium text-muted-foreground">{completedSubtasks}/{totalSubtasks} subtasks</span>
                 )}
-                {/* Hashtags */}
                 {task.tags?.length > 0 && (
                   <div className="flex items-center gap-1.5 overflow-hidden shrink-0">
                     {task.tags.slice(0, 2).map(tag => (
@@ -318,7 +281,7 @@ const TaskItem = React.memo(({
           </div>
 
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }, (prev, next) => (
@@ -333,8 +296,8 @@ const TaskItem = React.memo(({
 ));
 
 export default function Tasks() {
-  const [activeTab, setActiveTab] = useState('all');
-  const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useLocalStorageState('tasks_active_tab', 'all');
+  const [search, setSearch] = useLocalStorageState('tasks_search_query', '');
   const [showSearch, setShowSearch] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [editTask, setEditTask] = useState(null);
@@ -498,7 +461,7 @@ export default function Tasks() {
               task={task}
               completing={completing}
               onToggleStatus={toggleStatus}
-              onDelete={(id) => deleteMutation.mutate(id)}
+              onDelete={deleteMutation.mutate}
               onOpenDetail={setDetailTask}
             />
           ))}
@@ -517,7 +480,7 @@ export default function Tasks() {
 
       {/* Task Detail Dialog */}
       <Dialog open={!!detailTask} onOpenChange={(o) => !o && setDetailTask(null)}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[28px] border-border/50">
           {detailTask && (() => {
             const config = PRIORITY_CONFIG[detailTask.priority] || PRIORITY_CONFIG.medium;
             const dueDateInfo = getDueDateLabel(detailTask.due_date);
@@ -563,16 +526,25 @@ export default function Tasks() {
                   )}
 
                   {/* Actions */}
-                  <div className="grid grid-cols-2 gap-2">
-                    <Button variant="outline" onClick={() => openEdit(detailTask)} className="rounded-xl gap-1.5">
-                      <Pencil className="w-4 h-4" /> Edit task
-                    </Button>
+                  <div className="flex flex-col gap-2.5 pt-2">
+                    <div className="flex gap-2.5">
+                      <Button variant="outline" onClick={() => openEdit(detailTask)} className="flex-1 h-12 rounded-full gap-2 text-sm font-semibold">
+                        <Pencil className="w-4 h-4" /> Edit
+                      </Button>
+                      <Button
+                        onClick={() => toggleStatus(detailTask)}
+                        className={cn('flex-1 h-12 rounded-full gap-2 text-sm font-semibold', detailTask.status === 'completed' ? 'bg-muted text-foreground hover:bg-muted/80' : 'bg-success hover:bg-success/90 text-success-foreground')}
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                        {detailTask.status === 'completed' ? 'Undo' : 'Done'}
+                      </Button>
+                    </div>
                     <Button
-                      onClick={() => toggleStatus(detailTask)}
-                      className={cn('rounded-xl gap-1.5', detailTask.status === 'completed' ? 'bg-muted text-foreground hover:bg-muted/80' : 'bg-success hover:bg-success/90 text-success-foreground')}
+                      variant="outline"
+                      onClick={() => { if (confirm('Delete this task permanently?')) { deleteMutation.mutate(detailTask.id); } }}
+                      className="w-full h-12 rounded-full gap-2 text-sm font-semibold text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
                     >
-                      <CheckCircle2 className="w-4 h-4" />
-                      {detailTask.status === 'completed' ? 'Mark Pending' : 'Completed'}
+                      <Trash2 className="w-4 h-4" /> Delete Task
                     </Button>
                   </div>
                 </div>
@@ -584,7 +556,7 @@ export default function Tasks() {
 
       {/* Add / Edit Task Dialog */}
       <Dialog open={showAdd} onOpenChange={(o) => { if (!o) { setShowAdd(false); setEditTask(null); } }}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[28px] border-border/50">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {editTask?.id ? <><Pencil className="w-4 h-4" /> Task details</> : <><Plus className="w-4 h-4" /> New task</>}
@@ -680,9 +652,18 @@ export default function Tasks() {
                 </div>
               </div>
 
-              <Button onClick={saveTask} className="w-full rounded-xl h-11 text-base font-semibold shadow-lg shadow-primary/25">
+              <Button onClick={saveTask} className="w-full rounded-full h-11 text-base font-semibold shadow-lg shadow-primary/25">
                 {editTask.id ? 'Update task' : 'Create task'}
               </Button>
+              {editTask.id && (
+                <Button
+                  variant="outline"
+                  onClick={() => { if (confirm('Delete this task permanently?')) { deleteMutation.mutate(editTask.id); setShowAdd(false); setEditTask(null); } }}
+                  className="w-full h-11 rounded-full gap-2 text-sm font-semibold text-destructive border-destructive/30 hover:bg-destructive/10"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete Task
+                </Button>
+              )}
             </div>
           )}
         </DialogContent>

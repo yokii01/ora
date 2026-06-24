@@ -2,6 +2,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 
 import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { safeFetch } from '@/lib/safeFetch';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -75,9 +76,7 @@ const CURRENCY_CODES = CURRENCIES.map(currency => currency.code);
 
 async function fetchCurrencyRates() {
   try {
-    const response = await fetch('https://open.er-api.com/v6/latest/USD');
-    if (!response.ok) throw new Error(`Currency service returned ${response.status}`);
-    const data = await response.json();
+    const data = await safeFetch('https://open.er-api.com/v6/latest/USD');
     if (data.result !== 'success') throw new Error('Currency service returned invalid data');
     const supportedRates = Object.fromEntries(CURRENCY_CODES.map(code => [code, data.rates[code]]).filter(([, rate]) => Number.isFinite(rate)));
     const result = {

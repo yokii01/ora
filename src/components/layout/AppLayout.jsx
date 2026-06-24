@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
@@ -6,6 +6,7 @@ import BottomNav from './BottomNav';
 import TopBar from './TopBar';
 import CommandPalette from '@/components/shared/CommandPalette';
 import { useReminders } from '@/hooks/useReminders';
+import PersistentTabs from './PersistentTabs';
 
 export default function AppLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
@@ -29,7 +30,7 @@ export default function AppLayout() {
   }, []);
 
   // Pages that participate in swipe navigation (in order)
-  const SWIPE_PAGES = ['/', '/notes', '/tasks', '/calendar', '/finance'];
+  const SWIPE_PAGES = ['/', '/notes', '/tasks', '/calendar', '/finance', '/habits'];
 
   const getPageIndex = (pathname) => {
     const idx = SWIPE_PAGES.findIndex(p => pathname === p || pathname.startsWith(p + '/'));
@@ -106,25 +107,46 @@ export default function AppLayout() {
           {isAssistant ? (
             <Outlet context={{ editModeOpen, setEditModeOpen }} />
           ) : (
-            <AnimatePresence mode="popLayout" initial={false}>
-              <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -12, scale: 0.99 }}
-                transition={{ duration: 0.22, ease: [0.25, 0.1, 0.25, 1] }}
-                className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar'}
-                drag={isClimora || isRouto || fullscreenOverlayOpen ? false : 'x'}
-                dragDirectionLock
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.15}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                style={{ touchAction: 'pan-y', backfaceVisibility: 'hidden' }}
-              >
-                <Outlet context={{ editModeOpen, setEditModeOpen }} />
-              </motion.div>
-            </AnimatePresence>
+            <>
+              {/* For persistent tabs, we do NOT use AnimatePresence with location key, 
+                  because that forces a full remount. PersistentTabs handles its own internal visibility. */}
+              {currentIndex !== -1 ? (
+                <motion.div
+                  className="p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0"
+                  drag={fullscreenOverlayOpen ? false : 'x'}
+                  dragDirectionLock
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.15}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  style={{ touchAction: 'pan-y', backfaceVisibility: 'hidden' }}
+                >
+                  <PersistentTabs context={{ editModeOpen, setEditModeOpen }} />
+                </motion.div>
+              ) : (
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.div
+                    key={location.pathname}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15, ease: 'easeInOut' }}
+                    className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0 bg-background' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-background'}
+                    drag={isClimora || isRouto || fullscreenOverlayOpen ? false : 'x'}
+                    dragDirectionLock
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.15}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    style={{ touchAction: 'pan-y', backfaceVisibility: 'hidden' }}
+                  >
+                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>}>
+                      <Outlet context={{ editModeOpen, setEditModeOpen }} />
+                    </Suspense>
+                  </motion.div>
+                </AnimatePresence>
+              )}
+            </>
           )}
         </main>
       </div>

@@ -211,7 +211,7 @@ export default function FestivalBottomSheet({ open, onOpenChange, festival }) {
               <Button 
                 variant="outline" 
                 className="w-full rounded-2xl h-12 gap-2 border-border/50 bg-muted/20 hover:bg-muted/40"
-                onClick={() => window.open(wikiData.wikiUrl, '_blank')}
+                onClick={() => window.open(wikiData.wikiUrl, '_blank', 'noopener,noreferrer')}
               >
                 Read Full Article on Wikipedia <ExternalLink className="w-4 h-4 text-muted-foreground" />
               </Button>

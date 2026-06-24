@@ -9,6 +9,7 @@ import { AuthProvider } from '@/lib/AuthContext';
 import AppLayout from '@/components/layout/AppLayout';
 import { StartupValidator } from '@/components/shared/StartupValidator';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import Home from '@/pages/Home';
 import Notes from '@/pages/Notes';
 import Tasks from '@/pages/Tasks';
@@ -61,7 +62,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 function AppSplashScreen({ onComplete }) {
   React.useEffect(() => {
     const timer = setTimeout(onComplete, 1500);
-    return () => clearTimeout(timer);
+    // Hard safety timeout - if app takes too long, kill splash anyway
+    const safety = setTimeout(onComplete, 5000);
+    return () => { clearTimeout(timer); clearTimeout(safety); };
   }, [onComplete]);
 
   return (
@@ -99,6 +102,7 @@ function App() {
   }, []);
 
   return (
+    <ErrorBoundary>
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
         <Router basename={import.meta.env.BASE_URL}>
@@ -113,6 +117,7 @@ function App() {
         <SonnerToaster position="bottom-center" />
       </QueryClientProvider>
     </AuthProvider>
+    </ErrorBoundary>
   )
 }
 

@@ -70,6 +70,7 @@ const BottomNav = memo(({ hidden = false }) => {
             <Link
               key={item.path}
               to={item.path}
+              aria-label={item.label}
               className="relative flex-1 flex items-center justify-center h-full min-w-[48px]"
               style={{ touchAction: 'manipulation' }}
             >
