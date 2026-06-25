@@ -1,7 +1,6 @@
 import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft } from 'lucide-react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import CommandPalette from '@/components/shared/CommandPalette';
@@ -35,6 +34,16 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       {!hideChrome && <Sidebar />}
       <div className={!hideChrome ? 'lg:pl-[240px] flex flex-col min-h-screen' : 'flex flex-col min-h-screen'}>
+        {!hideChrome && !isHome && (
+          <motion.button
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            onClick={() => navigate(-1)}
+            className="fixed top-4 left-4 z-[90] w-10 h-10 rounded-full bg-card/80 backdrop-blur-xl border border-border/50 shadow-lg flex items-center justify-center text-foreground hover:bg-muted transition-colors lg:hidden"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-left w-6 h-6"><path d="m15 18-6-6 6-6"/></svg>
+          </motion.button>
+        )}
         <AnimatePresence>
           {!hideChrome && isHome && (
             <motion.div
@@ -57,49 +66,20 @@ export default function AppLayout() {
             <Outlet context={{ editModeOpen, setEditModeOpen }} />
           ) : (
             <>
-              {/* For persistent tabs, we do NOT use AnimatePresence with location key, 
-                  because that forces a full remount. PersistentTabs handles its own internal visibility. */}
               {currentIndex !== -1 ? (
                 <div className="p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0">
                   <PersistentTabs context={{ editModeOpen, setEditModeOpen }} />
                 </div>
               ) : (
-                <AnimatePresence mode="wait" initial={false}>
-                  <motion.div
-                    key={location.pathname}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15, ease: 'easeInOut' }}
-                    className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0 bg-background' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-background'}
-                  >
-                    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>}>
-                      <Outlet context={{ editModeOpen, setEditModeOpen }} />
-                    </Suspense>
-                  </motion.div>
-                </AnimatePresence>
+                <div className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0 bg-background' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-background'}>
+                  <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>}>
+                    <Outlet context={{ editModeOpen, setEditModeOpen }} />
+                  </Suspense>
+                </div>
               )}
             </>
           )}
         </main>
-        
-        {/* Global Back / Home Button for Child Pages */}
-        <AnimatePresence>
-          {!hideChrome && !isHome && (
-            <motion.button
-              key="global-back"
-              initial={{ opacity: 0, y: 20, scale: 0.9 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.9 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/')}
-              className="fixed bottom-6 lg:bottom-10 left-1/2 -translate-x-1/2 lg:-translate-x-[calc(50%-120px)] z-[100] flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-card/90 backdrop-blur-2xl border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-muted text-foreground transition-colors"
-            >
-              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
-              <span className="font-bold text-sm tracking-wide">Home</span>
-            </motion.button>
-          )}
-        </AnimatePresence>
       </div>
       {!hideChrome && <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />}
     </div>
