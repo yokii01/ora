@@ -8,33 +8,33 @@ import { format } from 'date-fns';
 import { 
   StickyNote, CheckSquare, Calendar, Wallet, Target, Bot, FolderOpen, 
   Lock, CloudSun, Map, FileText, ScanLine, Globe, Settings, 
-  Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock, PartyPopper, Sparkles, Search, Mic
+  Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock, PartyPopper, Sparkles, Search, Mic, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const APPS = [
-  { id: 'notes', label: 'Notes', desc: 'Write ideas quickly', path: '/notes', icon: StickyNote, gradient: 'from-amber-500/25 via-orange-500/10 to-transparent border-amber-500/35 text-amber-400', glow: 'rgba(245, 158, 11, 0.3)' },
-  { id: 'tasks', label: 'Tasks', desc: 'Manage daily goals', path: '/tasks', icon: CheckSquare, gradient: 'from-blue-500/25 via-indigo-500/10 to-transparent border-blue-500/35 text-blue-400', glow: 'rgba(59, 130, 246, 0.3)' },
-  { id: 'calendar', label: 'Calendar', desc: 'Plan your schedule', path: '/calendar', icon: Calendar, gradient: 'from-green-500/25 via-emerald-500/10 to-transparent border-green-500/35 text-green-400', glow: 'rgba(34, 197, 94, 0.3)' },
-  { id: 'scanner', label: 'Scanner', desc: 'Scan docs instantly', path: '/scanner', icon: ScanLine, gradient: 'from-purple-500/25 via-violet-500/10 to-transparent border-purple-500/35 text-purple-400', glow: 'rgba(168, 85, 247, 0.3)' },
-  { id: 'finance', label: 'Finance', desc: 'Track expenses', path: '/finance', icon: Wallet, gradient: 'from-emerald-500/25 via-teal-500/10 to-transparent border-emerald-500/35 text-emerald-400', glow: 'rgba(16, 185, 129, 0.3)' },
-  { id: 'files', label: 'Files', desc: 'Organize documents', path: '/files', icon: FolderOpen, gradient: 'from-cyan-500/25 via-sky-500/10 to-transparent border-cyan-500/35 text-cyan-400', glow: 'rgba(6, 182, 212, 0.3)' },
-  { id: 'vault', label: 'Vault', desc: 'Secure passwords', path: '/vault', icon: Lock, gradient: 'from-slate-500/30 via-zinc-500/15 to-transparent border-slate-500/35 text-slate-300', glow: 'rgba(148, 163, 184, 0.3)' },
-  { id: 'oradocs', label: 'Documents', desc: 'Edit rich text', path: '/oradocs', icon: FileText, gradient: 'from-orange-500/25 via-amber-500/10 to-transparent border-orange-500/35 text-orange-400', glow: 'rgba(249, 115, 22, 0.3)' },
-  { id: 'news', label: 'News', desc: 'Live global updates', path: '/news', icon: Globe, logo: './logo/NEORA.png', gradient: 'from-red-500/25 via-rose-500/10 to-transparent border-red-500/35 text-red-400', glow: 'rgba(239, 68, 68, 0.3)' },
-  { id: 'climora', label: 'Weather', desc: 'Live atmospheric radar', path: '/climora', icon: CloudSun, gradient: 'from-sky-500/25 via-blue-500/10 to-transparent border-sky-500/35 text-sky-400', glow: 'rgba(14, 165, 233, 0.3)' },
-  { id: 'assistant', label: 'AI', desc: 'Ask ORA AI', path: '/assistant', icon: Bot, logo: './logo/Ora AI.png', gradient: 'from-violet-500/35 via-fuchsia-500/20 to-transparent border-violet-500/45 text-violet-300', glow: 'rgba(139, 92, 246, 0.45)' },
-  { id: 'browser', label: 'Browser', desc: 'Fast & Secure', path: '/browser', icon: Compass, gradient: 'from-indigo-500/25 via-purple-500/10 to-transparent border-indigo-400/35 text-indigo-300', glow: 'rgba(99, 102, 241, 0.3)' },
-  { id: 'routo', label: 'Maps', desc: 'Explore routes', path: '/routo', icon: Map, logo: './logo/Routo.jpg', gradient: 'from-teal-500/25 via-emerald-500/10 to-transparent border-teal-500/35 text-teal-400', glow: 'rgba(20, 184, 166, 0.3)' },
-  { id: 'festo', label: 'FESTO', desc: 'Celebrate moments', path: '/festo', icon: PartyPopper, logo: './logo/FESTA.png', gradient: 'from-orange-500/25 via-yellow-500/10 to-transparent border-orange-500/35 text-orange-400', glow: 'rgba(249, 115, 22, 0.3)' },
-  { id: 'music', label: 'Music', desc: 'Listen to beats', path: '/music', icon: Music, gradient: 'from-pink-500/25 via-rose-500/10 to-transparent border-pink-500/35 text-pink-400', glow: 'rgba(236, 72, 153, 0.3)' },
-  { id: 'gallery', label: 'Gallery', desc: 'View memories', path: '/gallery', icon: ImageIcon, gradient: 'from-fuchsia-500/25 via-purple-500/10 to-transparent border-fuchsia-500/35 text-fuchsia-400', glow: 'rgba(217, 70, 239, 0.3)' },
-  { id: 'translator', label: 'Translator', desc: 'Break barriers', path: '/translator', icon: Languages, gradient: 'from-blue-400/25 via-cyan-400/10 to-transparent border-blue-400/35 text-blue-300', glow: 'rgba(96, 165, 250, 0.3)' },
-  { id: 'settings', label: 'Settings', desc: 'System preferences', path: '/settings', icon: Settings, gradient: 'from-zinc-500/25 via-slate-500/10 to-transparent border-zinc-500/35 text-zinc-300', glow: 'rgba(161, 161, 170, 0.3)' },
-  { id: 'calculator', label: 'Calculator', desc: 'Quick math', path: '/calculator', icon: Calculator, gradient: 'from-orange-600/25 via-amber-600/10 to-transparent border-orange-600/35 text-orange-500', glow: 'rgba(234, 88, 12, 0.3)' },
-  { id: 'clock', label: 'Clock', desc: 'Timers & alarms', path: '/clock', icon: Clock, gradient: 'from-indigo-600/25 via-blue-600/10 to-transparent border-indigo-600/35 text-indigo-400', glow: 'rgba(79, 70, 229, 0.3)' },
-  { id: 'habits', label: 'Habito', desc: 'Build routines', path: '/habits', icon: Target, gradient: 'from-rose-500/25 via-pink-500/10 to-transparent border-rose-500/35 text-rose-400', glow: 'rgba(244, 63, 94, 0.3)' },
-  { id: 'passwords', label: 'Passwords', desc: 'Vault keys', path: '/passwords', icon: Key, gradient: 'from-slate-700/40 via-zinc-700/25 to-transparent border-slate-600/45 text-slate-300', glow: 'rgba(100, 116, 139, 0.3)' },
+  { id: 'notes', label: 'Notes', desc: 'Write ideas quickly', path: '/notes', icon: StickyNote, gradient: 'from-amber-500/25 via-orange-500/10 to-transparent border-amber-500/35 text-amber-400', glow: 'rgba(245, 158, 11, 0.28)' },
+  { id: 'tasks', label: 'Tasks', desc: 'Manage daily goals', path: '/tasks', icon: CheckSquare, gradient: 'from-blue-500/25 via-indigo-500/10 to-transparent border-blue-500/35 text-blue-400', glow: 'rgba(59, 130, 246, 0.28)' },
+  { id: 'calendar', label: 'Calendar', desc: 'Plan your schedule', path: '/calendar', icon: Calendar, gradient: 'from-green-500/25 via-emerald-500/10 to-transparent border-green-500/35 text-green-400', glow: 'rgba(34, 197, 94, 0.28)' },
+  { id: 'scanner', label: 'Scanner', desc: 'Scan docs instantly', path: '/scanner', icon: ScanLine, gradient: 'from-purple-500/25 via-violet-500/10 to-transparent border-purple-500/35 text-purple-400', glow: 'rgba(168, 85, 247, 0.28)' },
+  { id: 'finance', label: 'Finance', desc: 'Track expenses', path: '/finance', icon: Wallet, gradient: 'from-emerald-500/25 via-teal-500/10 to-transparent border-emerald-500/35 text-emerald-400', glow: 'rgba(16, 185, 129, 0.28)' },
+  { id: 'files', label: 'Files', desc: 'Organize documents', path: '/files', icon: FolderOpen, gradient: 'from-cyan-500/25 via-sky-500/10 to-transparent border-cyan-500/35 text-cyan-400', glow: 'rgba(6, 182, 212, 0.28)' },
+  { id: 'vault', label: 'Vault', desc: 'Secure passwords', path: '/vault', icon: Lock, gradient: 'from-slate-500/30 via-zinc-500/15 to-transparent border-slate-500/35 text-slate-300', glow: 'rgba(148, 163, 184, 0.28)' },
+  { id: 'oradocs', label: 'Documents', desc: 'Edit rich text', path: '/oradocs', icon: FileText, gradient: 'from-orange-500/25 via-amber-500/10 to-transparent border-orange-500/35 text-orange-400', glow: 'rgba(249, 115, 22, 0.28)' },
+  { id: 'news', label: 'News', desc: 'Live global updates', path: '/news', icon: Globe, logo: './logo/NEORA.png', gradient: 'from-red-500/25 via-rose-500/10 to-transparent border-red-500/35 text-red-400', glow: 'rgba(239, 68, 68, 0.28)' },
+  { id: 'climora', label: 'Weather', desc: 'Live atmospheric radar', path: '/climora', icon: CloudSun, gradient: 'from-sky-500/25 via-blue-500/10 to-transparent border-sky-500/35 text-sky-400', glow: 'rgba(14, 165, 233, 0.28)' },
+  { id: 'assistant', label: 'AI', desc: 'Ask ORA AI', path: '/assistant', icon: Bot, logo: './logo/Ora AI.png', gradient: 'from-violet-500/35 via-fuchsia-500/20 to-transparent border-violet-500/45 text-violet-300', glow: 'rgba(139, 92, 246, 0.42)' },
+  { id: 'browser', label: 'Browser', desc: 'Fast & Secure', path: '/browser', icon: Compass, gradient: 'from-indigo-500/25 via-purple-500/10 to-transparent border-indigo-400/35 text-indigo-300', glow: 'rgba(99, 102, 241, 0.28)' },
+  { id: 'routo', label: 'Maps', desc: 'Explore routes', path: '/routo', icon: Map, logo: './logo/Routo.jpg', gradient: 'from-teal-500/25 via-emerald-500/10 to-transparent border-teal-500/35 text-teal-400', glow: 'rgba(20, 184, 166, 0.28)' },
+  { id: 'festo', label: 'FESTO', desc: 'Celebrate moments', path: '/festo', icon: PartyPopper, logo: './logo/FESTA.png', gradient: 'from-orange-500/25 via-yellow-500/10 to-transparent border-orange-500/35 text-orange-400', glow: 'rgba(249, 115, 22, 0.28)' },
+  { id: 'music', label: 'Music', desc: 'Listen to beats', path: '/music', icon: Music, gradient: 'from-pink-500/25 via-rose-500/10 to-transparent border-pink-500/35 text-pink-400', glow: 'rgba(236, 72, 153, 0.28)' },
+  { id: 'gallery', label: 'Gallery', desc: 'View memories', path: '/gallery', icon: ImageIcon, gradient: 'from-fuchsia-500/25 via-purple-500/10 to-transparent border-fuchsia-500/35 text-fuchsia-400', glow: 'rgba(217, 70, 239, 0.28)' },
+  { id: 'translator', label: 'Translator', desc: 'Break barriers', path: '/translator', icon: Languages, gradient: 'from-blue-400/25 via-cyan-400/10 to-transparent border-blue-400/35 text-blue-300', glow: 'rgba(96, 165, 250, 0.28)' },
+  { id: 'settings', label: 'Settings', desc: 'System preferences', path: '/settings', icon: Settings, gradient: 'from-zinc-500/25 via-slate-500/10 to-transparent border-zinc-500/35 text-zinc-300', glow: 'rgba(161, 161, 170, 0.28)' },
+  { id: 'calculator', label: 'Calculator', desc: 'Quick math', path: '/calculator', icon: Calculator, gradient: 'from-orange-600/25 via-amber-600/10 to-transparent border-orange-600/35 text-orange-500', glow: 'rgba(234, 88, 12, 0.28)' },
+  { id: 'clock', label: 'Clock', desc: 'Timers & alarms', path: '/clock', icon: Clock, gradient: 'from-indigo-600/25 via-blue-600/10 to-transparent border-indigo-600/35 text-indigo-400', glow: 'rgba(79, 70, 229, 0.28)' },
+  { id: 'habits', label: 'Habito', desc: 'Build routines', path: '/habits', icon: Target, gradient: 'from-rose-500/25 via-pink-500/10 to-transparent border-rose-500/35 text-rose-400', glow: 'rgba(244, 63, 94, 0.28)' },
+  { id: 'passwords', label: 'Passwords', desc: 'Vault keys', path: '/passwords', icon: Key, gradient: 'from-slate-700/40 via-zinc-700/25 to-transparent border-slate-600/45 text-slate-300', glow: 'rgba(100, 116, 139, 0.28)' },
 ];
 
 const getWeatherCodeLabel = (code) => {
@@ -48,7 +48,7 @@ const getWeatherCodeLabel = (code) => {
   return 'Clear';
 };
 
-// ─── MEMOIZED COMPACT SQUARE WIDGET CARD (2 per row mobile, 3 tablet, 4-5 desktop) ───
+// ─── MEMOIZED COMPACT WIDGET CARD (aspect-[4/3] - exactly 25% shorter) ─────
 const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
   const isAI = app.id === 'assistant';
   const isSettings = app.id === 'settings';
@@ -58,25 +58,25 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
       whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.02 }}
       whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
       onClick={() => onNavigate(app.path)}
-      className="group relative w-full aspect-square text-left focus:outline-none select-none gpu-accelerated flex"
+      className="group relative w-full aspect-[4/3] text-left focus:outline-none select-none gpu-accelerated flex"
     >
       {/* Ambient Outer Glow on Hover */}
       {!shouldReduceMotion && (
         <div 
-          className="absolute -inset-1 rounded-[28px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"
+          className="absolute -inset-1 rounded-[26px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"
           style={{ backgroundColor: app.glow }}
         />
       )}
 
       <div className={cn(
-        "relative overflow-hidden rounded-[24px] p-4 sm:p-5 bg-gradient-to-br backdrop-blur-2xl border flex flex-col justify-between transition-all duration-300 w-full h-full shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] group-hover:shadow-[0_16px_38px_rgba(0,0,0,0.6)]",
+        "relative overflow-hidden rounded-[22px] p-4 sm:p-4.5 bg-gradient-to-br backdrop-blur-2xl border flex flex-col justify-between transition-all duration-300 w-full h-full shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] group-hover:shadow-[0_16px_38px_rgba(0,0,0,0.6)]",
         app.gradient,
         "border-white/20 dark:border-white/[0.12]"
       )}>
-        {/* Gloss Top Border Highlight */}
+        {/* Gloss Top Border Reflection */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/20 to-transparent pointer-events-none" />
 
-        {/* AI Royal Ambient Background */}
+        {/* AI Royal Ambient Aura */}
         {isAI && !shouldReduceMotion && (
           <motion.div 
             animate={{ scale: [1, 1.3, 1], opacity: [0.25, 0.65, 0.25] }}
@@ -87,9 +87,9 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
 
         {/* Top Row: Floating App Illustration / Logo */}
         <div className="flex items-start justify-between w-full z-10">
-          <div className="relative shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-[20px] bg-white/15 dark:bg-black/30 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-md overflow-hidden group-hover:scale-105 transition-transform duration-300">
+          <div className="relative shrink-0 w-11 h-11 sm:w-13 sm:h-13 rounded-[18px] bg-white/15 dark:bg-black/30 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-md overflow-hidden group-hover:scale-105 transition-transform duration-300">
             {app.logo ? (
-              <img src={app.logo} alt={app.label} className="w-full h-full object-cover rounded-[20px] pointer-events-none" />
+              <img src={app.logo} alt={app.label} className="w-full h-full object-cover rounded-[18px] pointer-events-none" />
             ) : (
               <motion.div
                 animate={isSettings && !shouldReduceMotion ? { rotate: 0 } : {}}
@@ -97,7 +97,7 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
                 transition={{ type: "spring", stiffness: 200, damping: 15 }}
                 className="flex items-center justify-center w-full h-full"
               >
-                <app.icon className="w-7 h-7 sm:w-8 sm:h-8 text-current drop-shadow-md" strokeWidth={1.5} />
+                <app.icon className="w-6.5 h-6.5 sm:w-7.5 sm:h-7.5 text-current drop-shadow-md" strokeWidth={1.5} />
               </motion.div>
             )}
           </div>
@@ -114,7 +114,7 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
         </div>
 
         {/* Bottom Row: App Title & Subtitle */}
-        <div className="flex flex-col min-w-0 z-10 pt-2">
+        <div className="flex flex-col min-w-0 z-10 pt-1.5">
           <span className="font-bold text-foreground tracking-tight text-sm sm:text-base truncate drop-shadow-sm font-sans">
             {app.label}
           </span>
@@ -124,7 +124,7 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
         </div>
 
         {/* Touch Ripple Highlight */}
-        <div className="absolute inset-0 rounded-[24px] bg-white/0 group-active:bg-white/10 dark:group-active:bg-white/[0.08] transition-colors pointer-events-none" />
+        <div className="absolute inset-0 rounded-[22px] bg-white/0 group-active:bg-white/10 dark:group-active:bg-white/[0.08] transition-colors pointer-events-none" />
       </div>
     </motion.button>
   );
@@ -135,6 +135,7 @@ export default function Home() {
   const isNavigatingRef = useRef(false);
   const shouldReduceMotion = useReducedMotion();
   const [searchQ, setSearchQ] = useState('');
+  const [videoFailed, setVideoFailed] = useState(false);
   
   // Stable Navigation Lock
   const handleNavigate = useCallback((path) => {
@@ -225,6 +226,13 @@ export default function Home() {
     mouseY.set(0);
   }, [mouseX, mouseY]);
 
+  // Real-time local instant inline search filtering
+  const filteredApps = APPS.filter(app => {
+    if (!searchQ.trim()) return true;
+    const q = searchQ.toLowerCase();
+    return app.label.toLowerCase().includes(q) || app.desc.toLowerCase().includes(q) || app.id.toLowerCase().includes(q);
+  });
+
   // Stagger Animations for App Grid
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -238,10 +246,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden font-sans selection:bg-primary/30 pt-6 pb-24">
+    <div className="min-h-screen bg-background relative overflow-x-hidden w-full max-w-[100vw] font-sans selection:bg-primary/30 pt-20 sm:pt-24 pb-24">
       
       {/* ─── LUXURY ANIMATED AURORA BACKGROUND & PARTICLES ─────────────────── */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden w-full max-w-[100vw]">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(120,119,198,0.14)_0%,_transparent_75%)]" />
         
         {!shouldReduceMotion && (
@@ -260,9 +268,9 @@ export default function Home() {
         )}
       </div>
 
-      <div className="relative z-10 px-4 sm:px-8 max-w-6xl mx-auto space-y-8 sm:space-y-10">
+      <div className="relative z-10 px-4 sm:px-8 max-w-6xl mx-auto space-y-8 sm:space-y-10 w-full">
         
-        {/* ─── 1 & 2 & 3. COMPACT HERO BANNER WITH VIDEO BACKGROUND ────────── */}
+        {/* ─── 1 & 3. COMPACT HERO BANNER WITH BULLETPROOF VIDEO BACKGROUND ── */}
         <motion.div 
           initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -279,17 +287,20 @@ export default function Home() {
             style={shouldReduceMotion ? {} : { x: parallaxX, y: parallaxY }}
             animate={shouldReduceMotion ? {} : { y: [0, -3, 0] }}
             transition={{ y: { repeat: Infinity, duration: 6, ease: "easeInOut" } }}
-            className="relative overflow-hidden rounded-[32px] sm:rounded-[36px] p-8 sm:p-10 bg-black/40 dark:bg-black/60 backdrop-blur-[24px] border border-white/20 dark:border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center"
+            className="relative overflow-hidden rounded-[32px] sm:rounded-[36px] p-8 sm:p-10 bg-indigo-950/80 dark:bg-black/60 backdrop-blur-[24px] border border-white/20 dark:border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center min-h-[220px]"
           >
-            {/* Looping Blurred Video Background Engine */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none">
-              <video 
-                autoPlay loop muted playsInline 
-                className="w-full h-full object-cover scale-110 filter blur-[14px] brightness-75 opacity-90 dark:opacity-75 transition-opacity duration-700"
-              >
-                <source src="https://cdn.pixabay.com/video/2023/07/04/169951-842214690_large.mp4" type="video/mp4" />
-              </video>
-              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
+            {/* Bulletproof Open CDN Looping Video Engine with Fallback Backdrop */}
+            <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none bg-gradient-to-br from-indigo-950 via-purple-950 to-black">
+              {!videoFailed && (
+                <video 
+                  autoPlay loop muted playsInline 
+                  onError={() => setVideoFailed(true)}
+                  className="w-full h-full object-cover scale-105 filter blur-[12px] brightness-75 opacity-90 transition-opacity duration-700 pointer-events-none"
+                >
+                  <source src="https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4" type="video/mp4" />
+                </video>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/45" />
             </div>
 
             {/* Periodic Shimmer Light Sweep */}
@@ -346,24 +357,17 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        {/* ─── 6. OVAL FLOATING GLASS SEARCH BAR BELOW BANNER ──────────────── */}
+        {/* ─── 5 & 6. OVAL FLOATING GLASS INLINE SEARCH BAR ────────────────── */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.15, duration: 0.4 }}
           className="relative max-w-2xl mx-auto group w-full"
         >
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-500/30 via-primary/30 to-blue-500/30 blur-xl opacity-50 group-focus-within:opacity-100 transition-opacity duration-500 -z-10" />
+          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-500/35 via-primary/35 to-blue-500/35 blur-xl opacity-45 group-focus-within:opacity-100 transition-opacity duration-500 -z-10" />
           
-          <form 
-            onSubmit={(e) => { 
-              e.preventDefault(); 
-              if(searchQ.trim()) handleNavigate(`/search?q=${encodeURIComponent(searchQ)}`); 
-              else handleNavigate('/search');
-            }}
-            className="relative flex items-center justify-between w-full rounded-full py-3.5 px-6 backdrop-blur-2xl bg-white/25 dark:bg-white/[0.07] border border-white/30 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-all duration-300 group-focus-within:border-primary/50"
-          >
-            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mr-3 shrink-0" />
+          <div className="relative flex items-center justify-between w-full rounded-full py-3.5 px-6 backdrop-blur-2xl bg-white/25 dark:bg-white/[0.07] border border-white/30 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-all duration-300 group-focus-within:border-primary/60 group-focus-within:shadow-[0_0_25px_rgba(139,92,246,0.35)]">
+            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mr-3 shrink-0 group-focus-within:text-primary transition-colors" />
             <input 
               value={searchQ}
               onChange={e => setSearchQ(e.target.value)}
@@ -371,30 +375,41 @@ export default function Home() {
               className="w-full bg-transparent border-none outline-none text-foreground font-medium text-sm sm:text-base placeholder:text-muted-foreground/75 select-text" 
             />
             <div className="flex items-center gap-2 ml-3 shrink-0 text-muted-foreground">
+              {searchQ && (
+                <button type="button" onClick={() => setSearchQ('')} title="Clear" className="p-1 hover:text-foreground active:scale-95 transition-all"><X className="w-4 h-4 text-muted-foreground hover:text-foreground" /></button>
+              )}
               <button type="button" onClick={() => handleNavigate('/assistant')} title="Ask ORA AI" className="p-1 hover:text-primary active:scale-95 transition-all"><Bot className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-violet-400" /></button>
-              <button type="submit" title="Search" className="p-1 hover:text-primary active:scale-95 transition-all"><Sparkles className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-400" /></button>
+              <button type="button" onClick={() => handleNavigate('/assistant')} title="Voice AI" className="p-1 hover:text-primary active:scale-95 transition-all"><Sparkles className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-400" /></button>
             </div>
-          </form>
+          </div>
         </motion.div>
 
-        {/* ─── 7 & 8. RESPONSIVE COMPACT SQUARE APP GRID ─────────────────────── */}
+        {/* ─── 4 & 7 & 8. RESPONSIVE COMPACT APP GRID (aspect-[4/3]) ───────── */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="show"
           className="relative z-10 w-full pt-2"
         >
-          {/* Mobile: 2 per row | Tablet: 3 per row | Desktop: 4-5 per row */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-5 place-items-stretch w-full">
-            {APPS.map(app => (
-              <AppCard 
-                key={app.id} 
-                app={app} 
-                onNavigate={handleNavigate}
-                shouldReduceMotion={shouldReduceMotion}
-              />
-            ))}
-          </div>
+          {filteredApps.length === 0 ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 px-4 bg-card/30 backdrop-blur-xl rounded-[28px] border border-border/40 max-w-md mx-auto">
+              <Search className="w-10 h-10 text-muted-foreground/40 mx-auto mb-3 animate-bounce" />
+              <p className="text-base font-semibold text-foreground">No matching tools found</p>
+              <p className="text-xs text-muted-foreground mt-1">We couldn't find any app matching "{searchQ}"</p>
+              <button onClick={() => setSearchQ('')} className="mt-4 px-4 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors">Reset Search</button>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3.5 sm:gap-5 place-items-stretch w-full">
+              {filteredApps.map(app => (
+                <AppCard 
+                  key={app.id} 
+                  app={app} 
+                  onNavigate={handleNavigate}
+                  shouldReduceMotion={shouldReduceMotion}
+                />
+              ))}
+            </div>
+          )}
         </motion.div>
         
       </div>
