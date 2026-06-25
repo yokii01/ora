@@ -215,8 +215,8 @@ export default function Home() {
     const { left, top, width, height } = currentTarget.getBoundingClientRect();
     const x = (clientX - left) / width - 0.5;
     const y = (clientY - top) / height - 0.5;
-    mouseX.set(x * 15);
-    mouseY.set(y * 15);
+    mouseX.set(x * 12);
+    mouseY.set(y * 12);
   }, [shouldReduceMotion, mouseX, mouseY]);
 
   const handleMouseLeave = useCallback(() => {
@@ -244,31 +244,11 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden w-full max-w-[100vw] font-sans selection:bg-primary/30 pt-6 sm:pt-8 pb-24">
+    <div className="min-h-screen bg-background relative overflow-x-hidden w-full max-w-[100vw] font-sans selection:bg-primary/30 pt-4 sm:pt-6 pb-24">
       
-      {/* ─── LUXURY ANIMATED AURORA BACKGROUND & PARTICLES ─────────────────── */}
-      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden w-full max-w-[100vw]">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(120,119,198,0.14)_0%,_transparent_75%)]" />
-        
-        {!shouldReduceMotion && (
-          <>
-            <motion.div 
-              animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, -30, 0] }}
-              transition={{ repeat: Infinity, duration: 18, ease: "easeInOut" }}
-              className="absolute -top-20 -left-20 w-[550px] h-[550px] bg-purple-600/15 dark:bg-purple-600/[0.08] rounded-full blur-[140px]"
-            />
-            <motion.div 
-              animate={{ scale: [1, 1.25, 1], x: [0, -50, 0], y: [0, 50, 0] }}
-              transition={{ repeat: Infinity, duration: 22, ease: "easeInOut" }}
-              className="absolute top-32 -right-20 w-[550px] h-[550px] bg-indigo-600/15 dark:bg-blue-600/[0.08] rounded-full blur-[140px]"
-            />
-          </>
-        )}
-      </div>
-
       <div className="relative z-10 px-4 sm:px-8 max-w-6xl mx-auto space-y-6 sm:space-y-8 w-full">
         
-        {/* ─── WEATHER BANNER (NO BRIGHT SURROUNDING GLOW + INLINE BELL) ──── */}
+        {/* ─── WEATHER BANNER (CLEAN DARK BG + INDEPENDENT BELL + ENLARGED CHIP) ── */}
         <motion.div 
           initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -277,13 +257,13 @@ export default function Home() {
           onMouseLeave={handleMouseLeave}
           className="relative mx-auto max-w-2xl select-none w-full"
         >
-          {/* Frosted Glass Hero Card with Refined Shadow */}
+          {/* Frosted Glass Hero Card */}
           <motion.div 
             style={shouldReduceMotion ? {} : { x: parallaxX, y: parallaxY }}
             className="relative overflow-hidden rounded-[32px] sm:rounded-[36px] p-8 sm:p-10 bg-indigo-950/80 dark:bg-black/60 backdrop-blur-[24px] border border-white/15 dark:border-white/[0.12] shadow-[0_15px_45px_rgba(0,0,0,0.35)] flex flex-col items-center justify-center text-center min-h-[220px]"
           >
-            {/* Top-Right Inline Notification Bell Button */}
-            <div className="absolute top-5 right-5 z-30">
+            {/* Top-Right Independent Notification Bell Button */}
+            <div className="absolute top-5 right-5 sm:top-6 sm:right-6 z-30">
               <motion.button
                 onClick={() => setNotifOpen(!notifOpen)}
                 whileHover={{ scale: 1.06 }}
@@ -322,16 +302,15 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/45" />
             </div>
 
-            {/* Crisp Inner Top Border Reflection */}
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/25 to-transparent" />
 
-            {/* Cleaner Centered Content Layer */}
-            <div className="relative z-20 space-y-4 sm:space-y-5 w-full text-white pt-2 sm:pt-0">
+            {/* Centered Content Layer */}
+            <div className="relative z-20 space-y-4 sm:space-y-5 w-full text-white pt-1">
               
-              {/* Short City Chip */}
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/15 dark:bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold tracking-wide shadow-sm">
-                <Map className="w-3.5 h-3.5 text-sky-300" />
-                <span>{weather.shortCity}</span>
+              {/* Enlarged Readable Location Chip (max-w-[75%], full readable size) */}
+              <div className="inline-flex items-center justify-center gap-2 px-4.5 py-1.5 rounded-full bg-white/15 dark:bg-white/10 backdrop-blur-md border border-white/20 text-sm sm:text-base font-semibold tracking-wide shadow-sm max-w-[75%] sm:max-w-[80%] mx-auto">
+                <Map className="w-4 h-4 text-sky-300 shrink-0" />
+                <span className="truncate">{weather.shortCity}</span>
               </div>
 
               {/* Luxury Digital Clock & Date */}
@@ -367,24 +346,22 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        {/* ─── SEARCH BAR + DETACHED FLOATING AI ASSISTANT BUTTON ──────────── */}
+        {/* ─── SEARCH BAR + PROPORTIONAL 52-54px AI FLOATING BUTTON ────────── */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1, duration: 0.4 }}
           className="relative max-w-2xl mx-auto flex items-center gap-3 sm:gap-3.5 w-full"
         >
-          {/* Search Pill (No Robot Icon) */}
+          {/* Search Pill (h-[52px] sm:h-[54px]) */}
           <div className="relative flex-1 group">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-500/30 via-primary/30 to-blue-500/30 blur-xl opacity-40 group-focus-within:opacity-100 transition-opacity duration-500 -z-10" />
-            
-            <div className="relative flex items-center justify-between w-full rounded-full py-3.5 px-6 backdrop-blur-2xl bg-white/25 dark:bg-white/[0.07] border border-white/30 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-all duration-300 group-focus-within:border-primary/60 group-focus-within:shadow-[0_0_25px_rgba(139,92,246,0.35)]">
-              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mr-3 shrink-0 group-focus-within:text-primary transition-colors" />
+            <div className="relative flex items-center justify-between w-full h-[52px] sm:h-[54px] rounded-full px-6 backdrop-blur-2xl bg-white/25 dark:bg-white/[0.07] border border-white/30 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-all duration-300 group-focus-within:border-primary/60 group-focus-within:shadow-[0_0_25px_rgba(139,92,246,0.35)]">
+              <Search className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-muted-foreground mr-3 shrink-0 group-focus-within:text-primary transition-colors" />
               <input 
                 value={searchQ}
                 onChange={e => setSearchQ(e.target.value)}
                 placeholder="Search apps, tools, settings..." 
-                className="w-full bg-transparent border-none outline-none text-foreground font-medium text-sm sm:text-base placeholder:text-muted-foreground/75 select-text" 
+                className="w-full h-full bg-transparent border-none outline-none text-foreground font-medium text-sm sm:text-base placeholder:text-muted-foreground/75 select-text" 
               />
               {searchQ && (
                 <button type="button" onClick={() => setSearchQ('')} title="Clear" className="p-1 hover:text-foreground active:scale-95 transition-all shrink-0 ml-2"><X className="w-4 h-4 text-muted-foreground hover:text-foreground" /></button>
@@ -392,25 +369,24 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Separate Primary Floating AI Assistant Button */}
+          {/* Proportional 52-54px AI Floating Action Button matching Search Bar height */}
           <motion.button
-            whileHover={{ scale: 1.08, y: -2 }}
-            whileTap={{ scale: 0.94 }}
+            whileHover={{ scale: 1.05, y: -1 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => handleNavigate('/assistant')}
             title="Ask ORA AI Assistant"
-            className="relative shrink-0 w-13 h-13 sm:w-14 sm:h-14 rounded-full p-0.5 bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-amber-400 shadow-[0_0_25px_rgba(168,85,247,0.45)] group cursor-pointer flex items-center justify-center focus:outline-none"
+            className="relative shrink-0 w-[52px] h-[52px] sm:w-[54px] sm:h-[54px] rounded-full p-[1.5px] bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-amber-400 shadow-md group cursor-pointer flex items-center justify-center focus:outline-none"
           >
-            {/* Idle Pulse Aura */}
             {!shouldReduceMotion && (
               <motion.div
-                animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.8, 0.4] }}
+                animate={{ scale: [1, 1.06, 1], opacity: [0.3, 0.65, 0.3] }}
                 transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
-                className="absolute inset-0 rounded-full bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-amber-400 blur-md pointer-events-none -z-10"
+                className="absolute inset-0 rounded-full bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-amber-400 blur-sm pointer-events-none -z-10"
               />
             )}
             
             <div className="w-full h-full rounded-full bg-black/65 dark:bg-black/75 backdrop-blur-2xl flex items-center justify-center border border-white/20 group-hover:bg-black/45 transition-colors overflow-hidden">
-              <Sparkles className="w-6 h-6 sm:w-6.5 sm:h-6.5 text-fuchsia-300 drop-shadow-[0_0_10px_rgba(217,70,239,0.9)] group-hover:rotate-12 transition-transform duration-300" />
+              <Sparkles className="w-5.5 h-5.5 sm:w-6 sm:h-6 text-fuchsia-300 drop-shadow group-hover:rotate-12 transition-transform duration-300" />
             </div>
           </motion.button>
         </motion.div>
