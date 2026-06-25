@@ -22,51 +22,59 @@ function getWeatherTheme(code, isDay) {
   return THEMES.clear;
 }
 
+import { useApiQuery } from '@/hooks/useApi';
+
 export default function ClimoraUltra() {
-  const [weatherData, setWeatherData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [screenState, setScreenState] = useState('loading');
-  
-  const fetchWeather = async (lat = 51.5085, lon = -0.1257, name = 'London') => {
-    setLoading(true);
-    setScreenState('loading');
-    try {
-      const data = await safeFetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,is_day,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`);
-      setWeatherData({ ...data, name });
-      setScreenState('ready');
-    } catch (e) {
-      console.error(e);
-      setScreenState('error');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [location, setLocation] = useState({ lat: 51.5085, lon: -0.1257, name: 'London' });
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!search) return;
-    try {
-      const data = await safeFetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(search)}&count=1`);
-      if (data.results?.[0]) {
-        const { latitude, longitude, name } = data.results[0];
-        fetchWeather(latitude, longitude, name);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
+  // 1. Geocoding Query (Triggers only when `search` is submitted)
+  const [searchQuery, setSearchQuery] = useState('');
+  const { 
+    data: geoData, 
+    isFetching: isGeoFetching 
+  } = useApiQuery({
+    queryKey: ['weather-geocode', searchQuery],
+    url: `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchQuery)}&count=1`,
+    enabled: !!searchQuery,
+  });
 
+  // Automatically update location when geoData arrives
   useEffect(() => {
-    fetchWeather();
-  }, []);
+    if (geoData?.results?.[0]) {
+      const { latitude, longitude, name } = geoData.results[0];
+      setLocation({ lat: latitude, lon: longitude, name });
+    }
+  }, [geoData]);
+
+  // 2. Weather Query (Triggers automatically on location change)
+  const { 
+    data: weatherData, 
+    isLoading: isWeatherLoading, 
+    isError: isWeatherError,
+    error: weatherError,
+    refetch: refetchWeather,
+    isOffline
+  } = useApiQuery({
+    queryKey: ['weather', location.lat, location.lon],
+    url: `https://api.open-meteo.com/v1/forecast?latitude=${location.lat}&longitude=${location.lon}&current=temperature_2m,relative_humidity_2m,is_day,weather_code,wind_speed_10m&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto`,
+  });
+
+  // Calculate Screen State
+  const screenState = isOffline ? 'error' : isWeatherError ? 'error' : isWeatherLoading || isGeoFetching ? 'loading' : 'ready';
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!search.trim()) return;
+    setSearchQuery(search.trim());
+  };
 
   const current = weatherData?.current || {};
   const theme = getWeatherTheme(current.weather_code || 0, current.is_day ?? 1);
   const WeatherIcon = theme.icon;
 
   return (
-    <FeatureState state={screenState} onRetry={() => fetchWeather()}>
+    <FeatureState state={screenState} onRetry={() => refetchWeather()}>
       <div className={`min-h-screen bg-gradient-to-br ${theme.bg} text-white transition-colors duration-1000 p-4 lg:p-8 flex flex-col items-center`}>
       <div className="w-full max-w-4xl flex-1 flex flex-col gap-8 pt-safe">
         {/* Search Bar */}

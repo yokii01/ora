@@ -480,33 +480,39 @@ export default function Tasks() {
 
       {/* Task Detail Dialog */}
       <Dialog open={!!detailTask} onOpenChange={(o) => !o && setDetailTask(null)}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[28px] border-border/50">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[36px] border-border/50 p-6">
           {detailTask && (() => {
             const config = PRIORITY_CONFIG[detailTask.priority] || PRIORITY_CONFIG.medium;
             const dueDateInfo = getDueDateLabel(detailTask.due_date);
             return (
               <>
-                <DialogHeader>
+                <DialogHeader className="mb-2 space-y-3">
                   <div className="flex items-center justify-between pr-6">
                     <span className={cn('text-xs font-bold px-2.5 py-1 rounded-full border', config.bg, config.color)}>{config.label}</span>
                     <button onClick={() => openEdit(detailTask)} className="p-1.5 rounded-xl hover:bg-muted transition-colors">
                       <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
                     </button>
                   </div>
-                  <DialogTitle className="text-lg font-bold leading-snug mt-2">{detailTask.title}</DialogTitle>
-                  {detailTask.description && <p className="text-sm text-muted-foreground mt-1">{detailTask.description}</p>}
+                  <DialogTitle className="text-xl font-bold">{detailTask.title}</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
+                <div className="space-y-5">
+                  {/* Description */}
+                  {detailTask.description && (
+                    <div className="bg-muted/30 rounded-2xl p-4 text-sm text-foreground/90 leading-relaxed">
+                      {detailTask.description}
+                    </div>
+                  )}
+
                   {/* Meta */}
                   <div className="grid grid-cols-2 gap-3">
                     {dueDateInfo && (
-                      <div className="bg-muted/50 rounded-xl p-3">
+                      <div className="bg-muted/50 rounded-2xl p-3">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Due</p>
                         <p className={cn('text-sm font-semibold', dueDateInfo.class)}>{dueDateInfo.text} {detailTask.due_date && format(new Date(detailTask.due_date), '· h:mm a')}</p>
                       </div>
                     )}
                     {detailTask.tags?.length > 0 && (
-                      <div className="bg-muted/50 rounded-xl p-3">
+                      <div className="bg-muted/50 rounded-2xl p-3">
                         <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Tags</p>
                         <p className="text-sm font-medium">{detailTask.tags.join(', ')}</p>
                       </div>
@@ -517,7 +523,7 @@ export default function Tasks() {
                   {detailTask.subtasks?.length > 0 && (
                     <div>
                       <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Subtasks</p>
-                      <div className="space-y-0.5 bg-muted/40 rounded-xl p-3">
+                      <div className="space-y-0.5 bg-muted/40 rounded-2xl p-3">
                         {detailTask.subtasks.map((s, idx) => (
                           <SubtaskItem key={idx} subtask={s} onToggle={() => toggleSubtask(detailTask, idx)} />
                         ))}
@@ -526,14 +532,14 @@ export default function Tasks() {
                   )}
 
                   {/* Actions */}
-                  <div className="flex flex-col gap-2.5 pt-2">
-                    <div className="flex gap-2.5">
-                      <Button variant="outline" onClick={() => openEdit(detailTask)} className="flex-1 h-12 rounded-full gap-2 text-sm font-semibold">
+                  <div className="flex flex-col gap-3 pt-2">
+                    <div className="flex gap-3">
+                      <Button variant="outline" onClick={() => openEdit(detailTask)} className="flex-1 h-12 rounded-full gap-2 text-sm font-semibold border-primary/20 hover:bg-primary/5 hover:text-primary">
                         <Pencil className="w-4 h-4" /> Edit
                       </Button>
                       <Button
                         onClick={() => toggleStatus(detailTask)}
-                        className={cn('flex-1 h-12 rounded-full gap-2 text-sm font-semibold', detailTask.status === 'completed' ? 'bg-muted text-foreground hover:bg-muted/80' : 'bg-success hover:bg-success/90 text-success-foreground')}
+                        className={cn('flex-1 h-12 rounded-full gap-2 text-sm font-semibold shadow-lg', detailTask.status === 'completed' ? 'bg-muted text-foreground hover:bg-muted/80 shadow-none' : 'bg-success hover:bg-success/90 text-success-foreground shadow-success/20')}
                       >
                         <CheckCircle2 className="w-4 h-4" />
                         {detailTask.status === 'completed' ? 'Undo' : 'Done'}
@@ -542,7 +548,7 @@ export default function Tasks() {
                     <Button
                       variant="outline"
                       onClick={() => { if (confirm('Delete this task permanently?')) { deleteMutation.mutate(detailTask.id); } }}
-                      className="w-full h-12 rounded-full gap-2 text-sm font-semibold text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive"
+                      className="w-full h-12 rounded-full gap-2 text-sm font-semibold text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive transition-colors"
                     >
                       <Trash2 className="w-4 h-4" /> Delete Task
                     </Button>
@@ -556,73 +562,73 @@ export default function Tasks() {
 
       {/* Add / Edit Task Dialog */}
       <Dialog open={showAdd} onOpenChange={(o) => { if (!o) { setShowAdd(false); setEditTask(null); } }}>
-        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[28px] border-border/50">
+        <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto rounded-[36px] border-border/50 p-6">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {editTask?.id ? <><Pencil className="w-4 h-4" /> Task details</> : <><Plus className="w-4 h-4" /> New task</>}
+            <DialogTitle className="flex items-center gap-2 text-xl font-bold">
+              {editTask?.id ? <><Pencil className="w-5 h-5 text-primary" /> Edit task</> : <><Plus className="w-5 h-5 text-primary" /> New task</>}
             </DialogTitle>
           </DialogHeader>
           {editTask && (
-            <div className="space-y-4">
+            <div className="space-y-5 mt-2">
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block font-medium">Task name</label>
+                <label className="text-xs text-muted-foreground mb-1.5 block font-medium uppercase tracking-wider">Task name</label>
                 <Input
                   placeholder="Write your task here..."
                   value={editTask.title}
                   onChange={(e) => setEditTask({ ...editTask, title: e.target.value })}
-                  className="rounded-xl bg-muted/40 border-0"
+                  className="rounded-2xl bg-muted/40 border-0 h-12 px-4 text-base"
                 />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block font-medium">Description</label>
+                <label className="text-xs text-muted-foreground mb-1.5 block font-medium uppercase tracking-wider">Description</label>
                 <Textarea
                   placeholder="Add more details or notes"
                   value={editTask.description || ''}
                   onChange={(e) => setEditTask({ ...editTask, description: e.target.value })}
-                  className="resize-none rounded-xl bg-muted/40 border-0 min-h-[80px]"
+                  className="resize-none rounded-2xl bg-muted/40 border-0 min-h-[100px] p-4 text-base"
                 />
               </div>
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block font-medium flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5" /> Due date & time
+                <label className="text-xs text-muted-foreground mb-1.5 block font-medium uppercase tracking-wider flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5" /> Due date
                 </label>
                 <Input
                   type="date"
                   value={editTask.due_date || ''}
                   onChange={(e) => setEditTask({ ...editTask, due_date: e.target.value })}
-                  className="rounded-xl bg-muted/40 border-0"
+                  className="rounded-2xl bg-muted/40 border-0 h-12 px-4"
                 />
               </div>
 
               {/* Subtasks */}
               <div>
-                <label className="text-xs text-muted-foreground mb-1.5 block font-medium">Add subtasks</label>
-                <div className="space-y-1.5 mb-2">
+                <label className="text-xs text-muted-foreground mb-1.5 block font-medium uppercase tracking-wider">Subtasks</label>
+                <div className="space-y-1.5 mb-3">
                   {(editTask.subtasks || []).map((s, i) => (
-                    <div key={i} className="flex items-center gap-2 bg-muted/40 rounded-xl px-3 py-2">
-                      <Circle className="w-3.5 h-3.5 text-muted-foreground/50 flex-shrink-0" />
+                    <div key={i} className="flex items-center gap-2 bg-muted/40 rounded-2xl px-4 py-3">
+                      <Circle className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
                       <span className="text-sm flex-1">{s.title}</span>
-                      <button onClick={() => setEditTask({ ...editTask, subtasks: editTask.subtasks.filter((_, j) => j !== i) })}>
-                        <X className="w-3.5 h-3.5 text-muted-foreground hover:text-destructive" />
+                      <button onClick={() => setEditTask({ ...editTask, subtasks: editTask.subtasks.filter((_, j) => j !== i) })} className="p-1 hover:bg-destructive/10 rounded-full transition-colors">
+                        <X className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                       </button>
                     </div>
                   ))}
                 </div>
                 <div className="flex gap-2">
                   <Input placeholder="Subtask title" value={newSubtask} onChange={(e) => setNewSubtask(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && addSubtask()} className="rounded-xl bg-muted/40 border-0 h-9 text-sm" />
-                  <Button size="sm" variant="outline" onClick={addSubtask} className="rounded-xl h-9 px-3">
+                    onKeyDown={(e) => e.key === 'Enter' && addSubtask()} className="rounded-2xl bg-muted/40 border-0 h-11 text-sm px-4" />
+                  <Button variant="secondary" onClick={addSubtask} className="rounded-2xl h-11 px-4 hover:bg-primary hover:text-primary-foreground transition-colors">
                     <Plus className="w-4 h-4" />
                   </Button>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block font-medium">Priority</label>
+                  <label className="text-xs text-muted-foreground mb-1.5 block font-medium uppercase tracking-wider">Priority</label>
                   <Select value={editTask.priority} onValueChange={(v) => setEditTask({ ...editTask, priority: v })}>
-                    <SelectTrigger className="rounded-xl bg-muted/40 border-0 h-10"><SelectValue placeholder="Select" /></SelectTrigger>
-                    <SelectContent>
+                    <SelectTrigger className="rounded-2xl bg-muted/40 border-0 h-11 px-4"><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectContent className="rounded-2xl border-border/50">
                       <SelectItem value="low">Low</SelectItem>
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
@@ -631,20 +637,20 @@ export default function Tasks() {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1.5 block font-medium">Tags</label>
+                  <label className="text-xs text-muted-foreground mb-1.5 block font-medium uppercase tracking-wider">Tags</label>
                   <div className="flex gap-1">
                     <Input placeholder="Add tag..." value={newTag} onChange={(e) => setNewTag(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && addTag()} className="rounded-xl bg-muted/40 border-0 h-10 text-sm" />
-                    <Button size="sm" variant="ghost" onClick={addTag} className="rounded-xl h-10 px-2">
+                      onKeyDown={(e) => e.key === 'Enter' && addTag()} className="rounded-2xl bg-muted/40 border-0 h-11 text-sm px-3" />
+                    <Button variant="secondary" onClick={addTag} className="rounded-2xl h-11 px-3 hover:bg-primary hover:text-primary-foreground transition-colors">
                       <Plus className="w-4 h-4" />
                     </Button>
                   </div>
-                  <div className="flex gap-1 flex-wrap mt-1.5">
+                  <div className="flex gap-1.5 flex-wrap mt-2">
                     {(editTask.tags || []).map(tag => (
-                      <span key={tag} className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full flex items-center gap-1">
+                      <span key={tag} className="text-[11px] bg-primary/10 text-primary px-2.5 py-1 rounded-full flex items-center gap-1 font-medium">
                         {tag}
                         <button onClick={() => setEditTask({ ...editTask, tags: editTask.tags.filter(t => t !== tag) })}>
-                          <X className="w-2.5 h-2.5" />
+                          <X className="w-3 h-3 hover:text-destructive transition-colors" />
                         </button>
                       </span>
                     ))}
@@ -652,18 +658,20 @@ export default function Tasks() {
                 </div>
               </div>
 
-              <Button onClick={saveTask} className="w-full rounded-full h-11 text-base font-semibold shadow-lg shadow-primary/25">
-                {editTask.id ? 'Update task' : 'Create task'}
-              </Button>
-              {editTask.id && (
-                <Button
-                  variant="outline"
-                  onClick={() => { if (confirm('Delete this task permanently?')) { deleteMutation.mutate(editTask.id); setShowAdd(false); setEditTask(null); } }}
-                  className="w-full h-11 rounded-full gap-2 text-sm font-semibold text-destructive border-destructive/30 hover:bg-destructive/10"
-                >
-                  <Trash2 className="w-4 h-4" /> Delete Task
+              <div className="pt-2 flex flex-col gap-3">
+                <Button onClick={saveTask} className="w-full rounded-full h-12 text-sm font-semibold shadow-lg shadow-primary/20">
+                  {editTask.id ? 'Save changes' : 'Create task'}
                 </Button>
-              )}
+                {editTask.id && (
+                  <Button
+                    variant="outline"
+                    onClick={() => { if (confirm('Delete this task permanently?')) { deleteMutation.mutate(editTask.id); setShowAdd(false); setEditTask(null); } }}
+                    className="w-full h-12 rounded-full gap-2 text-sm font-semibold text-destructive border-destructive/30 hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" /> Delete Task
+                  </Button>
+                )}
+              </div>
             </div>
           )}
         </DialogContent>

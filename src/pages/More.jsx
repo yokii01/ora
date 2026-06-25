@@ -68,7 +68,7 @@ export default function More() {
                 >
                   <Link
                     to={item.path}
-                    className="flex flex-col gap-3 p-4 h-full rounded-[1.5rem] bg-card/60 backdrop-blur-md border border-border/50 hover:bg-card hover:border-primary/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
+                    className="group flex flex-col gap-3 p-4 h-full rounded-[1.5rem] bg-card/60 backdrop-blur-md border border-border/50 hover:bg-card hover:border-primary/30 hover:shadow-lg hover:-translate-y-0.5 transition-all"
                   >
                     <div className={cn("w-12 h-12 rounded-full flex items-center justify-center transition-transform group-hover:scale-110", item.color)}>
                       <item.icon className="w-6 h-6" />

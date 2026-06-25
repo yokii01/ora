@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useApiMutation } from '@/hooks/useApi';
 import {
   Sparkles, Send, Plus, MessageSquare, Search,
   Trash2, Edit3, Pin, ArrowLeft, Brain, CheckSquare,
@@ -201,6 +202,11 @@ export default function Assistant() {
   const textareaRef = useRef(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
+
+  const { mutateAsync: sendAiRequest } = useApiMutation({
+    mutationFn: invokeAI,
+    retry: 2,
+  });
 
   useEffect(() => {
     return () => {
@@ -526,7 +532,7 @@ Respond in a warm, helpful, concise tone. Be specific about the user's actual da
     ];
 
     try {
-      const aiResult = await invokeAI({
+      const aiResult = await sendAiRequest({
         messages: aiMessages,
         signal: abortControllerRef.current.signal,
       });

@@ -71,27 +71,20 @@ const CURRENCIES = [
   { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
 ];
 
+import { useApiQuery } from '@/hooks/useApi';
+
 const RATE_CACHE_KEY = 'oras_currency_rates_v1';
 const CURRENCY_CODES = CURRENCIES.map(currency => currency.code);
 
-async function fetchCurrencyRates() {
-  try {
-    const data = await safeFetch('https://open.er-api.com/v6/latest/USD');
-    if (data.result !== 'success') throw new Error('Currency service returned invalid data');
-    const supportedRates = Object.fromEntries(CURRENCY_CODES.map(code => [code, data.rates[code]]).filter(([, rate]) => Number.isFinite(rate)));
-    const result = {
-      rates: supportedRates,
-      marketDate: data.time_last_update_utc,
-      fetchedAt: new Date().toISOString(),
-      cached: false,
-    };
-    localStorage.setItem(RATE_CACHE_KEY, JSON.stringify(result));
-    return result;
-  } catch (error) {
-    const cached = localStorage.getItem(RATE_CACHE_KEY);
-    if (cached) return { ...JSON.parse(cached), cached: true };
-    throw error;
-  }
+function processCurrencyData(data) {
+  if (data.result !== 'success') throw new Error('Currency service returned invalid data');
+  const supportedRates = Object.fromEntries(CURRENCY_CODES.map(code => [code, data.rates[code]]).filter(([, rate]) => Number.isFinite(rate)));
+  return {
+    rates: supportedRates,
+    marketDate: data.time_last_update_utc,
+    fetchedAt: new Date().toISOString(),
+    cached: false,
+  };
 }
 
 // ─── Dashboard 1: Spending by Category ───────────────────────────────────────
@@ -450,19 +443,18 @@ function CurrencyConverter() {
   const [from, setFrom] = useState('USD');
   const [to, setTo] = useState('EUR');
   const {
-    data,
+    data: rawData,
     isLoading,
     isFetching,
     error,
     refetch,
-  } = useQuery({
+  } = useApiQuery({
     queryKey: ['currency-rates'],
-    queryFn: fetchCurrencyRates,
-    refetchInterval: 5 * 60 * 1000,
-    refetchOnWindowFocus: true,
-    staleTime: 4 * 60 * 1000,
-    retry: 2,
+    url: 'https://open.er-api.com/v6/latest/USD',
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours
   });
+
+  const data = rawData ? processCurrencyData(rawData) : null;
 
   const convert = () => {
     const a = parseFloat(amount) || 0;

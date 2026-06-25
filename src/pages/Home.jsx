@@ -1,192 +1,231 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-
-import { format } from 'date-fns';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckSquare, StickyNote, Calendar, Wallet, Target, CloudRain, PenLine, CheckCircle2, Globe, Lock, Bot } from 'lucide-react';
-import { useOutletContext } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import TasksWidget from '@/components/dashboard/TasksWidget';
-import NotesWidget from '@/components/dashboard/NotesWidget';
-import CalendarWidget from '@/components/dashboard/CalendarWidget';
-import FinanceWidget from '@/components/dashboard/FinanceWidget';
-import HabitoWidget from '@/components/dashboard/HabitoWidget';
-import QuickActions from '@/components/dashboard/QuickActions';
-import WidgetCustomizer from '@/components/dashboard/WidgetCustomizer';
-import QuickNotesWidget from '@/components/dashboard/QuickNotesWidget';
-import DailyTasksWidget from '@/components/dashboard/DailyTasksWidget';
-import NewsSpotlightWidget from '@/components/dashboard/NewsSpotlightWidget';
-import VaultAccessWidget from '@/components/dashboard/VaultAccessWidget';
-import AssistantPromptWidget from '@/components/dashboard/AssistantPromptWidget';
-import CompactWidget from '@/components/dashboard/CompactWidget';
+import { format } from 'date-fns';
+import { 
+  StickyNote, CheckSquare, Calendar, Wallet, Target, Bot, FolderOpen, 
+  Lock, CloudSun, Map, FileText, ScanLine, Globe, PartyPopper, Settings, 
+  Search, Star, Bell, History, X 
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
-const DEFAULT_WIDGETS = [
-  { id: 'tasks', label: 'Tasks', icon: CheckSquare, color: 'bg-blue-50 dark:bg-blue-950/30 text-blue-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'notes', label: 'Notes', icon: StickyNote, color: 'bg-yellow-50 dark:bg-yellow-950/30 text-yellow-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'calendar', label: 'Calendar', icon: Calendar, color: 'bg-green-50 dark:bg-green-950/30 text-green-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'finance', label: 'Finance', icon: Wallet, color: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'habits', label: 'Habito', icon: Target, color: 'bg-purple-50 dark:bg-purple-950/30 text-purple-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'quick_notes', label: 'Quick Notes', icon: PenLine, color: 'bg-amber-50 dark:bg-amber-950/30 text-amber-600', visible: false, pinned: false, size: 'normal' },
-  { id: 'daily_tasks', label: 'Daily Tasks', icon: CheckCircle2, color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600', visible: false, pinned: false, size: 'normal' },
-  { id: 'news', label: 'News Spotlight', icon: Globe, color: 'bg-red-50 dark:bg-red-950/30 text-red-600', visible: false, pinned: false, size: 'wide' },
-  { id: 'vault', label: 'Vault Access', icon: Lock, color: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100', visible: false, pinned: false, size: 'compact' },
-  { id: 'assistant', label: 'Assistant', icon: Bot, color: 'bg-violet-50 dark:bg-violet-950/30 text-violet-600', visible: false, pinned: false, size: 'wide' },
+const APPS = [
+  { id: 'notes', label: 'Notes', path: '/notes', icon: StickyNote, color: 'bg-amber-500', category: 'Productivity' },
+  { id: 'tasks', label: 'Tasks', path: '/tasks', icon: CheckSquare, color: 'bg-blue-500', category: 'Productivity' },
+  { id: 'calendar', label: 'Calendar', path: '/calendar', icon: Calendar, color: 'bg-green-500', category: 'Productivity' },
+  { id: 'habits', label: 'Habito', path: '/habits', icon: Target, color: 'bg-rose-500', category: 'Productivity' },
+  { id: 'finance', label: 'Finance', path: '/finance', icon: Wallet, color: 'bg-emerald-500', category: 'Utilities' },
+  { id: 'files', label: 'Files', path: '/files', icon: FolderOpen, color: 'bg-cyan-500', category: 'Utilities' },
+  { id: 'vault', label: 'Vault', path: '/vault', icon: Lock, color: 'bg-slate-700', category: 'Utilities' },
+  { id: 'scanner', label: 'Scanner', path: '/scanner', icon: ScanLine, color: 'bg-indigo-500', category: 'Utilities' },
+  { id: 'oradocs', label: 'Documents', path: '/oradocs', icon: FileText, color: 'bg-orange-500', category: 'Utilities' },
+  { id: 'assistant', label: 'AI Chat', path: '/assistant', icon: Bot, color: 'bg-violet-500', category: 'AI & Media', badge: 'New' },
+  { id: 'climora', label: 'Weather', path: '/climora', icon: CloudSun, color: 'bg-sky-500', category: 'Travel' },
+  { id: 'routo', label: 'ROUTO', path: '/routo', icon: Map, color: 'bg-teal-500', category: 'Travel' },
+  { id: 'news', label: 'News', path: '/news', icon: Globe, color: 'bg-red-500', category: 'AI & Media' },
+  { id: 'festo', label: 'FESTO', path: '/festo', icon: PartyPopper, color: 'bg-fuchsia-500', category: 'Travel' },
+  { id: 'settings', label: 'Settings', path: '/settings', icon: Settings, color: 'bg-zinc-500', category: 'System' }
 ];
 
-const WIDGETS_KEY = 'oras_home_widgets';
-
-function loadWidgets() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(WIDGETS_KEY) || 'null');
-    if (!saved) return DEFAULT_WIDGETS;
-    // Merge saved order/visibility/size with current defaults (preserving icons)
-    return saved.map(sw => {
-      const def = DEFAULT_WIDGETS.find(d => d.id === sw.id);
-      return def ? { ...def, visible: sw.visible, size: sw.size, pinned: sw.pinned } : null;
-    }).filter(Boolean);
-  } catch { return DEFAULT_WIDGETS; }
-}
-
-function saveWidgets(widgets) {
-  localStorage.setItem(WIDGETS_KEY, JSON.stringify(widgets.map(w => ({ id: w.id, visible: w.visible, size: w.size, pinned: w.pinned }))));
-}
-
-const WIDGET_COMPONENTS = {
-  tasks: TasksWidget,
-  notes: NotesWidget,
-  calendar: CalendarWidget,
-  finance: FinanceWidget,
-  habits: HabitoWidget,
-  quick_notes: QuickNotesWidget,
-  daily_tasks: DailyTasksWidget,
-  news: NewsSpotlightWidget,
-  vault: VaultAccessWidget,
-  assistant: AssistantPromptWidget,
-};
+const RECENT_KEY = 'oras_recent_apps';
+const FAVORITES_KEY = 'oras_favorite_apps';
 
 export default function Home() {
-  const [widgets, setWidgets] = useState(loadWidgets);
-
-  const handleSetWidgets = (newWidgets) => {
-    setWidgets(newWidgets);
-    saveWidgets(newWidgets);
-  };
-  const [customizerOpen, setCustomizerOpen] = useState(false);
-  const outletCtx = useOutletContext() || {};
+  const navigate = useNavigate();
   const { user } = useAuth() || {};
-  useEffect(() => {
-    if (outletCtx.editModeOpen) {
-      setCustomizerOpen(true);
-      // keep `editModeOpen` true until the modal closes so layout
-      // (e.g., BottomNav) can react to the modal being open
-    }
-  }, [outletCtx.editModeOpen]);
+  const [search, setSearch] = useState('');
+  const [recents, setRecents] = useState(() => JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'));
+  const [favorites, setFavorites] = useState(() => JSON.parse(localStorage.getItem(FAVORITES_KEY) || '[]'));
+  const [isSearching, setIsSearching] = useState(false);
 
-  const { data: tasks = [] } = useQuery({ queryKey: ['tasks'], queryFn: () => db.entities.Task.list('-created_date', 20) });
-  const { data: notes = [] } = useQuery({ queryKey: ['notes'], queryFn: () => db.entities.Note.list('-updated_date', 10) });
-  const { data: events = [] } = useQuery({ queryKey: ['events'], queryFn: () => db.entities.CalendarEvent.list('-start_date', 10) });
-  const { data: transactions = [] } = useQuery({ queryKey: ['transactions'], queryFn: () => db.entities.Transaction.list('-date', 50) });
-  const { data: habits = [] } = useQuery({ queryKey: ['habits'], queryFn: () => db.entities.Habit.list() });
-
+  // Greeting
   const today = new Date();
   const hour = today.getHours();
-  const greetingWord = hour < 5 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  const rawName = user?.full_name?.split(' ')[0] || '';
-  // Map full names to preferred display names
-  const NAME_MAP = { 'Yogheswar': 'Yoki', 'yogheswar': 'Yoki' };
-  const firstName = NAME_MAP[rawName] || rawName;
-  // Custom premium greeting
-  const greeting = 'Helloo, Yok!! 👋';
+  const greetingTime = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  const firstName = user?.full_name?.split(' ')[0] || 'Guest';
 
-  const widgetData = { tasks, notes, events, transactions, habits };
+  // Persistence
+  useEffect(() => { localStorage.setItem(RECENT_KEY, JSON.stringify(recents)); }, [recents]);
+  useEffect(() => { localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites)); }, [favorites]);
 
-  const getWidgetProps = (id) => ({
-    tasks: { tasks },
-    notes: { notes },
-    calendar: { events },
-    finance: { transactions },
-    habits: { habits },
-  }[id] || {});
-
-  const visibleWidgets = widgets.filter(w => w.visible);
-
-  const getColSpan = (size) => {
-    if (size === 'wide') return 'md:col-span-2 xl:col-span-2';
-    if (size === 'compact') return 'md:col-span-1 xl:col-span-1';
-    return 'md:col-span-1 xl:col-span-1';
+  const handleAppLaunch = (app) => {
+    setRecents(prev => {
+      const filtered = prev.filter(id => id !== app.id);
+      return [app.id, ...filtered].slice(0, 6);
+    });
+    navigate(app.path);
   };
 
-  const getSizeClasses = (size) => {
-    if (size === 'compact') return 'aspect-square';
-    if (size === 'wide') return 'md:col-span-2 xl:col-span-2';
-    return '';
+  const toggleFavorite = (e, appId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setFavorites(prev => prev.includes(appId) ? prev.filter(id => id !== appId) : [...prev, appId]);
   };
+
+  // Filter Apps
+  const filteredApps = useMemo(() => {
+    if (!search.trim()) return APPS;
+    const lower = search.toLowerCase();
+    return APPS.filter(a => a.label.toLowerCase().includes(lower) || a.category.toLowerCase().includes(lower));
+  }, [search]);
+
+  const pinnedApps = APPS.filter(a => favorites.includes(a.id));
+  const recentApps = recents.map(id => APPS.find(a => a.id === id)).filter(Boolean);
+
+  const AppIcon = ({ app, isSmall = false }) => (
+    <motion.button
+      layoutId={`app-${app.id}-${isSmall ? 'small' : 'large'}`}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.92 }}
+      onClick={() => handleAppLaunch(app)}
+      className="flex flex-col items-center gap-2 relative group focus:outline-none"
+    >
+      <div className={cn(
+        "relative rounded-full flex items-center justify-center text-white shadow-lg transition-shadow group-hover:shadow-xl",
+        app.color,
+        isSmall ? "w-14 h-14" : "w-[72px] h-[72px]"
+      )}>
+        <app.icon className={isSmall ? "w-6 h-6" : "w-8 h-8"} strokeWidth={1.5} />
+        
+        {/* Badge */}
+        {app.badge && (
+          <div className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-sm border-2 border-background">
+            {app.badge}
+          </div>
+        )}
+
+        {/* Favorite Star (Hover) */}
+        <button 
+          onClick={(e) => toggleFavorite(e, app.id)}
+          className={cn(
+            "absolute -bottom-1 -right-1 p-1 rounded-full bg-background border shadow-sm transition-opacity",
+            favorites.includes(app.id) ? "opacity-100 text-amber-400" : "opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-amber-400"
+          )}
+        >
+          <Star className="w-3 h-3" fill={favorites.includes(app.id) ? "currentColor" : "none"} />
+        </button>
+      </div>
+      <span className={cn(
+        "font-medium text-foreground tracking-tight truncate w-full text-center px-1",
+        isSmall ? "text-[11px]" : "text-xs"
+      )}>
+        {app.label}
+      </span>
+    </motion.button>
+  );
 
   return (
-    <div className="space-y-6 pt-16">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex items-start justify-between"
-      >
+    <div className="min-h-screen bg-background pb-32">
+      {/* Home Header */}
+      <div className="px-5 pt-12 pb-6 flex items-center justify-between sticky top-0 bg-background/80 backdrop-blur-xl z-20">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">{greeting} 👋</h1>
-          <p className="text-muted-foreground text-sm mt-1">{format(today, 'EEEE, MMMM d, yyyy')}</p>
+          <h1 className="text-2xl font-black tracking-tight">{greetingTime}, {firstName}</h1>
+          <p className="text-sm font-medium text-muted-foreground">{format(today, 'EEEE, MMMM d')}</p>
         </div>
-        {/* Mobile customize button - only in TopBar now */}
-      </motion.div>
-
-      {/* Quick Actions */}
-      <QuickActions delay={0.1} />
-
-      {/* Widget Grid */}
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 place-content-center">
-        <AnimatePresence>
-          {visibleWidgets.map((w, i) => {
-            const Component = WIDGET_COMPONENTS[w.id];
-            if (!Component) return null;
-            const props = getWidgetProps(w.id);
-            const sizeClasses = getSizeClasses(w.size);
-            return (
-              <motion.div
-                key={w.id}
-                layout
-                initial={{ opacity: 0, y: 16, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                transition={{ delay: i * 0.05, duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                className={`${getColSpan(w.size)} ${sizeClasses} h-full`}
-              >
-                {w.size === 'compact' ? (
-                  (() => {
-                    const def = DEFAULT_WIDGETS.find(d => d.id === w.id) || {};
-                    return <CompactWidget icon={def.icon} label={def.label} />;
-                  })()
-                ) : (
-                  <Component {...props} delay={0.1 + i * 0.05} />
-                )}
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
+        <div className="flex items-center gap-3">
+          <button className="w-10 h-10 rounded-full bg-card border border-border/50 flex items-center justify-center relative hover:bg-accent transition-colors">
+            <Bell className="w-5 h-5 text-foreground" />
+            <span className="absolute top-2.5 right-2.5 w-2 h-2 rounded-full bg-red-500 border border-background"></span>
+          </button>
+          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold">
+            {firstName.charAt(0)}
+          </div>
+        </div>
       </div>
 
-      {/* Widget Customizer */}
-      <AnimatePresence>
-        {customizerOpen && (
-          <WidgetCustomizer
-            widgets={widgets}
-            setWidgets={handleSetWidgets}
-            components={WIDGET_COMPONENTS}
-            getWidgetProps={getWidgetProps}
-            onClose={() => { setCustomizerOpen(false); outletCtx.setEditModeOpen?.(false); }}
+      <div className="px-5 max-w-4xl mx-auto space-y-10">
+        {/* Universal Search */}
+        <div className="relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+          <Input 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onFocus={() => setIsSearching(true)}
+            placeholder="Search apps, tools, or settings..." 
+            className="w-full h-14 pl-12 pr-12 rounded-2xl bg-card border-border/50 shadow-sm focus:ring-2 focus:ring-primary/20 text-base font-medium"
           />
-        )}
-      </AnimatePresence>
+          {search && (
+            <button onClick={() => setSearch('')} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="w-5 h-5" />
+            </button>
+          )}
+        </div>
+
+        <AnimatePresence mode="popLayout">
+          {isSearching || search ? (
+            <motion.div
+              key="search-results"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-4"
+            >
+              <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider px-1">Search Results</h2>
+              {filteredApps.length === 0 ? (
+                <div className="text-center py-10 text-muted-foreground">No apps found for "{search}"</div>
+              ) : (
+                <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-y-8 gap-x-2">
+                  {filteredApps.map(app => <AppIcon key={app.id} app={app} />)}
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="home-content"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="space-y-10"
+            >
+              {/* Favorites & Recents Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Pinned / Favorites */}
+                {pinnedApps.length > 0 && (
+                  <div className="space-y-4 bg-card/30 p-5 rounded-3xl border border-border/40">
+                    <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                      <Star className="w-4 h-4" /> Pinned
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar mask-edges">
+                      {pinnedApps.map(app => <AppIcon key={`pin-${app.id}`} app={app} isSmall />)}
+                    </div>
+                  </div>
+                )}
+
+                {/* Recently Opened */}
+                {recentApps.length > 0 && (
+                  <div className="space-y-4 bg-card/30 p-5 rounded-3xl border border-border/40">
+                    <div className="flex items-center gap-2 text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                      <History className="w-4 h-4" /> Recent
+                    </div>
+                    <div className="flex gap-4 overflow-x-auto pb-2 custom-scrollbar mask-edges">
+                      {recentApps.map(app => <AppIcon key={`rec-${app.id}`} app={app} isSmall />)}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* All Apps Grid - Categorized */}
+              <div className="space-y-8">
+                {Object.entries(
+                  APPS.reduce((acc, app) => {
+                    (acc[app.category] = acc[app.category] || []).push(app);
+                    return acc;
+                  }, {})
+                ).map(([category, categoryApps]) => (
+                  <div key={category} className="space-y-4">
+                    <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider px-2">{category}</h2>
+                    <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-7 gap-y-8 gap-x-2 place-items-center">
+                      {categoryApps.map(app => <AppIcon key={app.id} app={app} />)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

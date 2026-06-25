@@ -1,31 +1,20 @@
 import React, { memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, StickyNote, CheckSquare, Calendar, MoreHorizontal, Wallet, Target, Sparkles } from 'lucide-react';
+import { Home, Search, Star, User, MoreHorizontal } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useKeyboardViewport } from '@/hooks/useKeyboardViewport';
 
-const ICON_MAP = { Home, StickyNote, CheckSquare, Calendar, MoreHorizontal, Wallet, Target, Sparkles };
-const NAV_KEY = 'oras_bottom_nav_items';
 const ALL_ITEMS = [
   { path: '/', icon: Home, label: 'Home' },
-  { path: '/notes', icon: StickyNote, label: 'Notes' },
-  { path: '/tasks', icon: CheckSquare, label: 'Tasks' },
-  { path: '/calendar', icon: Calendar, label: 'Calendar' },
-  { path: '/finance', icon: Wallet, label: 'Finance' },
-  { path: '/habits', icon: Target, label: 'Habito' },
-  { path: '/assistant', icon: Sparkles, label: 'AI' },
+  { path: '/?search=1', icon: Search, label: 'Search' },
+  { path: '/?favorites=1', icon: Star, label: 'Favorites' },
+  { path: '/settings', icon: User, label: 'Profile' },
   { path: '/more', icon: MoreHorizontal, label: 'More' },
 ];
 
 function getNavItems() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(NAV_KEY) || 'null');
-    if (saved && Array.isArray(saved) && saved.length > 0) {
-      return saved.map(path => ALL_ITEMS.find(i => i.path === path)).filter(Boolean);
-    }
-  } catch {}
-  return ALL_ITEMS.filter(i => ['/', '/notes', '/tasks', '/calendar', '/more'].includes(i.path));
+  return ALL_ITEMS;
 }
 
 const BottomNav = memo(({ hidden = false }) => {

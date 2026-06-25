@@ -29,58 +29,7 @@ export default function AppLayout() {
     return () => window.removeEventListener('oras-fullscreen-overlay', handler);
   }, []);
 
-  // Pages that participate in swipe navigation (in order)
-  const SWIPE_PAGES = ['/', '/notes', '/tasks', '/calendar', '/finance', '/habits'];
-
-  const getPageIndex = (pathname) => {
-    const idx = SWIPE_PAGES.findIndex(p => pathname === p || pathname.startsWith(p + '/'));
-    return idx;
-  };
-
-  const currentIndex = getPageIndex(location.pathname);
-
-  const goToIndex = (idx) => {
-    if (idx < 0 || idx >= SWIPE_PAGES.length) return;
-    const target = SWIPE_PAGES[idx];
-    navigate(target);
-  };
-
-  const handleDragStart = (event) => {
-    dragStartX.current = event?.clientX || 0;
-    isDragging.current = true;
-  };
-
-  const handleDragEnd = (event, info) => {
-    isDragging.current = false;
-    const dx = info.offset.x;
-    const vx = info.velocity.x || 0;
-    const absDx = Math.abs(dx);
-    const minDistance = 100; // px
-    const minVelocity = 600; // px/s
-    const edgeMargin = 28; // px to ignore edge swipes
-
-    const startX = dragStartX.current;
-    const width = window.innerWidth || 1;
-    if (startX <= edgeMargin || startX >= width - edgeMargin) return; // ignore edge swipes
-
-    // Determine current index
-    const idx = getPageIndex(location.pathname);
-    if (idx === -1) return;
-
-    // Left swipe (dx < 0) -> next page
-    if (dx < -minDistance || (dx < 0 && Math.abs(vx) > minVelocity)) {
-      goToIndex(idx + 1);
-      if (navigator.vibrate) navigator.vibrate(8);
-      return;
-    }
-    // Right swipe (dx > 0) -> previous page
-    if (dx > minDistance || (dx > 0 && Math.abs(vx) > minVelocity)) {
-      goToIndex(idx - 1);
-      if (navigator.vibrate) navigator.vibrate(8);
-      return;
-    }
-    // Otherwise let framer-motion snap back
-  };
+  const currentIndex = location.pathname === '/' ? 0 : -1;
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,18 +60,9 @@ export default function AppLayout() {
               {/* For persistent tabs, we do NOT use AnimatePresence with location key, 
                   because that forces a full remount. PersistentTabs handles its own internal visibility. */}
               {currentIndex !== -1 ? (
-                <motion.div
-                  className="p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0"
-                  drag={fullscreenOverlayOpen ? false : 'x'}
-                  dragDirectionLock
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.15}
-                  onDragStart={handleDragStart}
-                  onDragEnd={handleDragEnd}
-                  style={{ touchAction: 'pan-y', backfaceVisibility: 'hidden' }}
-                >
+                <div className="p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0">
                   <PersistentTabs context={{ editModeOpen, setEditModeOpen }} />
-                </motion.div>
+                </div>
               ) : (
                 <AnimatePresence mode="wait" initial={false}>
                   <motion.div
@@ -132,13 +72,6 @@ export default function AppLayout() {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.15, ease: 'easeInOut' }}
                     className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0 bg-background' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-background'}
-                    drag={isClimora || isRouto || fullscreenOverlayOpen ? false : 'x'}
-                    dragDirectionLock
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.15}
-                    onDragStart={handleDragStart}
-                    onDragEnd={handleDragEnd}
-                    style={{ touchAction: 'pan-y', backfaceVisibility: 'hidden' }}
                   >
                     <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>}>
                       <Outlet context={{ editModeOpen, setEditModeOpen }} />
@@ -151,22 +84,6 @@ export default function AppLayout() {
         </main>
       </div>
       {!hideChrome && <BottomNav hidden={editModeOpen} />}
-      {/* Page indicator above bottom nav */}
-      {!hideChrome && currentIndex !== -1 && (
-        <div className="fixed left-0 right-0 bottom-20 flex items-center justify-center pointer-events-none z-50">
-          <div className="flex items-center gap-2 bg-transparent px-2 py-1 rounded-full">
-            {SWIPE_PAGES.map((p, i) => (
-              <motion.div
-                key={p}
-                animate={currentIndex === i ? { scale: 1.15, opacity: 1 } : { scale: 1, opacity: 0.45 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-                className="w-2 h-2 rounded-full"
-                style={{ background: currentIndex === i ? 'var(--primary)' : 'rgba(255,255,255,0.12)' }}
-              />
-            ))}
-          </div>
-        </div>
-      )}
       {!hideChrome && <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />}
     </div>
   );
