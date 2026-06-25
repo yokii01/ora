@@ -30,16 +30,18 @@ export default React.memo(function TopBar({ onSearchOpen, onEditMode }) {
 
         {/* Desktop search (fake input that navigates to /search) */}
         <div className="hidden lg:flex items-center flex-1 max-w-lg relative">
-          <div 
-            onClick={() => navigate('/search')}
-            className="flex items-center gap-2 w-full px-3 py-2 rounded-xl transition-all duration-300 bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/30 dark:border-white/10 hover:border-primary/30 cursor-pointer"
-          >
-            <Search className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
-            <div className="flex-1 bg-transparent text-sm text-muted-foreground/70 select-none">
-              Search tasks, notes, files, vault...
+          {!isHome && (
+            <div 
+              onClick={() => navigate('/search')}
+              className="flex items-center gap-2 w-full px-3 py-2 rounded-xl transition-all duration-300 bg-white/40 dark:bg-white/5 backdrop-blur-xl border border-white/30 dark:border-white/10 hover:border-primary/30 cursor-pointer"
+            >
+              <Search className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+              <div className="flex-1 bg-transparent text-sm text-muted-foreground/70 select-none">
+                Search tasks, notes, files, vault...
+              </div>
+              <kbd className="text-[10px] bg-background/60 px-1.5 py-0.5 rounded border border-border/50 font-mono text-muted-foreground">⌘K</kbd>
             </div>
-            <kbd className="text-[10px] bg-background/60 px-1.5 py-0.5 rounded border border-border/50 font-mono text-muted-foreground">⌘K</kbd>
-          </div>
+          )}
 
           {isHome && (
             <motion.button
@@ -57,13 +59,15 @@ export default React.memo(function TopBar({ onSearchOpen, onEditMode }) {
         {/* Right actions */}
         <div className="flex items-center gap-1 flex-shrink-0">
           {/* Mobile search icon */}
-          <motion.button
-            onClick={() => navigate('/search')}
-            whileTap={{ scale: 0.95 }}
-            className="lg:hidden w-12 h-12 flex items-center justify-center rounded-full hover:bg-muted/80 active:bg-muted transition-colors relative overflow-hidden flex-shrink-0"
-          >
-            <Search className="w-[22px] h-[22px] text-muted-foreground" />
-          </motion.button>
+          {!isHome && (
+            <motion.button
+              onClick={() => navigate('/search')}
+              whileTap={{ scale: 0.95 }}
+              className="lg:hidden w-12 h-12 flex items-center justify-center rounded-full hover:bg-muted/80 active:bg-muted transition-colors relative overflow-hidden flex-shrink-0"
+            >
+              <Search className="w-[22px] h-[22px] text-muted-foreground" />
+            </motion.button>
+          )}
 
           {/* Mobile edit button on home */}
           {isHome && (
