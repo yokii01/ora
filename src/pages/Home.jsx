@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   motion, AnimatePresence, useMotionValue, useSpring, useReducedMotion 
 } from 'framer-motion';
@@ -8,33 +8,33 @@ import { format } from 'date-fns';
 import { 
   StickyNote, CheckSquare, Calendar, Wallet, Target, Bot, FolderOpen, 
   Lock, CloudSun, Map, FileText, ScanLine, Globe, Settings, 
-  Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock, PartyPopper, Sparkles
+  Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock, PartyPopper, Sparkles, Droplets, Sunset
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const APPS = [
-  { id: 'notes', label: 'Notes', path: '/notes', icon: StickyNote, gradient: 'bg-amber-500/20 text-amber-400 border-amber-500/30', glow: 'rgba(245, 158, 11, 0.3)' },
-  { id: 'tasks', label: 'Tasks', path: '/tasks', icon: CheckSquare, gradient: 'bg-blue-500/20 text-blue-400 border-blue-500/30', glow: 'rgba(59, 130, 246, 0.3)' },
-  { id: 'calendar', label: 'Calendar', path: '/calendar', icon: Calendar, gradient: 'bg-green-500/20 text-green-400 border-green-500/30', glow: 'rgba(34, 197, 94, 0.3)' },
-  { id: 'scanner', label: 'Scanner', path: '/scanner', icon: ScanLine, gradient: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30', glow: 'rgba(99, 102, 241, 0.3)' },
-  { id: 'finance', label: 'Finance', path: '/finance', icon: Wallet, gradient: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', glow: 'rgba(16, 185, 129, 0.3)' },
-  { id: 'files', label: 'Files', path: '/files', icon: FolderOpen, gradient: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', glow: 'rgba(6, 182, 212, 0.3)' },
-  { id: 'vault', label: 'Vault', path: '/vault', icon: Lock, gradient: 'bg-slate-500/20 text-slate-300 border-slate-500/30', glow: 'rgba(148, 163, 184, 0.3)' },
-  { id: 'oradocs', label: 'Documents', path: '/oradocs', icon: FileText, gradient: 'bg-orange-500/20 text-orange-400 border-orange-500/30', glow: 'rgba(249, 115, 22, 0.3)' },
-  { id: 'news', label: 'News', path: '/news', icon: Globe, logo: './logo/NEORA.png', gradient: 'bg-red-500/20 text-red-400 border-red-500/30', glow: 'rgba(239, 68, 68, 0.3)' },
-  { id: 'climora', label: 'Weather', path: '/climora', icon: CloudSun, gradient: 'bg-sky-500/20 text-sky-400 border-sky-500/30', glow: 'rgba(14, 165, 233, 0.3)' },
-  { id: 'assistant', label: 'AI', path: '/assistant', icon: Bot, logo: './logo/Ora AI.png', gradient: 'bg-violet-500/20 text-violet-400 border-violet-500/30', glow: 'rgba(139, 92, 246, 0.4)' },
-  { id: 'browser', label: 'Browser', path: '/browser', icon: Compass, gradient: 'bg-indigo-400/20 text-indigo-300 border-indigo-400/30', glow: 'rgba(129, 140, 248, 0.3)' },
-  { id: 'routo', label: 'Maps', path: '/routo', icon: Map, logo: './logo/Routo.jpg', gradient: 'bg-teal-500/20 text-teal-400 border-teal-500/30', glow: 'rgba(20, 184, 166, 0.3)' },
-  { id: 'festo', label: 'FESTO', path: '/festo', icon: PartyPopper, logo: './logo/FESTA.png', gradient: 'bg-orange-500/20 text-orange-400 border-orange-500/30', glow: 'rgba(249, 115, 22, 0.3)' },
-  { id: 'music', label: 'Music', path: '/music', icon: Music, gradient: 'bg-pink-500/20 text-pink-400 border-pink-500/30', glow: 'rgba(236, 72, 153, 0.3)' },
-  { id: 'gallery', label: 'Gallery', path: '/gallery', icon: ImageIcon, gradient: 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30', glow: 'rgba(217, 70, 239, 0.3)' },
-  { id: 'translator', label: 'Translator', path: '/translator', icon: Languages, gradient: 'bg-blue-400/20 text-blue-300 border-blue-400/30', glow: 'rgba(96, 165, 250, 0.3)' },
-  { id: 'settings', label: 'Settings', path: '/settings', icon: Settings, gradient: 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30', glow: 'rgba(161, 161, 170, 0.3)' },
-  { id: 'calculator', label: 'Calculator', path: '/calculator', icon: Calculator, gradient: 'bg-orange-600/20 text-orange-500 border-orange-600/30', glow: 'rgba(234, 88, 12, 0.3)' },
-  { id: 'clock', label: 'Clock', path: '/clock', icon: Clock, gradient: 'bg-indigo-600/20 text-indigo-400 border-indigo-600/30', glow: 'rgba(79, 70, 229, 0.3)' },
-  { id: 'habits', label: 'Habito', path: '/habits', icon: Target, gradient: 'bg-rose-500/20 text-rose-400 border-rose-500/30', glow: 'rgba(244, 63, 94, 0.3)' },
-  { id: 'passwords', label: 'Passwords', path: '/passwords', icon: Key, gradient: 'bg-slate-700/30 text-slate-300 border-slate-600/40', glow: 'rgba(100, 116, 139, 0.3)' },
+  { id: 'notes', label: 'Notes', desc: 'Write ideas quickly', path: '/notes', icon: StickyNote, gradient: 'from-amber-500/20 via-orange-500/10 to-transparent border-amber-500/30 text-amber-400', glow: 'rgba(245, 158, 11, 0.28)' },
+  { id: 'tasks', label: 'Tasks', desc: 'Manage daily goals', path: '/tasks', icon: CheckSquare, gradient: 'from-blue-500/20 via-indigo-500/10 to-transparent border-blue-500/30 text-blue-400', glow: 'rgba(59, 130, 246, 0.28)' },
+  { id: 'calendar', label: 'Calendar', desc: 'Plan your schedule', path: '/calendar', icon: Calendar, gradient: 'from-green-500/20 via-emerald-500/10 to-transparent border-green-500/30 text-green-400', glow: 'rgba(34, 197, 94, 0.28)' },
+  { id: 'scanner', label: 'Scanner', desc: 'Scan docs instantly', path: '/scanner', icon: ScanLine, gradient: 'from-purple-500/20 via-violet-500/10 to-transparent border-purple-500/30 text-purple-400', glow: 'rgba(168, 85, 247, 0.28)' },
+  { id: 'finance', label: 'Finance', desc: 'Track expenses', path: '/finance', icon: Wallet, gradient: 'from-emerald-500/20 via-teal-500/10 to-transparent border-emerald-500/30 text-emerald-400', glow: 'rgba(16, 185, 129, 0.28)' },
+  { id: 'files', label: 'Files', desc: 'Organize documents', path: '/files', icon: FolderOpen, gradient: 'from-cyan-500/20 via-sky-500/10 to-transparent border-cyan-500/30 text-cyan-400', glow: 'rgba(6, 182, 212, 0.28)' },
+  { id: 'vault', label: 'Vault', desc: 'Secure passwords', path: '/vault', icon: Lock, gradient: 'from-slate-500/25 via-zinc-500/10 to-transparent border-slate-500/30 text-slate-300', glow: 'rgba(148, 163, 184, 0.28)' },
+  { id: 'oradocs', label: 'Documents', desc: 'Edit rich text', path: '/oradocs', icon: FileText, gradient: 'from-orange-500/20 via-amber-500/10 to-transparent border-orange-500/30 text-orange-400', glow: 'rgba(249, 115, 22, 0.28)' },
+  { id: 'news', label: 'News', desc: 'Live global updates', path: '/news', icon: Globe, logo: './logo/NEORA.png', gradient: 'from-red-500/20 via-rose-500/10 to-transparent border-red-500/30 text-red-400', glow: 'rgba(239, 68, 68, 0.28)' },
+  { id: 'climora', label: 'Weather', desc: 'Live atmospheric radar', path: '/climora', icon: CloudSun, gradient: 'from-sky-500/20 via-blue-500/10 to-transparent border-sky-500/30 text-sky-400', glow: 'rgba(14, 165, 233, 0.28)' },
+  { id: 'assistant', label: 'AI', desc: 'Ask ORA AI', path: '/assistant', icon: Bot, logo: './logo/Ora AI.png', gradient: 'from-violet-500/30 via-fuchsia-500/15 to-transparent border-violet-500/40 text-violet-300', glow: 'rgba(139, 92, 246, 0.4)' },
+  { id: 'browser', label: 'Browser', desc: 'Fast & Secure', path: '/browser', icon: Compass, gradient: 'from-indigo-500/20 via-purple-500/10 to-transparent border-indigo-400/30 text-indigo-300', glow: 'rgba(99, 102, 241, 0.28)' },
+  { id: 'routo', label: 'Maps', desc: 'Explore routes', path: '/routo', icon: Map, logo: './logo/Routo.jpg', gradient: 'from-teal-500/20 via-emerald-500/10 to-transparent border-teal-500/30 text-teal-400', glow: 'rgba(20, 184, 166, 0.28)' },
+  { id: 'festo', label: 'FESTO', desc: 'Celebrate moments', path: '/festo', icon: PartyPopper, logo: './logo/FESTA.png', gradient: 'from-orange-500/20 via-yellow-500/10 to-transparent border-orange-500/30 text-orange-400', glow: 'rgba(249, 115, 22, 0.28)' },
+  { id: 'music', label: 'Music', desc: 'Listen to beats', path: '/music', icon: Music, gradient: 'from-pink-500/20 via-rose-500/10 to-transparent border-pink-500/30 text-pink-400', glow: 'rgba(236, 72, 153, 0.28)' },
+  { id: 'gallery', label: 'Gallery', desc: 'View memories', path: '/gallery', icon: ImageIcon, gradient: 'from-fuchsia-500/20 via-purple-500/10 to-transparent border-fuchsia-500/30 text-fuchsia-400', glow: 'rgba(217, 70, 239, 0.28)' },
+  { id: 'translator', label: 'Translator', desc: 'Break barriers', path: '/translator', icon: Languages, gradient: 'from-blue-400/20 via-cyan-400/10 to-transparent border-blue-400/30 text-blue-300', glow: 'rgba(96, 165, 250, 0.28)' },
+  { id: 'settings', label: 'Settings', desc: 'System preferences', path: '/settings', icon: Settings, gradient: 'from-zinc-500/20 via-slate-500/10 to-transparent border-zinc-500/30 text-zinc-300', glow: 'rgba(161, 161, 170, 0.28)' },
+  { id: 'calculator', label: 'Calculator', desc: 'Quick math', path: '/calculator', icon: Calculator, gradient: 'from-orange-600/20 via-amber-600/10 to-transparent border-orange-600/30 text-orange-500', glow: 'rgba(234, 88, 12, 0.28)' },
+  { id: 'clock', label: 'Clock', desc: 'Timers & alarms', path: '/clock', icon: Clock, gradient: 'from-indigo-600/20 via-blue-600/10 to-transparent border-indigo-600/30 text-indigo-400', glow: 'rgba(79, 70, 229, 0.28)' },
+  { id: 'habits', label: 'Habito', desc: 'Build routines', path: '/habits', icon: Target, gradient: 'from-rose-500/20 via-pink-500/10 to-transparent border-rose-500/30 text-rose-400', glow: 'rgba(244, 63, 94, 0.28)' },
+  { id: 'passwords', label: 'Passwords', desc: 'Vault keys', path: '/passwords', icon: Key, gradient: 'from-slate-700/35 via-zinc-700/20 to-transparent border-slate-600/40 text-slate-300', glow: 'rgba(100, 116, 139, 0.28)' },
 ];
 
 const getWeatherCodeLabel = (code) => {
@@ -48,25 +48,118 @@ const getWeatherCodeLabel = (code) => {
   return 'Clear';
 };
 
+// ─── MEMOIZED LUXURY WIDGET CARD ─────────────────────────────────────────────
+const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
+  const isAI = app.id === 'assistant';
+  const isSettings = app.id === 'settings';
+
+  return (
+    <motion.button
+      whileHover={shouldReduceMotion ? {} : { y: -8, scale: 1.02 }}
+      whileTap={shouldReduceMotion ? {} : { scale: 0.96 }}
+      onClick={() => onNavigate(app.path)}
+      className="group relative w-full text-left focus:outline-none select-none gpu-accelerated"
+    >
+      {/* Ambient Outer Glow on Hover */}
+      {!shouldReduceMotion && (
+        <div 
+          className="absolute -inset-1 rounded-[32px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"
+          style={{ backgroundColor: app.glow }}
+        />
+      )}
+
+      <div className={cn(
+        "relative overflow-hidden rounded-[28px] p-5 sm:p-6 bg-gradient-to-br backdrop-blur-2xl border flex items-center gap-4 sm:gap-5 transition-all duration-300 w-full shadow-[0_12px_32px_rgba(0,0,0,0.2)] dark:shadow-[0_12px_32px_rgba(0,0,0,0.5)] group-hover:shadow-[0_20px_45px_rgba(0,0,0,0.6)]",
+        app.gradient,
+        "border-white/15 dark:border-white/[0.1]"
+      )}>
+        {/* Gloss Top Border Reflection */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/35 dark:via-white/20 to-transparent pointer-events-none" />
+
+        {/* AI Royal Ambient Aura */}
+        {isAI && !shouldReduceMotion && (
+          <motion.div 
+            animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.6, 0.2] }}
+            transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+            className="absolute -right-8 -bottom-8 w-36 h-36 bg-fuchsia-500/30 rounded-full blur-2xl pointer-events-none"
+          />
+        )}
+
+        {/* Floating App Illustration / Widget Layer */}
+        <div className="relative shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-[22px] bg-white/10 dark:bg-black/25 backdrop-blur-md border border-white/15 flex items-center justify-center shadow-lg overflow-hidden group-hover:scale-105 transition-transform duration-300">
+          {app.logo ? (
+            <img src={app.logo} alt={app.label} className="w-full h-full object-cover rounded-[22px] pointer-events-none" />
+          ) : (
+            <motion.div
+              animate={isSettings && !shouldReduceMotion ? { rotate: 0 } : {}}
+              whileHover={isSettings && !shouldReduceMotion ? { rotate: 45 } : {}}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="flex items-center justify-center w-full h-full"
+            >
+              <app.icon className="w-8 h-8 sm:w-9 sm:h-9 text-current drop-shadow-md" strokeWidth={1.5} />
+            </motion.div>
+          )}
+
+          {/* AI Sparkle Overlay */}
+          {isAI && !shouldReduceMotion && (
+            <motion.div
+              animate={{ opacity: [0, 1, 0], scale: [0.7, 1.25, 0.7] }}
+              transition={{ repeat: Infinity, repeatDelay: 2.5, duration: 1.2, ease: "easeInOut" }}
+              className="absolute top-1.5 right-1.5 pointer-events-none z-30"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-fuchsia-300 drop-shadow-[0_0_8px_rgba(217,70,239,0.9)]" />
+            </motion.div>
+          )}
+        </div>
+
+        {/* App Title & Subtitle */}
+        <div className="flex flex-col min-w-0 flex-1 z-10">
+          <span className="font-bold text-foreground tracking-tight text-base sm:text-lg truncate drop-shadow-sm font-sans">
+            {app.label}
+          </span>
+          <span className="text-xs sm:text-sm font-medium text-muted-foreground/80 truncate mt-0.5 group-hover:text-foreground/90 transition-colors">
+            {app.desc}
+          </span>
+        </div>
+
+        {/* Touch Ripple Highlight */}
+        <div className="absolute inset-0 rounded-[28px] bg-white/0 group-active:bg-white/10 dark:group-active:bg-white/[0.08] transition-colors pointer-events-none" />
+      </div>
+    </motion.button>
+  );
+});
+
 export default function Home() {
   const navigate = useNavigate();
-  const { user } = useAuth() || {};
-  const isNavigating = useRef(false);
+  const isNavigatingRef = useRef(false);
   const shouldReduceMotion = useReducedMotion();
   
-  // Time and Date
-  const [time, setTime] = useState(new Date());
+  // Stable Synchronous Click Debounce & Navigation Lock
+  const handleNavigate = useCallback((path) => {
+    if (isNavigatingRef.current) return;
+    isNavigatingRef.current = true;
+    navigate(path);
+    setTimeout(() => {
+      isNavigatingRef.current = false;
+    }, 600);
+  }, [navigate]);
+
+  // Clock Telemetry
+  const [time, setTime] = useState(() => new Date());
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // Weather State
-  const [weather, setWeather] = useState({ temp: null, desc: 'Loading...', locationName: 'Locating...', loading: true });
+  // Weather Telemetry (Temp, Feels Like, Humidity, Sunset)
+  const [weather, setWeather] = useState({ 
+    temp: null, feelsLike: null, humidity: null, sunset: null, 
+    desc: 'Loading satellite...', locationName: 'Locating...', loading: true 
+  });
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setWeather({ temp: '--', desc: 'Weather unavailable', locationName: 'Location Denied', loading: false });
+      setWeather({ temp: '--', desc: 'Radar unavailable', locationName: 'Location Denied', loading: false });
       return;
     }
     
@@ -76,55 +169,57 @@ export default function Home() {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
           
-          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+          // Fetch Weather with Luxury Telemetry
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,weather_code&daily=sunrise,sunset&timezone=auto`);
           const data = await res.json();
           
-          let locName = 'Current Location';
+          let locName = 'Live Location';
           try {
             const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
             const geoData = await geoRes.json();
             if (geoData && geoData.address) {
-              locName = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.county || 'Current Location';
+              locName = geoData.address.city || geoData.address.town || geoData.address.county || 'Live Location';
             }
           } catch (e) {
-            console.error('Geocoding failed', e);
+            console.error('Reverse geocoding failed', e);
           }
 
-          if (data && data.current_weather) {
+          if (data && data.current) {
+            let sunsetStr = null;
+            if (data.daily && data.daily.sunset && data.daily.sunset[0]) {
+              try {
+                sunsetStr = format(new Date(data.daily.sunset[0]), "h:mm a");
+              } catch(err) {}
+            }
+
             setWeather({
-              temp: Math.round(data.current_weather.temperature),
-              desc: getWeatherCodeLabel(data.current_weather.weathercode),
+              temp: Math.round(data.current.temperature_2m),
+              feelsLike: Math.round(data.current.apparent_temperature),
+              humidity: data.current.relative_humidity_2m,
+              sunset: sunsetStr,
+              desc: getWeatherCodeLabel(data.current.weather_code),
               locationName: locName,
               loading: false
             });
           }
         } catch (e) {
-          setWeather({ temp: '--', desc: 'Weather unavailable', locationName: 'Unknown', loading: false });
+          setWeather({ temp: '--', desc: 'Radar offline', locationName: 'Live Satellite', loading: false });
         }
       },
       () => {
-        setWeather({ temp: '--', desc: 'Weather unavailable', locationName: 'Location Denied', loading: false });
+        setWeather({ temp: '--', desc: 'Radar unavailable', locationName: 'Location Denied', loading: false });
       }
     );
   }, []);
 
-  const handleNavigate = (path) => {
-    if (isNavigating.current) return;
-    isNavigating.current = true;
-    navigate(path);
-    setTimeout(() => {
-      isNavigating.current = false;
-    }, 500);
-  };
-
-  // Parallax Logic for Desktop
+  // Parallax Logic for Desktop Banner
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const springConfig = { stiffness: 120, damping: 20 };
   const parallaxX = useSpring(mouseX, springConfig);
   const parallaxY = useSpring(mouseY, springConfig);
 
-  const handleMouseMove = (e) => {
+  const handleMouseMove = useCallback((e) => {
     if (shouldReduceMotion || window.innerWidth < 1024) return;
     const { currentTarget, clientX, clientY } = e;
     const { left, top, width, height } = currentTarget.getBoundingClientRect();
@@ -132,12 +227,12 @@ export default function Home() {
     const y = (clientY - top) / height - 0.5;
     mouseX.set(x * 24);
     mouseY.set(y * 24);
-  };
+  }, [shouldReduceMotion, mouseX, mouseY]);
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     mouseX.set(0);
     mouseY.set(0);
-  };
+  }, [mouseX, mouseY]);
 
   // Stagger Animations for App Grid
   const containerVariants = {
@@ -145,226 +240,166 @@ export default function Home() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: shouldReduceMotion ? 0 : 0.04,
-        delayChildren: shouldReduceMotion ? 0 : 0.15,
+        staggerChildren: shouldReduceMotion ? 0 : 0.035,
+        delayChildren: shouldReduceMotion ? 0 : 0.12,
       }
     }
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: shouldReduceMotion ? 0 : 15, scale: shouldReduceMotion ? 1 : 0.95 },
-    show: { 
-      opacity: 1, 
-      y: 0, 
-      scale: 1,
-      transition: { type: "spring", stiffness: 350, damping: 25 }
-    }
-  };
-
-  const AppIcon = ({ app }) => {
-    const isAI = app.id === 'assistant';
-    const isSettings = app.id === 'settings';
-
-    return (
-      <motion.button
-        variants={itemVariants}
-        whileHover={shouldReduceMotion ? {} : { scale: 1.05, y: -4 }}
-        whileTap={shouldReduceMotion ? {} : { scale: 0.97 }}
-        onClick={() => handleNavigate(app.path)}
-        className="flex flex-col items-center gap-3 relative group focus:outline-none w-full select-none"
-      >
-        {/* Ambient Glow on Hover */}
-        {!shouldReduceMotion && (
-          <div 
-            className="absolute top-1 w-16 h-16 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none -z-10"
-            style={{ backgroundColor: app.glow }}
-          />
-        )}
-
-        <div className={cn(
-          "relative rounded-[24px] flex items-center justify-center transition-all duration-300 w-[72px] h-[72px] sm:w-[84px] sm:h-[84px]",
-          app.gradient,
-          "shadow-[0_8px_20px_rgba(0,0,0,0.12)] group-hover:shadow-[0_12px_25px_rgba(0,0,0,0.25)] backdrop-blur-xl border border-white/10 dark:border-white/[0.08] overflow-hidden"
-        )}>
-          {/* AI Breathing Ambient Background */}
-          {isAI && !shouldReduceMotion && (
-            <motion.div 
-              animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.7, 0.3] }}
-              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="absolute inset-0 bg-violet-500/30 rounded-[24px] blur-md pointer-events-none"
-            />
-          )}
-
-          {app.logo ? (
-            <img src={app.logo} alt={app.label} className="w-full h-full object-cover rounded-[24px] z-10 pointer-events-none" />
-          ) : (
-            <motion.div
-              animate={isSettings && !shouldReduceMotion ? { rotate: 0 } : {}}
-              whileHover={isSettings && !shouldReduceMotion ? { rotate: 45 } : {}}
-              transition={{ type: "spring", stiffness: 200, damping: 15 }}
-              className="relative z-10 flex items-center justify-center w-full h-full"
-            >
-              <app.icon className="w-8 h-8 sm:w-10 sm:h-10 text-current drop-shadow-sm" strokeWidth={1.5} />
-            </motion.div>
-          )}
-
-          {/* AI Sparkle Overlay */}
-          {isAI && !shouldReduceMotion && (
-            <motion.div
-              animate={{ opacity: [0, 1, 0], scale: [0.7, 1.2, 0.7] }}
-              transition={{ repeat: Infinity, repeatDelay: 3, duration: 1.2, ease: "easeInOut" }}
-              className="absolute top-2 right-2 pointer-events-none z-30"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-fuchsia-300 drop-shadow-[0_0_8px_rgba(217,70,239,0.8)]" />
-            </motion.div>
-          )}
-
-          {/* Touch Ripple Highlight */}
-          <div className="absolute inset-0 rounded-[24px] bg-white/0 group-active:bg-white/10 dark:group-active:bg-white/[0.08] transition-colors z-20 pointer-events-none" />
-        </div>
-
-        <span className="font-medium text-foreground/90 tracking-wide text-xs sm:text-sm drop-shadow-sm truncate w-full text-center px-1">
-          {app.label}
-        </span>
-      </motion.button>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden font-sans selection:bg-primary/30 pt-10 pb-20">
+    <div className="min-h-screen bg-background relative overflow-hidden font-sans selection:bg-primary/30 pt-10 pb-24">
       
-      {/* Flagship Ambient Edge Vignette & Background Lighting */}
+      {/* ─── LUXURY ANIMATED AURORA BACKGROUND & PARTICLES ─────────────────── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(120,119,198,0.12)_0%,_transparent_75%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(99,102,241,0.12)_0%,_transparent_75%)]" />
         
         {!shouldReduceMotion && (
           <>
             <motion.div 
-              animate={{ scale: [1, 1.25, 1], x: [0, 50, 0], y: [0, -40, 0] }}
-              transition={{ repeat: Infinity, duration: 16, ease: "easeInOut" }}
-              className="absolute top-10 -left-20 w-[420px] h-[420px] bg-purple-600/15 dark:bg-purple-600/[0.1] rounded-full blur-[120px]"
+              animate={{ scale: [1, 1.25, 1], x: [0, 60, 0], y: [0, -40, 0] }}
+              transition={{ repeat: Infinity, duration: 18, ease: "easeInOut" }}
+              className="absolute -top-20 -left-20 w-[500px] h-[500px] bg-purple-600/15 dark:bg-purple-600/[0.09] rounded-full blur-[140px]"
             />
             <motion.div 
-              animate={{ scale: [1, 1.3, 1], x: [0, -50, 0], y: [0, 50, 0] }}
-              transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
-              className="absolute top-40 -right-20 w-[420px] h-[420px] bg-blue-600/15 dark:bg-blue-600/[0.1] rounded-full blur-[120px]"
+              animate={{ scale: [1, 1.3, 1], x: [0, -60, 0], y: [0, 60, 0] }}
+              transition={{ repeat: Infinity, duration: 22, ease: "easeInOut" }}
+              className="absolute top-40 -right-20 w-[500px] h-[500px] bg-indigo-600/15 dark:bg-blue-600/[0.09] rounded-full blur-[140px]"
             />
             <motion.div 
-              animate={{ scale: [1, 1.2, 1], x: [-30, 30, -30], y: [20, -20, 20] }}
-              transition={{ repeat: Infinity, duration: 14, ease: "easeInOut" }}
-              className="absolute bottom-10 left-1/3 w-[350px] h-[350px] bg-pink-600/10 dark:bg-pink-600/[0.08] rounded-full blur-[100px]"
+              animate={{ scale: [1, 1.2, 1], x: [-40, 40, -40], y: [30, -30, 30] }}
+              transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
+              className="absolute bottom-10 left-1/4 w-[450px] h-[450px] bg-pink-600/10 dark:bg-pink-600/[0.07] rounded-full blur-[120px]"
             />
           </>
         )}
       </div>
 
-      <div className="relative z-10 px-4 sm:px-6 max-w-4xl mx-auto space-y-10">
+      <div className="relative z-10 px-4 sm:px-8 max-w-5xl mx-auto space-y-12">
         
-        {/* FLAGSHIP GLASSMORPHISM FLOATING BANNER */}
+        {/* ─── NEO-GLASS FLOATING CLOCK & TELEMETRY BANNER ─────────────────── */}
         <motion.div 
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 25 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
-          className="relative mx-auto max-w-2xl group cursor-default select-none"
+          className="relative mx-auto max-w-3xl group cursor-default select-none"
         >
-          {/* Rich Neon Outer Glow */}
-          <div className="absolute -inset-1.5 rounded-[36px] bg-gradient-to-r from-purple-500/25 via-indigo-500/25 to-blue-500/25 blur-2xl opacity-80 group-hover:opacity-100 transition-opacity duration-700 -z-10" />
+          {/* Royal Ambient Outer Glow */}
+          <div className="absolute -inset-2 rounded-[40px] bg-gradient-to-r from-purple-500/20 via-indigo-500/20 to-blue-500/20 blur-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-700 -z-10" />
 
           {/* Frosted Glass Flagship Card */}
           <motion.div 
             style={shouldReduceMotion ? {} : { x: parallaxX, y: parallaxY }}
             animate={shouldReduceMotion ? {} : { y: [0, -4, 0] }}
             transition={{ y: { repeat: Infinity, duration: 6, ease: "easeInOut" } }}
-            className="relative overflow-hidden rounded-[32px] p-8 sm:p-10 bg-gradient-to-b from-white/[0.16] dark:from-white/[0.1] via-white/[0.08] dark:via-white/[0.06] to-white/[0.03] dark:to-white/[0.03] backdrop-blur-[32px] border border-white/[0.22] dark:border-white/[0.14] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center text-center"
+            className="relative overflow-hidden rounded-[34px] p-8 sm:p-12 bg-gradient-to-b from-white/[0.18] dark:from-white/[0.09] via-white/[0.08] dark:via-white/[0.05] to-white/[0.03] dark:to-white/[0.02] backdrop-blur-[36px] border border-white/[0.25] dark:border-white/[0.12] shadow-[0_30px_70px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_30px_70px_-15px_rgba(0,0,0,0.7)] flex flex-col items-center justify-center text-center"
           >
-            {/* Ambient Background Glow Inside Card */}
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.06] via-purple-500/[0.04] to-transparent pointer-events-none" />
-
-            {/* Glowing Blobs Inside Glass */}
-            {!shouldReduceMotion && (
-              <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <motion.div 
-                  animate={{ scale: [1, 1.4, 1], x: [-25, 25, -25] }}
-                  transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
-                  className="absolute -top-12 left-1/4 w-56 h-56 bg-purple-500/25 rounded-full blur-[50px]"
-                />
-                <motion.div 
-                  animate={{ scale: [1, 1.3, 1], y: [-20, 20, -20] }}
-                  transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
-                  className="absolute -bottom-12 right-1/4 w-56 h-56 bg-blue-500/25 rounded-full blur-[50px]"
-                />
-              </div>
-            )}
+            {/* Ambient Background Aura Inside Card */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.05] to-transparent pointer-events-none" />
 
             {/* Periodic Shimmer Light Sweep */}
             {!shouldReduceMotion && (
               <motion.div 
-                animate={{ x: ['-100%', '250%'] }}
-                transition={{ repeat: Infinity, repeatDelay: 12, duration: 2.8, ease: "easeInOut" }}
+                animate={{ x: ['-100%', '280%'] }}
+                transition={{ repeat: Infinity, repeatDelay: 12, duration: 3, ease: "easeInOut" }}
                 className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/[0.12] dark:via-white/[0.18] to-transparent skew-x-12 pointer-events-none z-10"
               />
             )}
 
-            {/* Crisp Inner Top Border Highlight */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/30 to-transparent" />
+            {/* Crisp Inner Top Border Reflection */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/45 dark:via-white/30 to-transparent" />
 
-            {/* Content Layer */}
-            <div className="relative z-20 space-y-4">
+            {/* Content Telemetry Layer */}
+            <div className="relative z-20 space-y-6 w-full">
+              
+              {/* Live Location Pill */}
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 dark:bg-black/20 backdrop-blur-md border border-white/15 text-xs sm:text-sm font-semibold text-foreground/90 shadow-sm">
+                <Map className="w-3.5 h-3.5 text-primary animate-pulse" />
+                <span>{weather.locationName}</span>
+              </div>
+
+              {/* Luxury Digital Clock Display */}
               <div>
-                <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-[72px] sm:text-[80px] font-bold tracking-tighter text-foreground leading-none drop-shadow-sm font-sans">
+                <div className="flex items-baseline justify-center gap-2.5">
+                  <span className="text-[76px] sm:text-[92px] font-extrabold tracking-tighter text-foreground leading-none drop-shadow-md font-sans">
                     {format(time, "h:mm")}
                   </span>
-                  <span className="text-2xl sm:text-3xl font-semibold text-muted-foreground/80 tracking-normal">
+                  <span className="text-2xl sm:text-4xl font-bold text-muted-foreground/80 tracking-normal">
                     {format(time, "a")}
                   </span>
                 </div>
-                <div className="text-base sm:text-lg font-medium text-muted-foreground/90 mt-2 tracking-wide">
+                <div className="text-base sm:text-xl font-medium text-muted-foreground/90 mt-2 tracking-wide">
                   {format(time, "EEEE, MMMM d")}
                 </div>
               </div>
               
-              <div className="flex flex-col items-center justify-center gap-1.5 pt-1">
+              {/* Meteorological Telemetry Bar */}
+              <div className="flex flex-col items-center justify-center pt-2">
                 {weather.loading ? (
-                  <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground/80 bg-background/30 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
-                    <div className="w-3 h-3 rounded-full border-2 border-current border-t-transparent animate-spin"/> Locating...
+                  <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground/80 bg-background/30 backdrop-blur-md px-5 py-2 rounded-full border border-white/10">
+                    <div className="w-3.5 h-3.5 rounded-full border-2 border-current border-t-transparent animate-spin"/> Locating satellite telemetry...
                   </div>
                 ) : (
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 bg-background/40 dark:bg-black/30 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/15 shadow-inner">
-                    <div className="flex items-center gap-2 text-foreground font-semibold text-base sm:text-lg">
+                  <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 bg-background/45 dark:bg-black/35 backdrop-blur-xl px-6 py-3 rounded-2xl border border-white/15 shadow-inner text-xs sm:text-sm font-medium text-foreground/90">
+                    
+                    {/* Temp & Condition */}
+                    <div className="flex items-center gap-2 font-bold text-base sm:text-lg">
                       <motion.div animate={shouldReduceMotion ? {} : { y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}>
-                        <CloudSun className="w-5 h-5 text-sky-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]" />
+                        <CloudSun className="w-5 h-5 text-sky-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.7)]" />
                       </motion.div>
                       <span>{weather.temp !== null ? `${weather.temp}°C` : '--'}</span>
                       <span className="text-foreground/30 font-normal">|</span>
-                      <span className="text-sm sm:text-base font-medium">{weather.desc}</span>
+                      <span className="font-semibold">{weather.desc}</span>
                     </div>
                     
-                    <span className="hidden sm:inline text-foreground/20">•</span>
+                    {/* Feels Like */}
+                    {weather.feelsLike !== null && (
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <span>Feels like</span>
+                        <span className="text-foreground font-semibold">{weather.feelsLike}°C</span>
+                      </div>
+                    )}
 
-                    <div className="flex items-center gap-1.5 text-muted-foreground text-xs sm:text-sm font-medium">
-                      <Map className="w-3.5 h-3.5 text-primary" /> 
-                      <span>{weather.locationName}</span>
-                    </div>
+                    {/* Humidity */}
+                    {weather.humidity !== null && (
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Droplets className="w-3.5 h-3.5 text-blue-400" />
+                        <span className="text-foreground font-semibold">{weather.humidity}%</span>
+                      </div>
+                    )}
+
+                    {/* Sunset */}
+                    {weather.sunset && (
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Sunset className="w-3.5 h-3.5 text-amber-400" />
+                        <span className="text-foreground font-semibold">{weather.sunset}</span>
+                      </div>
+                    )}
+
                   </div>
                 )}
               </div>
+
             </div>
           </motion.div>
         </motion.div>
 
-        {/* Dynamic Flagship App Grid */}
+        {/* ─── 3-COLUMN LUXURY MINI-WIDGET APP GRID ──────────────────────────── */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="relative z-10 w-full pt-2"
+          className="relative z-10 w-full pt-4"
         >
-          <div className="grid grid-cols-4 gap-y-8 gap-x-2 sm:gap-x-6 place-items-center w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 place-items-stretch w-full">
             {APPS.map(app => (
-              <AppIcon key={app.id} app={app} />
+              <AppCard 
+                key={app.id} 
+                app={app} 
+                onNavigate={handleNavigate}
+                shouldReduceMotion={shouldReduceMotion}
+              />
             ))}
           </div>
         </motion.div>
