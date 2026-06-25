@@ -6,11 +6,12 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
 import { format } from 'date-fns';
 import { 
-  StickyNote, CheckSquare, Calendar, Wallet, Target, Bot, FolderOpen, 
+  StickyNote, CheckSquare, Calendar, Wallet, Target, FolderOpen, 
   Lock, CloudSun, Map, FileText, ScanLine, Globe, Settings, 
-  Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock, PartyPopper, Sparkles, Search, Mic, X
+  Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock, PartyPopper, Sparkles, Search, X, Bell
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import NotificationCenter from '@/components/shared/NotificationCenter';
 
 const APPS = [
   { id: 'notes', label: 'Notes', desc: 'Write ideas quickly', path: '/notes', icon: StickyNote, gradient: 'from-amber-500/25 via-orange-500/10 to-transparent border-amber-500/35 text-amber-400', glow: 'rgba(245, 158, 11, 0.28)' },
@@ -23,7 +24,7 @@ const APPS = [
   { id: 'oradocs', label: 'Documents', desc: 'Edit rich text', path: '/oradocs', icon: FileText, gradient: 'from-orange-500/25 via-amber-500/10 to-transparent border-orange-500/35 text-orange-400', glow: 'rgba(249, 115, 22, 0.28)' },
   { id: 'news', label: 'News', desc: 'Live global updates', path: '/news', icon: Globe, logo: './logo/NEORA.png', gradient: 'from-red-500/25 via-rose-500/10 to-transparent border-red-500/35 text-red-400', glow: 'rgba(239, 68, 68, 0.28)' },
   { id: 'climora', label: 'Weather', desc: 'Live atmospheric radar', path: '/climora', icon: CloudSun, gradient: 'from-sky-500/25 via-blue-500/10 to-transparent border-sky-500/35 text-sky-400', glow: 'rgba(14, 165, 233, 0.28)' },
-  { id: 'assistant', label: 'AI', desc: 'Ask ORA AI', path: '/assistant', icon: Bot, logo: './logo/Ora AI.png', gradient: 'from-violet-500/35 via-fuchsia-500/20 to-transparent border-violet-500/45 text-violet-300', glow: 'rgba(139, 92, 246, 0.42)' },
+  { id: 'assistant', label: 'AI', desc: 'Ask ORA AI', path: '/assistant', icon: Sparkles, logo: './logo/Ora AI.png', gradient: 'from-violet-500/35 via-fuchsia-500/20 to-transparent border-violet-500/45 text-violet-300', glow: 'rgba(139, 92, 246, 0.42)' },
   { id: 'browser', label: 'Browser', desc: 'Fast & Secure', path: '/browser', icon: Compass, gradient: 'from-indigo-500/25 via-purple-500/10 to-transparent border-indigo-400/35 text-indigo-300', glow: 'rgba(99, 102, 241, 0.28)' },
   { id: 'routo', label: 'Maps', desc: 'Explore routes', path: '/routo', icon: Map, logo: './logo/Routo.jpg', gradient: 'from-teal-500/25 via-emerald-500/10 to-transparent border-teal-500/35 text-teal-400', glow: 'rgba(20, 184, 166, 0.28)' },
   { id: 'festo', label: 'FESTO', desc: 'Celebrate moments', path: '/festo', icon: PartyPopper, logo: './logo/FESTA.png', gradient: 'from-orange-500/25 via-yellow-500/10 to-transparent border-orange-500/35 text-orange-400', glow: 'rgba(249, 115, 22, 0.28)' },
@@ -48,19 +49,18 @@ const getWeatherCodeLabel = (code) => {
   return 'Clear';
 };
 
-// ─── MEMOIZED COMPACT WIDGET CARD (aspect-[4/3] - exactly 25% shorter) ─────
+// ─── MEMOIZED COMPACT WIDGET CARD (aspect-[4/3]) ─────────────────────────────
 const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
   const isAI = app.id === 'assistant';
   const isSettings = app.id === 'settings';
 
   return (
     <motion.button
-      whileHover={shouldReduceMotion ? {} : { y: -6, scale: 1.02 }}
+      whileHover={shouldReduceMotion ? {} : { y: -5, scale: 1.02 }}
       whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
       onClick={() => onNavigate(app.path)}
       className="group relative w-full aspect-[4/3] text-left focus:outline-none select-none gpu-accelerated flex"
     >
-      {/* Ambient Outer Glow on Hover */}
       {!shouldReduceMotion && (
         <div 
           className="absolute -inset-1 rounded-[26px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"
@@ -73,10 +73,8 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
         app.gradient,
         "border-white/20 dark:border-white/[0.12]"
       )}>
-        {/* Gloss Top Border Reflection */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/20 to-transparent pointer-events-none" />
 
-        {/* AI Royal Ambient Aura */}
         {isAI && !shouldReduceMotion && (
           <motion.div 
             animate={{ scale: [1, 1.3, 1], opacity: [0.25, 0.65, 0.25] }}
@@ -85,7 +83,6 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
           />
         )}
 
-        {/* Top Row: Floating App Illustration / Logo */}
         <div className="flex items-start justify-between w-full z-10">
           <div className="relative shrink-0 w-11 h-11 sm:w-13 sm:h-13 rounded-[18px] bg-white/15 dark:bg-black/30 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-md overflow-hidden group-hover:scale-105 transition-transform duration-300">
             {app.logo ? (
@@ -102,7 +99,6 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
             )}
           </div>
 
-          {/* Optional Shortcut Icon / AI Sparkle */}
           {isAI && !shouldReduceMotion && (
             <motion.div
               animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
@@ -113,7 +109,6 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
           )}
         </div>
 
-        {/* Bottom Row: App Title & Subtitle */}
         <div className="flex flex-col min-w-0 z-10 pt-1.5">
           <span className="font-bold text-foreground tracking-tight text-sm sm:text-base truncate drop-shadow-sm font-sans">
             {app.label}
@@ -123,7 +118,6 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
           </span>
         </div>
 
-        {/* Touch Ripple Highlight */}
         <div className="absolute inset-0 rounded-[22px] bg-white/0 group-active:bg-white/10 dark:group-active:bg-white/[0.08] transition-colors pointer-events-none" />
       </div>
     </motion.button>
@@ -137,6 +131,10 @@ export default function Home() {
   const [searchQ, setSearchQ] = useState('');
   const [videoFailed, setVideoFailed] = useState(false);
   
+  // Notification modal state
+  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifCount, setNotifCount] = useState(3);
+
   // Stable Navigation Lock
   const handleNavigate = useCallback((path) => {
     if (isNavigatingRef.current) return;
@@ -217,8 +215,8 @@ export default function Home() {
     const { left, top, width, height } = currentTarget.getBoundingClientRect();
     const x = (clientX - left) / width - 0.5;
     const y = (clientY - top) / height - 0.5;
-    mouseX.set(x * 20);
-    mouseY.set(y * 20);
+    mouseX.set(x * 15);
+    mouseY.set(y * 15);
   }, [shouldReduceMotion, mouseX, mouseY]);
 
   const handleMouseLeave = useCallback(() => {
@@ -226,7 +224,7 @@ export default function Home() {
     mouseY.set(0);
   }, [mouseX, mouseY]);
 
-  // Real-time local instant inline search filtering
+  // Real-time local search filtering
   const filteredApps = APPS.filter(app => {
     if (!searchQ.trim()) return true;
     const q = searchQ.toLowerCase();
@@ -239,14 +237,14 @@ export default function Home() {
     show: {
       opacity: 1,
       transition: {
-        staggerChildren: shouldReduceMotion ? 0 : 0.03,
-        delayChildren: shouldReduceMotion ? 0 : 0.1,
+        staggerChildren: shouldReduceMotion ? 0 : 0.025,
+        delayChildren: shouldReduceMotion ? 0 : 0.05,
       }
     }
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-x-hidden w-full max-w-[100vw] font-sans selection:bg-primary/30 pt-20 sm:pt-24 pb-24">
+    <div className="min-h-screen bg-background relative overflow-x-hidden w-full max-w-[100vw] font-sans selection:bg-primary/30 pt-6 sm:pt-8 pb-24">
       
       {/* ─── LUXURY ANIMATED AURORA BACKGROUND & PARTICLES ─────────────────── */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden w-full max-w-[100vw]">
@@ -268,28 +266,49 @@ export default function Home() {
         )}
       </div>
 
-      <div className="relative z-10 px-4 sm:px-8 max-w-6xl mx-auto space-y-8 sm:space-y-10 w-full">
+      <div className="relative z-10 px-4 sm:px-8 max-w-6xl mx-auto space-y-6 sm:space-y-8 w-full">
         
-        {/* ─── 1 & 3. COMPACT HERO BANNER WITH BULLETPROOF VIDEO BACKGROUND ── */}
+        {/* ─── WEATHER BANNER (NO BRIGHT SURROUNDING GLOW + INLINE BELL) ──── */}
         <motion.div 
-          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
+          initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
-          className="relative mx-auto max-w-2xl group cursor-default select-none w-full"
+          className="relative mx-auto max-w-2xl select-none w-full"
         >
-          {/* Royal Outer Glow */}
-          <div className="absolute -inset-2 rounded-[38px] bg-gradient-to-r from-purple-500/25 via-indigo-500/25 to-cyan-500/25 blur-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-700 -z-10" />
-
-          {/* Frosted Glass Hero Card */}
+          {/* Frosted Glass Hero Card with Refined Shadow */}
           <motion.div 
             style={shouldReduceMotion ? {} : { x: parallaxX, y: parallaxY }}
-            animate={shouldReduceMotion ? {} : { y: [0, -3, 0] }}
-            transition={{ y: { repeat: Infinity, duration: 6, ease: "easeInOut" } }}
-            className="relative overflow-hidden rounded-[32px] sm:rounded-[36px] p-8 sm:p-10 bg-indigo-950/80 dark:bg-black/60 backdrop-blur-[24px] border border-white/20 dark:border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)] flex flex-col items-center justify-center text-center min-h-[220px]"
+            className="relative overflow-hidden rounded-[32px] sm:rounded-[36px] p-8 sm:p-10 bg-indigo-950/80 dark:bg-black/60 backdrop-blur-[24px] border border-white/15 dark:border-white/[0.12] shadow-[0_15px_45px_rgba(0,0,0,0.35)] flex flex-col items-center justify-center text-center min-h-[220px]"
           >
-            {/* Bulletproof Open CDN Looping Video Engine with Fallback Backdrop */}
+            {/* Top-Right Inline Notification Bell Button */}
+            <div className="absolute top-5 right-5 z-30">
+              <motion.button
+                onClick={() => setNotifOpen(!notifOpen)}
+                whileHover={{ scale: 1.06 }}
+                whileTap={{ scale: 0.94 }}
+                title="Notifications"
+                className="w-10 h-10 rounded-full bg-white/15 dark:bg-white/10 backdrop-blur-xl border border-white/20 hover:bg-white/25 transition-all flex items-center justify-center text-white shadow-sm relative cursor-pointer"
+              >
+                <Bell className="w-5 h-5 text-white drop-shadow-sm" />
+                <AnimatePresence>
+                  {notifCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0 }}
+                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-extrabold rounded-full flex items-center justify-center px-1 shadow-md border border-white/30"
+                    >
+                      {notifCount > 8 ? '8+' : notifCount}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </motion.button>
+              <NotificationCenter open={notifOpen} onClose={() => setNotifOpen(false)} onCountChange={setNotifCount} />
+            </div>
+
+            {/* Video Background Engine */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none bg-gradient-to-br from-indigo-950 via-purple-950 to-black">
               {!videoFailed && (
                 <video 
@@ -303,22 +322,13 @@ export default function Home() {
               <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/45" />
             </div>
 
-            {/* Periodic Shimmer Light Sweep */}
-            {!shouldReduceMotion && (
-              <motion.div 
-                animate={{ x: ['-100%', '300%'] }}
-                transition={{ repeat: Infinity, repeatDelay: 10, duration: 2.8, ease: "easeInOut" }}
-                className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/[0.15] dark:via-white/[0.22] to-transparent skew-x-12 pointer-events-none z-10"
-              />
-            )}
-
             {/* Crisp Inner Top Border Reflection */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/50 dark:via-white/35 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/25 to-transparent" />
 
             {/* Cleaner Centered Content Layer */}
-            <div className="relative z-20 space-y-5 w-full text-white">
+            <div className="relative z-20 space-y-4 sm:space-y-5 w-full text-white pt-2 sm:pt-0">
               
-              {/* Short City Capsule Chip */}
+              {/* Short City Chip */}
               <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-white/15 dark:bg-white/10 backdrop-blur-md border border-white/20 text-xs sm:text-sm font-semibold tracking-wide shadow-sm">
                 <Map className="w-3.5 h-3.5 text-sky-300" />
                 <span>{weather.shortCity}</span>
@@ -357,39 +367,60 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        {/* ─── 5 & 6. OVAL FLOATING GLASS INLINE SEARCH BAR ────────────────── */}
+        {/* ─── SEARCH BAR + DETACHED FLOATING AI ASSISTANT BUTTON ──────────── */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.15, duration: 0.4 }}
-          className="relative max-w-2xl mx-auto group w-full"
+          transition={{ delay: 0.1, duration: 0.4 }}
+          className="relative max-w-2xl mx-auto flex items-center gap-3 sm:gap-3.5 w-full"
         >
-          <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-500/35 via-primary/35 to-blue-500/35 blur-xl opacity-45 group-focus-within:opacity-100 transition-opacity duration-500 -z-10" />
-          
-          <div className="relative flex items-center justify-between w-full rounded-full py-3.5 px-6 backdrop-blur-2xl bg-white/25 dark:bg-white/[0.07] border border-white/30 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-all duration-300 group-focus-within:border-primary/60 group-focus-within:shadow-[0_0_25px_rgba(139,92,246,0.35)]">
-            <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mr-3 shrink-0 group-focus-within:text-primary transition-colors" />
-            <input 
-              value={searchQ}
-              onChange={e => setSearchQ(e.target.value)}
-              placeholder="Search apps, tools, settings..." 
-              className="w-full bg-transparent border-none outline-none text-foreground font-medium text-sm sm:text-base placeholder:text-muted-foreground/75 select-text" 
-            />
-            <div className="flex items-center gap-2 ml-3 shrink-0 text-muted-foreground">
+          {/* Search Pill (No Robot Icon) */}
+          <div className="relative flex-1 group">
+            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-purple-500/30 via-primary/30 to-blue-500/30 blur-xl opacity-40 group-focus-within:opacity-100 transition-opacity duration-500 -z-10" />
+            
+            <div className="relative flex items-center justify-between w-full rounded-full py-3.5 px-6 backdrop-blur-2xl bg-white/25 dark:bg-white/[0.07] border border-white/30 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-all duration-300 group-focus-within:border-primary/60 group-focus-within:shadow-[0_0_25px_rgba(139,92,246,0.35)]">
+              <Search className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mr-3 shrink-0 group-focus-within:text-primary transition-colors" />
+              <input 
+                value={searchQ}
+                onChange={e => setSearchQ(e.target.value)}
+                placeholder="Search apps, tools, settings..." 
+                className="w-full bg-transparent border-none outline-none text-foreground font-medium text-sm sm:text-base placeholder:text-muted-foreground/75 select-text" 
+              />
               {searchQ && (
-                <button type="button" onClick={() => setSearchQ('')} title="Clear" className="p-1 hover:text-foreground active:scale-95 transition-all"><X className="w-4 h-4 text-muted-foreground hover:text-foreground" /></button>
+                <button type="button" onClick={() => setSearchQ('')} title="Clear" className="p-1 hover:text-foreground active:scale-95 transition-all shrink-0 ml-2"><X className="w-4 h-4 text-muted-foreground hover:text-foreground" /></button>
               )}
-              <button type="button" onClick={() => handleNavigate('/assistant')} title="Ask ORA AI" className="p-1 hover:text-primary active:scale-95 transition-all"><Bot className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-violet-400" /></button>
-              <button type="button" onClick={() => handleNavigate('/assistant')} title="Voice AI" className="p-1 hover:text-primary active:scale-95 transition-all"><Sparkles className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-400" /></button>
             </div>
           </div>
+
+          {/* Separate Primary Floating AI Assistant Button */}
+          <motion.button
+            whileHover={{ scale: 1.08, y: -2 }}
+            whileTap={{ scale: 0.94 }}
+            onClick={() => handleNavigate('/assistant')}
+            title="Ask ORA AI Assistant"
+            className="relative shrink-0 w-13 h-13 sm:w-14 sm:h-14 rounded-full p-0.5 bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-amber-400 shadow-[0_0_25px_rgba(168,85,247,0.45)] group cursor-pointer flex items-center justify-center focus:outline-none"
+          >
+            {/* Idle Pulse Aura */}
+            {!shouldReduceMotion && (
+              <motion.div
+                animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.8, 0.4] }}
+                transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+                className="absolute inset-0 rounded-full bg-gradient-to-tr from-violet-600 via-fuchsia-500 to-amber-400 blur-md pointer-events-none -z-10"
+              />
+            )}
+            
+            <div className="w-full h-full rounded-full bg-black/65 dark:bg-black/75 backdrop-blur-2xl flex items-center justify-center border border-white/20 group-hover:bg-black/45 transition-colors overflow-hidden">
+              <Sparkles className="w-6 h-6 sm:w-6.5 sm:h-6.5 text-fuchsia-300 drop-shadow-[0_0_10px_rgba(217,70,239,0.9)] group-hover:rotate-12 transition-transform duration-300" />
+            </div>
+          </motion.button>
         </motion.div>
 
-        {/* ─── 4 & 7 & 8. RESPONSIVE COMPACT APP GRID (aspect-[4/3]) ───────── */}
+        {/* ─── RESPONSIVE COMPACT APP GRID (aspect-[4/3]) ──────────────────── */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="show"
-          className="relative z-10 w-full pt-2"
+          className="relative z-10 w-full pt-1"
         >
           {filteredApps.length === 0 ? (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16 px-4 bg-card/30 backdrop-blur-xl rounded-[28px] border border-border/40 max-w-md mx-auto">

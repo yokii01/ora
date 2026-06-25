@@ -2,7 +2,6 @@ import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
-import TopBar from './TopBar';
 import CommandPalette from '@/components/shared/CommandPalette';
 import { useReminders } from '@/hooks/useReminders';
 import PersistentTabs from './PersistentTabs';
@@ -47,23 +46,7 @@ export default function AppLayout() {
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-left w-6 h-6"><path d="m15 18-6-6 6-6"/></svg>
           </motion.button>
         )}
-        <AnimatePresence>
-          {!hideChrome && isHome && (
-            <motion.div
-              key="topbar"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.2, ease: [0.25, 0.1, 0.25, 1] }}
-              className="fixed top-0 left-0 right-0 z-40 lg:pl-[240px] transform-gpu will-change-transform pointer-events-auto"
-            >
-              <TopBar
-                onSearchOpen={() => setSearchOpen(true)}
-                onEditMode={() => setEditModeOpen(true)}
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
+
         <main className={`flex-1 overflow-hidden relative ${hideChrome ? '' : 'pb-[env(safe-area-inset-bottom,16px)] lg:pb-6'}`}>
           {isAssistant ? (
             <Outlet context={{ editModeOpen, setEditModeOpen }} />
