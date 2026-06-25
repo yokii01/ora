@@ -13,28 +13,28 @@ import {
 import { cn } from '@/lib/utils';
 
 const APPS = [
-  { id: 'notes', label: 'Notes', path: '/notes', icon: StickyNote, gradient: 'bg-amber-500/20 text-amber-400 border-amber-500/30', glow: 'rgba(245, 158, 11, 0.25)' },
-  { id: 'tasks', label: 'Tasks', path: '/tasks', icon: CheckSquare, gradient: 'bg-blue-500/20 text-blue-400 border-blue-500/30', glow: 'rgba(59, 130, 246, 0.25)' },
-  { id: 'calendar', label: 'Calendar', path: '/calendar', icon: Calendar, gradient: 'bg-green-500/20 text-green-400 border-green-500/30', glow: 'rgba(34, 197, 94, 0.25)' },
-  { id: 'scanner', label: 'Scanner', path: '/scanner', icon: ScanLine, gradient: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30', glow: 'rgba(99, 102, 241, 0.25)' },
-  { id: 'finance', label: 'Finance', path: '/finance', icon: Wallet, gradient: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', glow: 'rgba(16, 185, 129, 0.25)' },
-  { id: 'files', label: 'Files', path: '/files', icon: FolderOpen, gradient: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', glow: 'rgba(6, 182, 212, 0.25)' },
-  { id: 'vault', label: 'Vault', path: '/vault', icon: Lock, gradient: 'bg-slate-500/20 text-slate-300 border-slate-500/30', glow: 'rgba(148, 163, 184, 0.25)' },
-  { id: 'oradocs', label: 'Documents', path: '/oradocs', icon: FileText, gradient: 'bg-orange-500/20 text-orange-400 border-orange-500/30', glow: 'rgba(249, 115, 22, 0.25)' },
-  { id: 'news', label: 'News', path: '/news', icon: Globe, logo: '/logo/NEORA.png', gradient: 'bg-red-500/20 text-red-400 border-red-500/30', glow: 'rgba(239, 68, 68, 0.25)' },
-  { id: 'climora', label: 'Weather', path: '/climora', icon: CloudSun, gradient: 'bg-sky-500/20 text-sky-400 border-sky-500/30', glow: 'rgba(14, 165, 233, 0.25)' },
-  { id: 'assistant', label: 'AI', path: '/assistant', icon: Bot, logo: '/logo/Ora AI.png', gradient: 'bg-violet-500/20 text-violet-400 border-violet-500/30', glow: 'rgba(139, 92, 246, 0.35)' },
-  { id: 'browser', label: 'Browser', path: '/browser', icon: Compass, gradient: 'bg-indigo-400/20 text-indigo-300 border-indigo-400/30', glow: 'rgba(129, 140, 248, 0.25)' },
-  { id: 'routo', label: 'Maps', path: '/routo', icon: Map, logo: '/logo/Routo.jpg', gradient: 'bg-teal-500/20 text-teal-400 border-teal-500/30', glow: 'rgba(20, 184, 166, 0.25)' },
-  { id: 'festo', label: 'FESTO', path: '/festo', icon: PartyPopper, logo: '/logo/FESTA.png', gradient: 'bg-orange-500/20 text-orange-400 border-orange-500/30', glow: 'rgba(249, 115, 22, 0.25)' },
-  { id: 'music', label: 'Music', path: '/music', icon: Music, gradient: 'bg-pink-500/20 text-pink-400 border-pink-500/30', glow: 'rgba(236, 72, 153, 0.25)' },
-  { id: 'gallery', label: 'Gallery', path: '/gallery', icon: ImageIcon, gradient: 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30', glow: 'rgba(217, 70, 239, 0.25)' },
-  { id: 'translator', label: 'Translator', path: '/translator', icon: Languages, gradient: 'bg-blue-400/20 text-blue-300 border-blue-400/30', glow: 'rgba(96, 165, 250, 0.25)' },
-  { id: 'settings', label: 'Settings', path: '/settings', icon: Settings, gradient: 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30', glow: 'rgba(161, 161, 170, 0.25)' },
-  { id: 'calculator', label: 'Calculator', path: '/calculator', icon: Calculator, gradient: 'bg-orange-600/20 text-orange-500 border-orange-600/30', glow: 'rgba(234, 88, 12, 0.25)' },
-  { id: 'clock', label: 'Clock', path: '/clock', icon: Clock, gradient: 'bg-indigo-600/20 text-indigo-400 border-indigo-600/30', glow: 'rgba(79, 70, 229, 0.25)' },
-  { id: 'habits', label: 'Habito', path: '/habits', icon: Target, gradient: 'bg-rose-500/20 text-rose-400 border-rose-500/30', glow: 'rgba(244, 63, 94, 0.25)' },
-  { id: 'passwords', label: 'Passwords', path: '/passwords', icon: Key, gradient: 'bg-slate-700/30 text-slate-300 border-slate-600/40', glow: 'rgba(100, 116, 139, 0.25)' },
+  { id: 'notes', label: 'Notes', path: '/notes', icon: StickyNote, gradient: 'bg-amber-500/20 text-amber-400 border-amber-500/30', glow: 'rgba(245, 158, 11, 0.3)' },
+  { id: 'tasks', label: 'Tasks', path: '/tasks', icon: CheckSquare, gradient: 'bg-blue-500/20 text-blue-400 border-blue-500/30', glow: 'rgba(59, 130, 246, 0.3)' },
+  { id: 'calendar', label: 'Calendar', path: '/calendar', icon: Calendar, gradient: 'bg-green-500/20 text-green-400 border-green-500/30', glow: 'rgba(34, 197, 94, 0.3)' },
+  { id: 'scanner', label: 'Scanner', path: '/scanner', icon: ScanLine, gradient: 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30', glow: 'rgba(99, 102, 241, 0.3)' },
+  { id: 'finance', label: 'Finance', path: '/finance', icon: Wallet, gradient: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30', glow: 'rgba(16, 185, 129, 0.3)' },
+  { id: 'files', label: 'Files', path: '/files', icon: FolderOpen, gradient: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30', glow: 'rgba(6, 182, 212, 0.3)' },
+  { id: 'vault', label: 'Vault', path: '/vault', icon: Lock, gradient: 'bg-slate-500/20 text-slate-300 border-slate-500/30', glow: 'rgba(148, 163, 184, 0.3)' },
+  { id: 'oradocs', label: 'Documents', path: '/oradocs', icon: FileText, gradient: 'bg-orange-500/20 text-orange-400 border-orange-500/30', glow: 'rgba(249, 115, 22, 0.3)' },
+  { id: 'news', label: 'News', path: '/news', icon: Globe, logo: './logo/NEORA.png', gradient: 'bg-red-500/20 text-red-400 border-red-500/30', glow: 'rgba(239, 68, 68, 0.3)' },
+  { id: 'climora', label: 'Weather', path: '/climora', icon: CloudSun, gradient: 'bg-sky-500/20 text-sky-400 border-sky-500/30', glow: 'rgba(14, 165, 233, 0.3)' },
+  { id: 'assistant', label: 'AI', path: '/assistant', icon: Bot, logo: './logo/Ora AI.png', gradient: 'bg-violet-500/20 text-violet-400 border-violet-500/30', glow: 'rgba(139, 92, 246, 0.4)' },
+  { id: 'browser', label: 'Browser', path: '/browser', icon: Compass, gradient: 'bg-indigo-400/20 text-indigo-300 border-indigo-400/30', glow: 'rgba(129, 140, 248, 0.3)' },
+  { id: 'routo', label: 'Maps', path: '/routo', icon: Map, logo: './logo/Routo.jpg', gradient: 'bg-teal-500/20 text-teal-400 border-teal-500/30', glow: 'rgba(20, 184, 166, 0.3)' },
+  { id: 'festo', label: 'FESTO', path: '/festo', icon: PartyPopper, logo: './logo/FESTA.png', gradient: 'bg-orange-500/20 text-orange-400 border-orange-500/30', glow: 'rgba(249, 115, 22, 0.3)' },
+  { id: 'music', label: 'Music', path: '/music', icon: Music, gradient: 'bg-pink-500/20 text-pink-400 border-pink-500/30', glow: 'rgba(236, 72, 153, 0.3)' },
+  { id: 'gallery', label: 'Gallery', path: '/gallery', icon: ImageIcon, gradient: 'bg-fuchsia-500/20 text-fuchsia-400 border-fuchsia-500/30', glow: 'rgba(217, 70, 239, 0.3)' },
+  { id: 'translator', label: 'Translator', path: '/translator', icon: Languages, gradient: 'bg-blue-400/20 text-blue-300 border-blue-400/30', glow: 'rgba(96, 165, 250, 0.3)' },
+  { id: 'settings', label: 'Settings', path: '/settings', icon: Settings, gradient: 'bg-zinc-500/20 text-zinc-300 border-zinc-500/30', glow: 'rgba(161, 161, 170, 0.3)' },
+  { id: 'calculator', label: 'Calculator', path: '/calculator', icon: Calculator, gradient: 'bg-orange-600/20 text-orange-500 border-orange-600/30', glow: 'rgba(234, 88, 12, 0.3)' },
+  { id: 'clock', label: 'Clock', path: '/clock', icon: Clock, gradient: 'bg-indigo-600/20 text-indigo-400 border-indigo-600/30', glow: 'rgba(79, 70, 229, 0.3)' },
+  { id: 'habits', label: 'Habito', path: '/habits', icon: Target, gradient: 'bg-rose-500/20 text-rose-400 border-rose-500/30', glow: 'rgba(244, 63, 94, 0.3)' },
+  { id: 'passwords', label: 'Passwords', path: '/passwords', icon: Key, gradient: 'bg-slate-700/30 text-slate-300 border-slate-600/40', glow: 'rgba(100, 116, 139, 0.3)' },
 ];
 
 const getWeatherCodeLabel = (code) => {
@@ -184,7 +184,7 @@ export default function Home() {
         <div className={cn(
           "relative rounded-[24px] flex items-center justify-center transition-all duration-300 w-[72px] h-[72px] sm:w-[84px] sm:h-[84px]",
           app.gradient,
-          "shadow-[0_8px_20px_rgba(0,0,0,0.12)] group-hover:shadow-[0_12px_25px_rgba(0,0,0,0.2)] backdrop-blur-xl border border-white/10 dark:border-white/[0.08] overflow-hidden"
+          "shadow-[0_8px_20px_rgba(0,0,0,0.12)] group-hover:shadow-[0_12px_25px_rgba(0,0,0,0.25)] backdrop-blur-xl border border-white/10 dark:border-white/[0.08] overflow-hidden"
         )}>
           {/* AI Breathing Ambient Background */}
           {isAI && !shouldReduceMotion && (
@@ -235,19 +235,24 @@ export default function Home() {
       
       {/* Flagship Ambient Edge Vignette & Background Lighting */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(120,119,198,0.08)_0%,_transparent_75%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(120,119,198,0.12)_0%,_transparent_75%)]" />
         
         {!shouldReduceMotion && (
           <>
             <motion.div 
-              animate={{ scale: [1, 1.2, 1], x: [0, 40, 0], y: [0, -30, 0] }}
+              animate={{ scale: [1, 1.25, 1], x: [0, 50, 0], y: [0, -40, 0] }}
               transition={{ repeat: Infinity, duration: 16, ease: "easeInOut" }}
-              className="absolute top-10 -left-20 w-96 h-96 bg-purple-600/10 dark:bg-purple-600/[0.07] rounded-full blur-[100px]"
+              className="absolute top-10 -left-20 w-[420px] h-[420px] bg-purple-600/15 dark:bg-purple-600/[0.1] rounded-full blur-[120px]"
             />
             <motion.div 
-              animate={{ scale: [1, 1.25, 1], x: [0, -40, 0], y: [0, 40, 0] }}
+              animate={{ scale: [1, 1.3, 1], x: [0, -50, 0], y: [0, 50, 0] }}
               transition={{ repeat: Infinity, duration: 20, ease: "easeInOut" }}
-              className="absolute top-40 -right-20 w-96 h-96 bg-blue-600/10 dark:bg-blue-600/[0.07] rounded-full blur-[100px]"
+              className="absolute top-40 -right-20 w-[420px] h-[420px] bg-blue-600/15 dark:bg-blue-600/[0.1] rounded-full blur-[120px]"
+            />
+            <motion.div 
+              animate={{ scale: [1, 1.2, 1], x: [-30, 30, -30], y: [20, -20, 20] }}
+              transition={{ repeat: Infinity, duration: 14, ease: "easeInOut" }}
+              className="absolute bottom-10 left-1/3 w-[350px] h-[350px] bg-pink-600/10 dark:bg-pink-600/[0.08] rounded-full blur-[100px]"
             />
           </>
         )}
@@ -255,7 +260,7 @@ export default function Home() {
 
       <div className="relative z-10 px-4 sm:px-6 max-w-4xl mx-auto space-y-10">
         
-        {/* FLAGSHIP GLASSMORPHISM BANNER */}
+        {/* FLAGSHIP GLASSMORPHISM FLOATING BANNER */}
         <motion.div 
           initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -264,52 +269,52 @@ export default function Home() {
           onMouseLeave={handleMouseLeave}
           className="relative mx-auto max-w-2xl group cursor-default select-none"
         >
-          {/* Subtle Outer Glow */}
-          <div className="absolute -inset-1 rounded-[34px] bg-gradient-to-r from-purple-500/15 via-indigo-500/15 to-blue-500/15 blur-xl opacity-70 group-hover:opacity-100 transition-opacity duration-700 -z-10" />
+          {/* Rich Neon Outer Glow */}
+          <div className="absolute -inset-1.5 rounded-[36px] bg-gradient-to-r from-purple-500/25 via-indigo-500/25 to-blue-500/25 blur-2xl opacity-80 group-hover:opacity-100 transition-opacity duration-700 -z-10" />
 
-          {/* Frosted Glass Main Card */}
+          {/* Frosted Glass Flagship Card */}
           <motion.div 
             style={shouldReduceMotion ? {} : { x: parallaxX, y: parallaxY }}
-            animate={shouldReduceMotion ? {} : { y: [0, -3, 0] }}
+            animate={shouldReduceMotion ? {} : { y: [0, -4, 0] }}
             transition={{ y: { repeat: Infinity, duration: 6, ease: "easeInOut" } }}
-            className="relative overflow-hidden rounded-[30px] p-8 sm:p-10 bg-white/[0.12] dark:bg-white/[0.07] backdrop-blur-[32px] border border-white/[0.18] dark:border-white/[0.1] shadow-[0_20px_50px_rgba(0,0,0,0.2)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex flex-col items-center justify-center text-center"
+            className="relative overflow-hidden rounded-[32px] p-8 sm:p-10 bg-gradient-to-b from-white/[0.16] dark:from-white/[0.1] via-white/[0.08] dark:via-white/[0.06] to-white/[0.03] dark:to-white/[0.03] backdrop-blur-[32px] border border-white/[0.22] dark:border-white/[0.14] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] flex flex-col items-center justify-center text-center"
           >
-            {/* Animated Background Gradient Inside Glass */}
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-500/[0.03] to-purple-500/[0.05] pointer-events-none" />
+            {/* Ambient Background Glow Inside Card */}
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.06] via-purple-500/[0.04] to-transparent pointer-events-none" />
 
-            {/* Glowing Blobs Layer Inside Glass */}
+            {/* Glowing Blobs Inside Glass */}
             {!shouldReduceMotion && (
               <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <motion.div 
-                  animate={{ scale: [1, 1.4, 1], x: [-20, 20, -20] }}
+                  animate={{ scale: [1, 1.4, 1], x: [-25, 25, -25] }}
                   transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
-                  className="absolute -top-12 left-1/4 w-48 h-48 bg-purple-500/20 rounded-full blur-[50px]"
+                  className="absolute -top-12 left-1/4 w-56 h-56 bg-purple-500/25 rounded-full blur-[50px]"
                 />
                 <motion.div 
-                  animate={{ scale: [1, 1.3, 1], y: [-15, 15, -15] }}
+                  animate={{ scale: [1, 1.3, 1], y: [-20, 20, -20] }}
                   transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
-                  className="absolute -bottom-12 right-1/4 w-48 h-48 bg-blue-500/20 rounded-full blur-[50px]"
+                  className="absolute -bottom-12 right-1/4 w-56 h-56 bg-blue-500/25 rounded-full blur-[50px]"
                 />
               </div>
             )}
 
-            {/* Periodic Shimmer Sweep Effect */}
+            {/* Periodic Shimmer Light Sweep */}
             {!shouldReduceMotion && (
               <motion.div 
                 animate={{ x: ['-100%', '250%'] }}
-                transition={{ repeat: Infinity, repeatDelay: 14, duration: 2.8, ease: "easeInOut" }}
-                className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/[0.1] dark:via-white/[0.14] to-transparent skew-x-12 pointer-events-none z-10"
+                transition={{ repeat: Infinity, repeatDelay: 12, duration: 2.8, ease: "easeInOut" }}
+                className="absolute inset-y-0 w-1/2 bg-gradient-to-r from-transparent via-white/[0.12] dark:via-white/[0.18] to-transparent skew-x-12 pointer-events-none z-10"
               />
             )}
 
-            {/* Soft Inner Highlight Top Border */}
-            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 dark:via-white/20 to-transparent" />
+            {/* Crisp Inner Top Border Highlight */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/30 to-transparent" />
 
             {/* Content Layer */}
             <div className="relative z-20 space-y-4">
               <div>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-[68px] sm:text-[76px] font-bold tracking-tighter text-foreground leading-none drop-shadow-sm font-sans">
+                  <span className="text-[72px] sm:text-[80px] font-bold tracking-tighter text-foreground leading-none drop-shadow-sm font-sans">
                     {format(time, "h:mm")}
                   </span>
                   <span className="text-2xl sm:text-3xl font-semibold text-muted-foreground/80 tracking-normal">
@@ -323,14 +328,14 @@ export default function Home() {
               
               <div className="flex flex-col items-center justify-center gap-1.5 pt-1">
                 {weather.loading ? (
-                  <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground/80 bg-background/30 backdrop-blur-md px-3.5 py-1.5 rounded-full border border-white/5">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-muted-foreground/80 bg-background/30 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
                     <div className="w-3 h-3 rounded-full border-2 border-current border-t-transparent animate-spin"/> Locating...
                   </div>
                 ) : (
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 bg-background/40 dark:bg-black/20 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/10 shadow-inner">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4 bg-background/40 dark:bg-black/30 backdrop-blur-md px-5 py-2 rounded-2xl border border-white/15 shadow-inner">
                     <div className="flex items-center gap-2 text-foreground font-semibold text-base sm:text-lg">
                       <motion.div animate={shouldReduceMotion ? {} : { y: [0, -3, 0] }} transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}>
-                        <CloudSun className="w-5 h-5 text-sky-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.5)]" />
+                        <CloudSun className="w-5 h-5 text-sky-400 drop-shadow-[0_0_12px_rgba(56,189,248,0.6)]" />
                       </motion.div>
                       <span>{weather.temp !== null ? `${weather.temp}°C` : '--'}</span>
                       <span className="text-foreground/30 font-normal">|</span>

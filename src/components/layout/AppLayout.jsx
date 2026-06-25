@@ -71,7 +71,7 @@ export default function AppLayout() {
             <>
               {/* Always render PersistentTabs to prevent unmount crashes, just hide it if not on a tab route */}
               <div 
-                className="p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 transition-opacity duration-300" 
+                className={`p-4 lg:p-6 ${!isHome ? 'pt-16 sm:pt-20' : ''} max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 transition-opacity duration-300`} 
                 style={{ 
                   visibility: isTab ? 'visible' : 'hidden', 
                   opacity: isTab ? 1 : 0, 
@@ -83,7 +83,7 @@ export default function AppLayout() {
               
               {/* Render Outlet for non-tab routes */}
               {!isTab && (
-                <div className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0 bg-background z-20' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-background z-20'}>
+                <div className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0 bg-background z-20' : `p-4 lg:p-6 ${!isHome ? 'pt-16 sm:pt-20' : ''} max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-background z-20`}>
                   <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>}>
                     <Outlet context={{ editModeOpen, setEditModeOpen }} />
                   </Suspense>
