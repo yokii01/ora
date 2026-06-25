@@ -484,7 +484,6 @@ export default function Tasks() {
           {detailTask && (() => {
             const config = PRIORITY_CONFIG[detailTask.priority] || PRIORITY_CONFIG.medium;
             const dueDateInfo = getDueDateLabel(detailTask.due_date);
-            const isCompleted = detailTask.status === 'completed';
             return (
               <>
                 <DialogHeader className="mb-2 space-y-3">
@@ -539,12 +538,11 @@ export default function Tasks() {
                         <Pencil className="w-4 h-4" /> Edit
                       </Button>
                       <Button
-                        onClick={() => !isCompleted && toggleStatus(detailTask)}
-                        disabled={isCompleted}
-                        className={cn('flex-1 h-12 rounded-full gap-2 text-sm font-semibold shadow-lg transition-all', isCompleted ? 'bg-muted text-foreground/40 shadow-none opacity-50 cursor-not-allowed' : 'bg-success hover:bg-success/90 text-success-foreground shadow-success/20')}
+                        onClick={() => toggleStatus(detailTask)}
+                        className={cn('flex-1 h-12 rounded-full gap-2 text-sm font-semibold shadow-lg', detailTask.status === 'completed' ? 'bg-muted text-foreground hover:bg-muted/80 shadow-none' : 'bg-success hover:bg-success/90 text-success-foreground shadow-success/20')}
                       >
                         <CheckCircle2 className="w-4 h-4" />
-                        {isCompleted ? 'Completed' : 'Done'}
+                        {detailTask.status === 'completed' ? 'Undo' : 'Done'}
                       </Button>
                     </div>
                     <Button
