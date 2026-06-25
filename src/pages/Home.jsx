@@ -1,192 +1,232 @@
-const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me: async()=>null }, entities:new Proxy({}, { get:()=>({ filter:async()=>[], get:async()=>null, create:async()=>({}), update:async()=>({}), delete:async()=>({}) }) }), integrations:{ Core:{ UploadFile:async()=>({ file_url:'' }) } } };
-
-import React, { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-
-import { format } from 'date-fns';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckSquare, StickyNote, Calendar, Wallet, Target, CloudRain, PenLine, CheckCircle2, Globe, Lock, Bot } from 'lucide-react';
-import { useOutletContext } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
-import TasksWidget from '@/components/dashboard/TasksWidget';
-import NotesWidget from '@/components/dashboard/NotesWidget';
-import CalendarWidget from '@/components/dashboard/CalendarWidget';
-import FinanceWidget from '@/components/dashboard/FinanceWidget';
-import HabitoWidget from '@/components/dashboard/HabitoWidget';
-import QuickActions from '@/components/dashboard/QuickActions';
-import WidgetCustomizer from '@/components/dashboard/WidgetCustomizer';
-import QuickNotesWidget from '@/components/dashboard/QuickNotesWidget';
-import DailyTasksWidget from '@/components/dashboard/DailyTasksWidget';
-import NewsSpotlightWidget from '@/components/dashboard/NewsSpotlightWidget';
-import VaultAccessWidget from '@/components/dashboard/VaultAccessWidget';
-import AssistantPromptWidget from '@/components/dashboard/AssistantPromptWidget';
-import CompactWidget from '@/components/dashboard/CompactWidget';
+import { format } from 'date-fns';
+import { 
+  StickyNote, CheckSquare, Calendar, Wallet, Target, Bot, FolderOpen, 
+  Lock, CloudSun, Map, FileText, ScanLine, Globe, Settings, 
+  Search, Bell, Edit3, Mic, Sparkles, Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock
+} from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
 
-const DEFAULT_WIDGETS = [
-  { id: 'tasks', label: 'Tasks', icon: CheckSquare, color: 'bg-blue-50 dark:bg-blue-950/30 text-blue-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'notes', label: 'Notes', icon: StickyNote, color: 'bg-yellow-50 dark:bg-yellow-950/30 text-yellow-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'calendar', label: 'Calendar', icon: Calendar, color: 'bg-green-50 dark:bg-green-950/30 text-green-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'finance', label: 'Finance', icon: Wallet, color: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'habits', label: 'Habito', icon: Target, color: 'bg-purple-50 dark:bg-purple-950/30 text-purple-600', visible: true, pinned: false, size: 'normal' },
-  { id: 'quick_notes', label: 'Quick Notes', icon: PenLine, color: 'bg-amber-50 dark:bg-amber-950/30 text-amber-600', visible: false, pinned: false, size: 'normal' },
-  { id: 'daily_tasks', label: 'Daily Tasks', icon: CheckCircle2, color: 'bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600', visible: false, pinned: false, size: 'normal' },
-  { id: 'news', label: 'News Spotlight', icon: Globe, color: 'bg-red-50 dark:bg-red-950/30 text-red-600', visible: false, pinned: false, size: 'wide' },
-  { id: 'vault', label: 'Vault Access', icon: Lock, color: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100', visible: false, pinned: false, size: 'compact' },
-  { id: 'assistant', label: 'Assistant', icon: Bot, color: 'bg-violet-50 dark:bg-violet-950/30 text-violet-600', visible: false, pinned: false, size: 'wide' },
+const APPS = [
+  { id: 'notes', label: 'Notes', path: '/notes', icon: StickyNote, gradient: 'bg-amber-500/20 text-amber-500' },
+  { id: 'tasks', label: 'Tasks', path: '/tasks', icon: CheckSquare, gradient: 'bg-blue-500/20 text-blue-500' },
+  { id: 'calendar', label: 'Calendar', path: '/calendar', icon: Calendar, gradient: 'bg-green-500/20 text-green-500' },
+  { id: 'scanner', label: 'Scanner', path: '/scanner', icon: ScanLine, gradient: 'bg-indigo-500/20 text-indigo-500' },
+  { id: 'finance', label: 'Finance', path: '/finance', icon: Wallet, gradient: 'bg-emerald-500/20 text-emerald-500' },
+  { id: 'files', label: 'Files', path: '/files', icon: FolderOpen, gradient: 'bg-cyan-500/20 text-cyan-500' },
+  { id: 'vault', label: 'Vault', path: '/vault', icon: Lock, gradient: 'bg-slate-500/20 text-slate-500' },
+  { id: 'oradocs', label: 'Documents', path: '/oradocs', icon: FileText, gradient: 'bg-orange-500/20 text-orange-500' },
+  { id: 'news', label: 'News', path: '/news', icon: Globe, gradient: 'bg-red-500/20 text-red-500' },
+  { id: 'climora', label: 'Weather', path: '/climora', icon: CloudSun, gradient: 'bg-sky-500/20 text-sky-500' },
+  { id: 'assistant', label: 'AI', path: '/assistant', icon: Bot, gradient: 'bg-violet-500/20 text-violet-500' },
+  { id: 'browser', label: 'Browser', path: '/browser', icon: Compass, gradient: 'bg-indigo-400/20 text-indigo-400' },
+  { id: 'routo', label: 'Maps', path: '/routo', icon: Map, gradient: 'bg-teal-500/20 text-teal-500' },
+  { id: 'music', label: 'Music', path: '/music', icon: Music, gradient: 'bg-pink-500/20 text-pink-500' },
+  { id: 'gallery', label: 'Gallery', path: '/gallery', icon: ImageIcon, gradient: 'bg-fuchsia-500/20 text-fuchsia-500' },
+  { id: 'translator', label: 'Translator', path: '/translator', icon: Languages, gradient: 'bg-blue-400/20 text-blue-400' },
+  { id: 'settings', label: 'Settings', path: '/settings', icon: Settings, gradient: 'bg-zinc-500/20 text-zinc-500' },
+  { id: 'calculator', label: 'Calculator', path: '/calculator', icon: Calculator, gradient: 'bg-orange-600/20 text-orange-600' },
+  { id: 'clock', label: 'Clock', path: '/clock', icon: Clock, gradient: 'bg-indigo-600/20 text-indigo-600' },
+  { id: 'habits', label: 'Habito', path: '/habits', icon: Target, gradient: 'bg-rose-500/20 text-rose-500' },
+  { id: 'passwords', label: 'Passwords', path: '/passwords', icon: Key, gradient: 'bg-slate-700/20 text-slate-500' },
 ];
 
-const WIDGETS_KEY = 'oras_home_widgets';
-
-function loadWidgets() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(WIDGETS_KEY) || 'null');
-    if (!saved) return DEFAULT_WIDGETS;
-    // Merge saved order/visibility/size with current defaults (preserving icons)
-    return saved.map(sw => {
-      const def = DEFAULT_WIDGETS.find(d => d.id === sw.id);
-      return def ? { ...def, visible: sw.visible, size: sw.size, pinned: sw.pinned } : null;
-    }).filter(Boolean);
-  } catch { return DEFAULT_WIDGETS; }
-}
-
-function saveWidgets(widgets) {
-  localStorage.setItem(WIDGETS_KEY, JSON.stringify(widgets.map(w => ({ id: w.id, visible: w.visible, size: w.size, pinned: w.pinned }))));
-}
-
-const WIDGET_COMPONENTS = {
-  tasks: TasksWidget,
-  notes: NotesWidget,
-  calendar: CalendarWidget,
-  finance: FinanceWidget,
-  habits: HabitoWidget,
-  quick_notes: QuickNotesWidget,
-  daily_tasks: DailyTasksWidget,
-  news: NewsSpotlightWidget,
-  vault: VaultAccessWidget,
-  assistant: AssistantPromptWidget,
+const getWeatherCodeLabel = (code) => {
+  if (code === 0) return 'Clear Sky';
+  if (code === 1 || code === 2 || code === 3) return 'Partly Cloudy';
+  if (code === 45 || code === 48) return 'Fog';
+  if (code >= 51 && code <= 55) return 'Drizzle';
+  if (code >= 61 && code <= 65) return 'Rain';
+  if (code >= 71 && code <= 75) return 'Snow';
+  if (code === 95 || code === 96 || code === 99) return 'Thunderstorm';
+  return 'Clear';
 };
 
 export default function Home() {
-  const [widgets, setWidgets] = useState(loadWidgets);
-
-  const handleSetWidgets = (newWidgets) => {
-    setWidgets(newWidgets);
-    saveWidgets(newWidgets);
-  };
-  const [customizerOpen, setCustomizerOpen] = useState(false);
-  const outletCtx = useOutletContext() || {};
+  const navigate = useNavigate();
   const { user } = useAuth() || {};
+  const [search, setSearch] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Time and Date
+  const [time, setTime] = useState(new Date());
   useEffect(() => {
-    if (outletCtx.editModeOpen) {
-      setCustomizerOpen(true);
-      // keep `editModeOpen` true until the modal closes so layout
-      // (e.g., BottomNav) can react to the modal being open
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Weather State
+  const [weather, setWeather] = useState({ temp: null, desc: 'Loading...', loading: true });
+
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setWeather({ temp: '--', desc: 'Location access denied', loading: false });
+      return;
     }
-  }, [outletCtx.editModeOpen]);
+    
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        try {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+          const data = await res.json();
+          if (data && data.current_weather) {
+            setWeather({
+              temp: Math.round(data.current_weather.temperature),
+              desc: getWeatherCodeLabel(data.current_weather.weathercode),
+              loading: false
+            });
+          }
+        } catch (e) {
+          setWeather({ temp: '--', desc: 'Weather unavailable', loading: false });
+        }
+      },
+      () => {
+        setWeather({ temp: '--', desc: 'Location access denied', loading: false });
+      }
+    );
+  }, []);
 
-  const { data: tasks = [] } = useQuery({ queryKey: ['tasks'], queryFn: () => db.entities.Task.list('-created_date', 20) });
-  const { data: notes = [] } = useQuery({ queryKey: ['notes'], queryFn: () => db.entities.Note.list('-updated_date', 10) });
-  const { data: events = [] } = useQuery({ queryKey: ['events'], queryFn: () => db.entities.CalendarEvent.list('-start_date', 10) });
-  const { data: transactions = [] } = useQuery({ queryKey: ['transactions'], queryFn: () => db.entities.Transaction.list('-date', 50) });
-  const { data: habits = [] } = useQuery({ queryKey: ['habits'], queryFn: () => db.entities.Habit.list() });
+  // Filter Apps
+  const filteredApps = useMemo(() => {
+    if (!search.trim()) return APPS;
+    const lower = search.toLowerCase();
+    return APPS.filter(a => a.label.toLowerCase().includes(lower));
+  }, [search]);
 
-  const today = new Date();
-  const hour = today.getHours();
-  const greetingWord = hour < 5 ? 'Good night' : hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
-  const rawName = user?.full_name?.split(' ')[0] || '';
-  // Map full names to preferred display names
-  const NAME_MAP = { 'Yogheswar': 'Yoki', 'yogheswar': 'Yoki' };
-  const firstName = NAME_MAP[rawName] || rawName;
-  // Custom premium greeting
-  const greeting = 'Helloo, Yok!! 👋';
-
-  const widgetData = { tasks, notes, events, transactions, habits };
-
-  const getWidgetProps = (id) => ({
-    tasks: { tasks },
-    notes: { notes },
-    calendar: { events },
-    finance: { transactions },
-    habits: { habits },
-  }[id] || {});
-
-  const visibleWidgets = widgets.filter(w => w.visible);
-
-  const getColSpan = (size) => {
-    if (size === 'wide') return 'md:col-span-2 xl:col-span-2';
-    if (size === 'compact') return 'md:col-span-1 xl:col-span-1';
-    return 'md:col-span-1 xl:col-span-1';
-  };
-
-  const getSizeClasses = (size) => {
-    if (size === 'compact') return 'aspect-square';
-    if (size === 'wide') return 'md:col-span-2 xl:col-span-2';
-    return '';
-  };
+  const AppIcon = ({ app }) => (
+    <motion.button
+      layout
+      whileHover={{ scale: 1.05, y: -4 }}
+      whileTap={{ scale: 0.92 }}
+      onClick={() => navigate(app.path)}
+      className="flex flex-col items-center gap-3 relative group focus:outline-none w-full"
+    >
+      <div className={cn(
+        "relative rounded-[22px] flex items-center justify-center transition-all duration-300 w-[72px] h-[72px] sm:w-[84px] sm:h-[84px]",
+        app.gradient,
+        "shadow-lg hover:shadow-xl group-hover:shadow-current/20 backdrop-blur-md border border-white/5"
+      )}>
+        <app.icon className="w-8 h-8 sm:w-10 sm:h-10 relative z-10" strokeWidth={1.5} />
+        {/* Ripple */}
+        <div className="absolute inset-0 rounded-[22px] bg-black/0 group-active:bg-black/10 dark:group-active:bg-white/10 transition-colors" />
+      </div>
+      <span className="font-medium text-foreground/90 tracking-wide text-xs sm:text-sm drop-shadow-sm truncate w-full text-center px-1">
+        {app.label}
+      </span>
+    </motion.button>
+  );
 
   return (
-    <div className="space-y-6 pt-16">
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-        className="flex items-start justify-between"
-      >
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold tracking-tight">{greeting} 👋</h1>
-          <p className="text-muted-foreground text-sm mt-1">{format(today, 'EEEE, MMMM d, yyyy')}</p>
-        </div>
-        {/* Mobile customize button - only in TopBar now */}
-      </motion.div>
+    <div className="min-h-screen bg-background relative overflow-hidden font-sans selection:bg-primary/30 pt-12">
+      <div className="relative z-10 px-4 sm:px-6 max-w-4xl mx-auto space-y-8 pb-10">
+        
+        {/* Floating Top Information Panel */}
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
+          className="relative overflow-hidden rounded-[28px] p-6 bg-background/40 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] border-0"
+        >
+          {/* Subtle gradient lighting matching theme */}
+          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 rounded-full blur-[60px] pointer-events-none mix-blend-screen" />
+          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none mix-blend-screen" />
+          
+          <div className="relative z-10 space-y-4">
+            <div>
+              <h1 className="text-3xl font-black tracking-tight text-foreground">
+                Heyy, Yokii <span className="inline-block origin-bottom-right animate-wave">👋</span>
+              </h1>
+              <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm mt-1.5">
+                <span className="text-foreground font-bold">{format(time, "hh:mm a")}</span>
+                <span className="w-1 h-1 rounded-full bg-border" />
+                <span>{format(time, "EEEE, MMMM d")}</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2 text-foreground/90 text-sm font-semibold bg-background/50 backdrop-blur-md px-4 py-2.5 rounded-full w-fit border border-border/50 shadow-sm">
+              {weather.loading ? (
+                <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-foreground/30 border-t-foreground animate-spin"/> Locating...</div>
+              ) : (
+                <>
+                  <CloudSun className="w-4 h-4 text-sky-500" />
+                  <span>{weather.temp !== null ? `${weather.temp}°C` : '--'}</span>
+                  <span className="text-border mx-1.5">|</span>
+                  <span>{weather.desc}</span>
+                  <span className="text-border mx-1.5">|</span>
+                  <span className="flex items-center gap-1.5 text-emerald-500"><Map className="w-3.5 h-3.5" /> Current Location</span>
+                </>
+              )}
+            </div>
+          </div>
+        </motion.div>
 
-      {/* Quick Actions */}
-      <QuickActions delay={0.1} />
+        {/* Global Search Bar */}
+        <motion.div 
+          initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
+          className="relative group z-20 mx-auto"
+        >
+          <div className="absolute inset-0 bg-primary/5 rounded-[24px] blur-xl transition-all duration-500 group-focus-within:bg-primary/20 opacity-0 group-focus-within:opacity-100" />
+          <div className="relative flex items-center bg-card/80 backdrop-blur-2xl border border-border/60 rounded-[24px] overflow-hidden transition-all duration-300 group-focus-within:border-primary/50 group-focus-within:shadow-[0_0_0_4px_hsl(var(--primary)/0.1)] shadow-xl">
+            <Search className="w-6 h-6 text-muted-foreground ml-5 group-focus-within:text-primary transition-colors shrink-0" />
+            <Input 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              onFocus={() => setIsSearching(true)}
+              placeholder="Search apps, tools or settings..." 
+              className="w-full h-16 bg-transparent border-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground text-base sm:text-lg px-4"
+            />
+            {search && (
+              <button onClick={() => setSearch('')} className="mr-2 p-2 hover:bg-muted rounded-full transition-colors shrink-0">
+                <X className="w-5 h-5 text-muted-foreground" />
+              </button>
+            )}
+            <div className="flex items-center gap-1 pr-3 shrink-0">
+              <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
+                <Mic className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
+                <ScanLine className="w-5 h-5 text-muted-foreground" />
+              </button>
+              <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
+                <Sparkles className="w-5 h-5 text-fuchsia-500" />
+              </button>
+            </div>
+          </div>
+        </motion.div>
 
-      {/* Widget Grid */}
-      <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 place-content-center">
-        <AnimatePresence>
-          {visibleWidgets.map((w, i) => {
-            const Component = WIDGET_COMPONENTS[w.id];
-            if (!Component) return null;
-            const props = getWidgetProps(w.id);
-            const sizeClasses = getSizeClasses(w.size);
-            return (
-              <motion.div
-                key={w.id}
-                layout
-                initial={{ opacity: 0, y: 16, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                transition={{ delay: i * 0.05, duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                className={`${getColSpan(w.size)} ${sizeClasses} h-full`}
+        {/* Dynamic App Grid (4 per row exactly) */}
+        <motion.div 
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }}
+          className="relative z-10 w-full"
+        >
+          <AnimatePresence mode="popLayout">
+            {filteredApps.length === 0 ? (
+              <motion.div 
+                key="no-results"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                className="text-center py-20 text-muted-foreground font-medium"
               >
-                {w.size === 'compact' ? (
-                  (() => {
-                    const def = DEFAULT_WIDGETS.find(d => d.id === w.id) || {};
-                    return <CompactWidget icon={def.icon} label={def.label} />;
-                  })()
-                ) : (
-                  <Component {...props} delay={0.1 + i * 0.05} />
-                )}
+                No apps found for "{search}"
               </motion.div>
-            );
-          })}
-        </AnimatePresence>
+            ) : (
+              <motion.div 
+                key="app-grid"
+                layout
+                className="grid grid-cols-4 gap-y-8 gap-x-2 sm:gap-x-4 place-items-center w-full"
+              >
+                {filteredApps.map(app => (
+                  <AppIcon key={app.id} app={app} />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+        
       </div>
-
-      {/* Widget Customizer */}
-      <AnimatePresence>
-        {customizerOpen && (
-          <WidgetCustomizer
-            widgets={widgets}
-            setWidgets={handleSetWidgets}
-            components={WIDGET_COMPONENTS}
-            getWidgetProps={getWidgetProps}
-            onClose={() => { setCustomizerOpen(false); outletCtx.setEditModeOpen?.(false); }}
-          />
-        )}
-      </AnimatePresence>
     </div>
   );
 }

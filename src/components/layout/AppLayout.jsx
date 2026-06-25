@@ -2,7 +2,6 @@ import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
-import BottomNav from './BottomNav';
 import TopBar from './TopBar';
 import CommandPalette from '@/components/shared/CommandPalette';
 import { useReminders } from '@/hooks/useReminders';
@@ -52,7 +51,7 @@ export default function AppLayout() {
             </motion.div>
           )}
         </AnimatePresence>
-        <main className={`flex-1 overflow-hidden relative ${hideChrome ? '' : 'pb-[calc(env(safe-area-inset-bottom,16px)+80px)] lg:pb-6'}`}>
+        <main className={`flex-1 overflow-hidden relative ${hideChrome ? '' : 'pb-[env(safe-area-inset-bottom,16px)] lg:pb-6'}`}>
           {isAssistant ? (
             <Outlet context={{ editModeOpen, setEditModeOpen }} />
           ) : (
@@ -83,7 +82,6 @@ export default function AppLayout() {
           )}
         </main>
       </div>
-      {!hideChrome && <BottomNav hidden={editModeOpen} />}
       {!hideChrome && <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />}
     </div>
   );

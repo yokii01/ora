@@ -2,7 +2,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Bell, Pencil, X, FileText, CheckSquare, Calendar, Wallet, Lock, ArrowRight } from 'lucide-react';
+import { Search, Bell, Pencil, X, FileText, CheckSquare, Calendar, Wallet, Lock, ArrowRight, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import NotificationCenter from '@/components/shared/NotificationCenter';
@@ -293,6 +293,14 @@ export default React.memo(function TopBar({ onSearchOpen, onEditMode }) {
               </motion.button>
               <NotificationCenter open={notifOpen} onClose={() => setNotifOpen(false)} onCountChange={setNotifCount} />
             </div>
+
+            <motion.button
+              onClick={() => navigate('/settings')}
+              whileTap={{ scale: 0.95 }}
+              className="w-12 h-12 flex items-center justify-center rounded-full hover:bg-muted/80 active:bg-muted transition-colors relative overflow-hidden flex-shrink-0"
+            >
+              <Settings className="w-[22px] h-[22px] text-muted-foreground" />
+            </motion.button>
           </div>
         </div>
 
