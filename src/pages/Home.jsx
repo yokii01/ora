@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/lib/AuthContext';
@@ -6,10 +6,9 @@ import { format } from 'date-fns';
 import { 
   StickyNote, CheckSquare, Calendar, Wallet, Target, Bot, FolderOpen, 
   Lock, CloudSun, Map, FileText, ScanLine, Globe, Settings, 
-  Search, Bell, Edit3, Mic, Sparkles, Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock, X
+  Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock, PartyPopper
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
 
 const APPS = [
   { id: 'notes', label: 'Notes', path: '/notes', icon: StickyNote, gradient: 'bg-amber-500/20 text-amber-500' },
@@ -20,11 +19,12 @@ const APPS = [
   { id: 'files', label: 'Files', path: '/files', icon: FolderOpen, gradient: 'bg-cyan-500/20 text-cyan-500' },
   { id: 'vault', label: 'Vault', path: '/vault', icon: Lock, gradient: 'bg-slate-500/20 text-slate-500' },
   { id: 'oradocs', label: 'Documents', path: '/oradocs', icon: FileText, gradient: 'bg-orange-500/20 text-orange-500' },
-  { id: 'news', label: 'News', path: '/news', icon: Globe, gradient: 'bg-red-500/20 text-red-500' },
+  { id: 'news', label: 'News', path: '/news', icon: Globe, logo: '/logo/NEORA.png', gradient: 'bg-red-500/20 text-red-500' },
   { id: 'climora', label: 'Weather', path: '/climora', icon: CloudSun, gradient: 'bg-sky-500/20 text-sky-500' },
-  { id: 'assistant', label: 'AI', path: '/assistant', icon: Bot, gradient: 'bg-violet-500/20 text-violet-500' },
+  { id: 'assistant', label: 'AI', path: '/assistant', icon: Bot, logo: '/logo/Ora AI.png', gradient: 'bg-violet-500/20 text-violet-500' },
   { id: 'browser', label: 'Browser', path: '/browser', icon: Compass, gradient: 'bg-indigo-400/20 text-indigo-400' },
-  { id: 'routo', label: 'Maps', path: '/routo', icon: Map, gradient: 'bg-teal-500/20 text-teal-500' },
+  { id: 'routo', label: 'Maps', path: '/routo', icon: Map, logo: '/logo/Routo.jpg', gradient: 'bg-teal-500/20 text-teal-500' },
+  { id: 'festo', label: 'FESTO', path: '/festo', icon: PartyPopper, logo: '/logo/FESTA.png', gradient: 'bg-orange-500/20 text-orange-500' },
   { id: 'music', label: 'Music', path: '/music', icon: Music, gradient: 'bg-pink-500/20 text-pink-500' },
   { id: 'gallery', label: 'Gallery', path: '/gallery', icon: ImageIcon, gradient: 'bg-fuchsia-500/20 text-fuchsia-500' },
   { id: 'translator', label: 'Translator', path: '/translator', icon: Languages, gradient: 'bg-blue-400/20 text-blue-400' },
@@ -49,8 +49,7 @@ const getWeatherCodeLabel = (code) => {
 export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth() || {};
-  const [search, setSearch] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const isNavigating = useRef(false);
   
   // Time and Date
   const [time, setTime] = useState(new Date());
@@ -60,11 +59,11 @@ export default function Home() {
   }, []);
 
   // Weather State
-  const [weather, setWeather] = useState({ temp: null, desc: 'Loading...', loading: true });
+  const [weather, setWeather] = useState({ temp: null, desc: 'Loading...', locationName: 'Locating...', loading: true });
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setWeather({ temp: '--', desc: 'Location access denied', loading: false });
+      setWeather({ temp: '--', desc: 'Weather unavailable', locationName: 'Location Denied', loading: false });
       return;
     }
     
@@ -73,48 +72,69 @@ export default function Home() {
         try {
           const lat = position.coords.latitude;
           const lon = position.coords.longitude;
+          
+          // Fetch Weather
           const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
           const data = await res.json();
+          
+          // Fetch Location Name (Reverse Geocoding via Nominatim)
+          let locName = 'Current Location';
+          try {
+            const geoRes = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+            const geoData = await geoRes.json();
+            if (geoData && geoData.address) {
+              locName = geoData.address.city || geoData.address.town || geoData.address.village || geoData.address.county || 'Current Location';
+            }
+          } catch (e) {
+            console.error('Geocoding failed', e);
+          }
+
           if (data && data.current_weather) {
             setWeather({
               temp: Math.round(data.current_weather.temperature),
               desc: getWeatherCodeLabel(data.current_weather.weathercode),
+              locationName: locName,
               loading: false
             });
           }
         } catch (e) {
-          setWeather({ temp: '--', desc: 'Weather unavailable', loading: false });
+          setWeather({ temp: '--', desc: 'Weather unavailable', locationName: 'Unknown', loading: false });
         }
       },
       () => {
-        setWeather({ temp: '--', desc: 'Location access denied', loading: false });
+        setWeather({ temp: '--', desc: 'Weather unavailable', locationName: 'Location Denied', loading: false });
       }
     );
   }, []);
 
-  // Filter Apps
-  const filteredApps = useMemo(() => {
-    if (!search.trim()) return APPS;
-    const lower = search.toLowerCase();
-    return APPS.filter(a => a.label.toLowerCase().includes(lower));
-  }, [search]);
+  const handleNavigate = (path) => {
+    if (isNavigating.current) return;
+    isNavigating.current = true;
+    navigate(path);
+    setTimeout(() => {
+      isNavigating.current = false;
+    }, 500); // Prevent duplicate navigation clicks
+  };
 
   const AppIcon = ({ app }) => (
     <motion.button
-      layout
       whileHover={{ scale: 1.05, y: -4 }}
       whileTap={{ scale: 0.92 }}
-      onClick={() => navigate(app.path)}
+      onClick={() => handleNavigate(app.path)}
       className="flex flex-col items-center gap-3 relative group focus:outline-none w-full"
     >
       <div className={cn(
         "relative rounded-[22px] flex items-center justify-center transition-all duration-300 w-[72px] h-[72px] sm:w-[84px] sm:h-[84px]",
         app.gradient,
-        "shadow-lg hover:shadow-xl group-hover:shadow-current/20 backdrop-blur-md border border-white/5"
+        "shadow-lg hover:shadow-xl group-hover:shadow-current/20 backdrop-blur-md border border-white/5 overflow-hidden"
       )}>
-        <app.icon className="w-8 h-8 sm:w-10 sm:h-10 relative z-10" strokeWidth={1.5} />
+        {app.logo ? (
+          <img src={app.logo} alt={app.label} className="w-full h-full object-cover rounded-[22px] z-10" />
+        ) : (
+          <app.icon className="w-8 h-8 sm:w-10 sm:h-10 relative z-10" strokeWidth={1.5} />
+        )}
         {/* Ripple */}
-        <div className="absolute inset-0 rounded-[22px] bg-black/0 group-active:bg-black/10 dark:group-active:bg-white/10 transition-colors" />
+        <div className="absolute inset-0 rounded-[22px] bg-black/0 group-active:bg-black/10 dark:group-active:bg-white/10 transition-colors z-20 pointer-events-none" />
       </div>
       <span className="font-medium text-foreground/90 tracking-wide text-xs sm:text-sm drop-shadow-sm truncate w-full text-center px-1">
         {app.label}
@@ -123,107 +143,65 @@ export default function Home() {
   );
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden font-sans selection:bg-primary/30 pt-12">
+    <div className="min-h-screen bg-background relative overflow-hidden font-sans selection:bg-primary/30 pt-10">
       <div className="relative z-10 px-4 sm:px-6 max-w-4xl mx-auto space-y-8 pb-10">
         
-        {/* Floating Top Information Panel */}
+        {/* Clock & Weather Banner Redesign */}
         <motion.div 
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          className="relative overflow-hidden rounded-[28px] p-6 bg-background/40 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] border-0"
+          className="relative overflow-hidden rounded-[32px] p-8 sm:p-10 bg-background/40 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.1)] border-0 flex flex-col items-center justify-center text-center mx-auto max-w-2xl"
         >
           {/* Subtle gradient lighting matching theme */}
-          <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/20 rounded-full blur-[60px] pointer-events-none mix-blend-screen" />
-          <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-[60px] pointer-events-none mix-blend-screen" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[300px] h-[300px] bg-primary/20 rounded-full blur-[80px] pointer-events-none mix-blend-screen" />
           
-          <div className="relative z-10 space-y-4">
+          <div className="relative z-10 space-y-5">
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-foreground">
-                Heyy, Yokii <span className="inline-block origin-bottom-right animate-wave">👋</span>
-              </h1>
-              <div className="flex items-center gap-2 text-muted-foreground font-medium text-sm mt-1.5">
-                <span className="text-foreground font-bold">{format(time, "hh:mm a")}</span>
-                <span className="w-1 h-1 rounded-full bg-border" />
-                <span>{format(time, "EEEE, MMMM d")}</span>
+              <div className="flex items-baseline justify-center gap-2">
+                <span className="text-[64px] sm:text-[72px] font-medium tracking-tight text-foreground leading-[1] font-sans">
+                  {format(time, "h:mm")}
+                </span>
+                <span className="text-2xl sm:text-3xl font-medium text-muted-foreground/80">
+                  {format(time, "a")}
+                </span>
+              </div>
+              <div className="text-lg sm:text-xl font-medium text-muted-foreground/90 mt-2 tracking-wide">
+                {format(time, "EEEE, MMMM d")}
               </div>
             </div>
             
-            <div className="flex items-center gap-2 text-foreground/90 text-sm font-semibold bg-background/50 backdrop-blur-md px-4 py-2.5 rounded-full w-fit border border-border/50 shadow-sm">
+            <div className="flex flex-col items-center justify-center gap-1.5 mt-2">
               {weather.loading ? (
-                <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 rounded-full border-2 border-foreground/30 border-t-foreground animate-spin"/> Locating...</div>
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <div className="w-3.5 h-3.5 rounded-full border-2 border-foreground/30 border-t-foreground animate-spin"/> Locating...
+                </div>
               ) : (
                 <>
-                  <CloudSun className="w-4 h-4 text-sky-500" />
-                  <span>{weather.temp !== null ? `${weather.temp}°C` : '--'}</span>
-                  <span className="text-border mx-1.5">|</span>
-                  <span>{weather.desc}</span>
-                  <span className="text-border mx-1.5">|</span>
-                  <span className="flex items-center gap-1.5 text-emerald-500"><Map className="w-3.5 h-3.5" /> Current Location</span>
+                  <div className="flex items-center gap-2 text-foreground font-medium text-lg">
+                    <CloudSun className="w-5 h-5 text-sky-500" />
+                    <span>{weather.temp !== null ? `${weather.temp}°C` : '--'}</span>
+                    <span className="text-foreground/40 font-normal">|</span>
+                    <span>{weather.desc}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-muted-foreground text-sm font-medium mt-1">
+                    <Map className="w-4 h-4 text-primary" /> 
+                    <span>{weather.locationName}</span>
+                  </div>
                 </>
               )}
             </div>
           </div>
         </motion.div>
 
-        {/* Global Search Bar */}
-        <motion.div 
-          initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.1 }}
-          className="relative group z-20 mx-auto"
-        >
-          <div className="absolute inset-0 bg-primary/5 rounded-[24px] blur-xl transition-all duration-500 group-focus-within:bg-primary/20 opacity-0 group-focus-within:opacity-100" />
-          <div className="relative flex items-center bg-card/80 backdrop-blur-2xl border border-border/60 rounded-[24px] overflow-hidden transition-all duration-300 group-focus-within:border-primary/50 group-focus-within:shadow-[0_0_0_4px_hsl(var(--primary)/0.1)] shadow-xl">
-            <Search className="w-6 h-6 text-muted-foreground ml-5 group-focus-within:text-primary transition-colors shrink-0" />
-            <Input 
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              onFocus={() => setIsSearching(true)}
-              placeholder="Search apps, tools or settings..." 
-              className="w-full h-16 bg-transparent border-0 focus-visible:ring-0 text-foreground placeholder:text-muted-foreground text-base sm:text-lg px-4"
-            />
-            {search && (
-              <button onClick={() => setSearch('')} className="mr-2 p-2 hover:bg-muted rounded-full transition-colors shrink-0">
-                <X className="w-5 h-5 text-muted-foreground" />
-              </button>
-            )}
-            <div className="flex items-center gap-1 pr-3 shrink-0">
-              <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
-                <Mic className="w-5 h-5 text-muted-foreground" />
-              </button>
-              <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
-                <ScanLine className="w-5 h-5 text-muted-foreground" />
-              </button>
-              <button className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-muted transition-colors">
-                <Sparkles className="w-5 h-5 text-fuchsia-500" />
-              </button>
-            </div>
-          </div>
-        </motion.div>
-
         {/* Dynamic App Grid (4 per row exactly) */}
         <motion.div 
-          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }}
-          className="relative z-10 w-full"
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.1 }}
+          className="relative z-10 w-full pt-4"
         >
-          <AnimatePresence mode="popLayout">
-            {filteredApps.length === 0 ? (
-              <motion.div 
-                key="no-results"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                className="text-center py-20 text-muted-foreground font-medium"
-              >
-                No apps found for "{search}"
-              </motion.div>
-            ) : (
-              <motion.div 
-                key="app-grid"
-                layout
-                className="grid grid-cols-4 gap-y-8 gap-x-2 sm:gap-x-4 place-items-center w-full"
-              >
-                {filteredApps.map(app => (
-                  <AppIcon key={app.id} app={app} />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <div className="grid grid-cols-4 gap-y-8 gap-x-2 sm:gap-x-4 place-items-center w-full">
+            {APPS.map(app => (
+              <AppIcon key={app.id} app={app} />
+            ))}
+          </div>
         </motion.div>
         
       </div>

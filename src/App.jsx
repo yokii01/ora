@@ -27,6 +27,7 @@ const Scanner = React.lazy(() => import('@/pages/Scanner'));
 const FestivalInfo = React.lazy(() => import('@/pages/FestivalInfo'));
 const NEORA = React.lazy(() => import('@/pages/News'));
 const ROUTO = React.lazy(() => import('@/pages/Routo'));
+const SearchPage = React.lazy(() => import('@/pages/SearchPage'));
 
 const AuthenticatedApp = () => {
   return (
@@ -50,6 +51,7 @@ const AuthenticatedApp = () => {
         <Route path="/festo" element={<FestivalInfo />} />
         <Route path="/news" element={<NEORA />} />
         <Route path="/routo" element={<ROUTO />} />
+        <Route path="/search" element={<SearchPage />} />
         <Route path="*" element={<PageNotFound />} />
       </Route>
       </Routes>
