@@ -1,6 +1,7 @@
 import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft } from 'lucide-react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import CommandPalette from '@/components/shared/CommandPalette';
@@ -81,6 +82,24 @@ export default function AppLayout() {
             </>
           )}
         </main>
+        
+        {/* Global Back / Home Button for Child Pages */}
+        <AnimatePresence>
+          {!hideChrome && !isHome && (
+            <motion.button
+              key="global-back"
+              initial={{ opacity: 0, y: 20, scale: 0.9 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.9 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/')}
+              className="fixed bottom-6 lg:bottom-10 left-1/2 -translate-x-1/2 lg:-translate-x-[calc(50%-120px)] z-[100] flex items-center justify-center gap-2 px-6 py-3.5 rounded-full bg-card/90 backdrop-blur-2xl border border-border/40 shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:bg-muted text-foreground transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-muted-foreground" />
+              <span className="font-bold text-sm tracking-wide">Home</span>
+            </motion.button>
+          )}
+        </AnimatePresence>
       </div>
       {!hideChrome && <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />}
     </div>

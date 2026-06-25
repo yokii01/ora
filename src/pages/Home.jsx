@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { 
   StickyNote, CheckSquare, Calendar, Wallet, Target, Bot, FolderOpen, 
   Lock, CloudSun, Map, FileText, ScanLine, Globe, Settings, 
-  Search, Bell, Edit3, Mic, Sparkles, Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock
+  Search, Bell, Edit3, Mic, Sparkles, Music, Image as ImageIcon, Languages, Compass, Key, Calculator, Clock, X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
