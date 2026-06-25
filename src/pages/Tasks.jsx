@@ -105,7 +105,7 @@ function ConfettiParticles({ active }) {
 }
 
 /* ─── Completion Checkbox with Multi-stage Animation ─── */
-const CompletionCheckbox = React.memo(({ task, completing, isCompleted, onToggle }) => {
+const CompletionCheckbox = React.memo(({ task, completing, isCompleted, onToggle, config }) => {
   const showConfetti = completing === task.id;
 
   return (
@@ -236,7 +236,7 @@ const TaskItem = React.memo(({
           {/* Left: Checkbox & Content */}
           <div className="flex items-center gap-[14px] flex-1 min-w-0 pr-4">
             <div className="flex flex-col items-center justify-center shrink-0">
-              <CompletionCheckbox task={task} completing={completing} isCompleted={isCompleted} onToggle={onToggleStatus} />
+              <CompletionCheckbox task={task} completing={completing} isCompleted={isCompleted} onToggle={onToggleStatus} config={config} />
             </div>
 
             <div className="flex-1 min-w-0 flex flex-col justify-center">

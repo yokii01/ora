@@ -22,24 +22,27 @@ export default function AppLayout() {
   const isRouto = location.pathname.startsWith('/routo');
   const hideChrome = isAssistant || isClimora || isRouto || fullscreenOverlayOpen;
 
+  const TABS_PATHS = ['/', '/notes', '/tasks', '/calendar', '/finance', '/habits'];
+  const isTab = TABS_PATHS.some(p => location.pathname === p || location.pathname.startsWith(p + '/'));
+
   useEffect(() => {
     const handler = (event) => setFullscreenOverlayOpen(Boolean(event.detail?.open));
     window.addEventListener('oras-fullscreen-overlay', handler);
     return () => window.removeEventListener('oras-fullscreen-overlay', handler);
   }, []);
 
-  const currentIndex = location.pathname === '/' ? 0 : -1;
+  const currentIndex = isTab ? 0 : -1;
 
   return (
     <div className="min-h-screen bg-background">
       {!hideChrome && <Sidebar />}
       <div className={!hideChrome ? 'lg:pl-[240px] flex flex-col min-h-screen' : 'flex flex-col min-h-screen'}>
-        {!hideChrome && !isHome && (
+        {!isHome && (
           <motion.button
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             onClick={() => navigate(-1)}
-            className="fixed top-4 left-4 z-[90] w-10 h-10 rounded-full bg-card/80 backdrop-blur-xl border border-border/50 shadow-lg flex items-center justify-center text-foreground hover:bg-muted transition-colors lg:hidden"
+            className={`fixed top-4 z-[90] w-10 h-10 rounded-full bg-card/80 backdrop-blur-xl border border-border/50 shadow-lg flex items-center justify-center text-foreground hover:bg-muted transition-colors ${!hideChrome ? 'left-4 lg:left-[256px]' : 'left-4'}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-left w-6 h-6"><path d="m15 18-6-6 6-6"/></svg>
           </motion.button>
@@ -66,12 +69,21 @@ export default function AppLayout() {
             <Outlet context={{ editModeOpen, setEditModeOpen }} />
           ) : (
             <>
-              {currentIndex !== -1 ? (
-                <div className="p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0">
-                  <PersistentTabs context={{ editModeOpen, setEditModeOpen }} />
-                </div>
-              ) : (
-                <div className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0 bg-background' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-background'}>
+              {/* Always render PersistentTabs to prevent unmount crashes, just hide it if not on a tab route */}
+              <div 
+                className="p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 transition-opacity duration-300" 
+                style={{ 
+                  visibility: isTab ? 'visible' : 'hidden', 
+                  opacity: isTab ? 1 : 0, 
+                  pointerEvents: isTab ? 'auto' : 'none' 
+                }}
+              >
+                <PersistentTabs context={{ editModeOpen, setEditModeOpen }} />
+              </div>
+              
+              {/* Render Outlet for non-tab routes */}
+              {!isTab && (
+                <div className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0 bg-background z-20' : 'p-4 lg:p-6 max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-background z-20'}>
                   <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>}>
                     <Outlet context={{ editModeOpen, setEditModeOpen }} />
                   </Suspense>
