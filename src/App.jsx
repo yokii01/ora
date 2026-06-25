@@ -105,7 +105,7 @@ function App() {
     <ErrorBoundary>
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router basename={import.meta.env.BASE_URL}>
+        <Router>
           <AnimatePresence>
             {showSplash && <AppSplashScreen key="splash" onComplete={handleSplashComplete} />}
           </AnimatePresence>
