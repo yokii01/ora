@@ -2,6 +2,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useTheme } from 'next-themes';
 
 import {
   Moon, Sun, Monitor, Palette, Bell, Shield, Globe, LogOut, User,
@@ -90,14 +91,8 @@ function persistSetting(key, value) {
   localStorage.setItem(SETTINGS_KEY, JSON.stringify({ ...s, [key]: value }));
 }
 
-function applyThemeToDOM(t) {
-  const root = document.documentElement;
-  if (t === 'dark') root.classList.add('dark');
-  else if (t === 'light') root.classList.remove('dark');
-  else {
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) root.classList.add('dark');
-    else root.classList.remove('dark');
-  }
+function saveSettings(settings) {
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }
 
 function applyFontSizeToDOM(size) {
@@ -114,7 +109,6 @@ function applyAccentToDOM(color) {
 // Apply saved settings on first load
 (function initSettings() {
   const s = loadSettings();
-  if (s.theme) applyThemeToDOM(s.theme);
   if (s.fontSize) applyFontSizeToDOM(s.fontSize);
   if (s.accentColor) applyAccentToDOM(s.accentColor);
   // Restore nav items
@@ -123,7 +117,8 @@ function applyAccentToDOM(color) {
 
 export default function Settings() {
   const saved = loadSettings();
-  const [theme, setTheme] = useState(saved.theme || 'system');
+  const { theme: nextThemeVal, setTheme: setNextTheme } = useTheme();
+  const [theme, setTheme] = useState(saved.theme || nextThemeVal || 'system');
   const [accentColor, setAccentColor] = useState(saved.accentColor || ACCENT_COLORS[0]);
   const [fontSize, setFontSize] = useState(saved.fontSize || 'Medium');
   const [language, setLanguage] = useState(saved.language || 'English');
@@ -143,7 +138,7 @@ export default function Settings() {
   const [confirmPIN, setConfirmPIN] = useState('');
   const [pinError, setPinError] = useState('');
 
-  const applyTheme = (t) => { setTheme(t); applyThemeToDOM(t); setHasUnsaved(true); };
+  const applyTheme = (t) => { setTheme(t); setHasUnsaved(true); };
   const applyAccent = (color) => { setAccentColor(color); applyAccentToDOM(color); setHasUnsaved(true); };
   const applyFontSize = (size) => { setFontSize(size); applyFontSizeToDOM(size); setHasUnsaved(true); };
 
@@ -182,7 +177,7 @@ export default function Settings() {
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     saveNavItems(navItems);
     // Re-apply all DOM changes immediately
-    applyThemeToDOM(theme);
+    setNextTheme(theme);
     applyFontSizeToDOM(fontSize);
     if (accentColor?.value) applyAccentToDOM(accentColor);
     // Trigger storage event so BottomNav re-reads nav items

@@ -3,6 +3,8 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 import React, { useState, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { safeFetch } from '@/lib/safeFetch';
+import { z } from 'zod';
+import { toast } from 'sonner';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -14,6 +16,7 @@ import {
   PieChart as PieChartIcon, Scale, Trophy, PartyPopper
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -539,10 +542,14 @@ export default function Finance() {
   const dragStartX = useRef(null);
   const queryClient = useQueryClient();
 
-  const { data: transactions = [] } = useQuery({
+  const { data: rawTransactions = [] } = useQuery({
     queryKey: ['transactions'],
     queryFn: () => db.entities.Transaction.list('-date'),
   });
+  
+  const transactions = rawTransactions.filter(t => isFinite(t.amount) && t.amount > 0);
+  
+  const amountSchema = z.coerce.number().positive().finite();
 
   const createMutation = useMutation({
     mutationFn: (data) => db.entities.Transaction.create(data),
@@ -567,7 +574,12 @@ export default function Finance() {
 
   const saveTx = () => {
     if (!editTx?.title?.trim() || !editTx.amount) return;
-    createMutation.mutate({ ...editTx, amount: parseFloat(editTx.amount) });
+    try {
+      const parsedAmount = amountSchema.parse(editTx.amount);
+      createMutation.mutate({ ...editTx, amount: parsedAmount });
+    } catch (e) {
+      toast.error("Invalid amount. Must be a positive number.");
+    }
   };
 
   const goToDash = (index) => {
@@ -756,6 +768,14 @@ export default function Finance() {
       </Tabs>
 
       <div className="space-y-2">
+        {filtered.length === 0 && (
+          <EmptyState 
+            icon={<Wallet />} 
+            title="Your financial story starts here" 
+            description="Track your spending and income. Add a transaction to get started."
+            action={{ label: "Add Transaction", icon: <Plus className="w-4 h-4" />, onClick: () => { setEditTx({ type: 'expense', amount: '', title: '', category: 'other', date: new Date().toISOString().split('T')[0] }); setShowAdd(true); } }}
+          />
+        )}
         <AnimatePresence>
           {filtered.map((tx, i) => (
             <motion.div key={tx.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}

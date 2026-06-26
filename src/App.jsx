@@ -10,17 +10,18 @@ import AppLayout from '@/components/layout/AppLayout';
 import { StartupValidator } from '@/components/shared/StartupValidator';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
 import ErrorBoundary from '@/components/shared/ErrorBoundary';
-import Home from '@/pages/Home';
-import Notes from '@/pages/Notes';
-import Tasks from '@/pages/Tasks';
-import CalendarPage from '@/pages/CalendarPage';
-import Finance from '@/pages/Finance';
-import Files from '@/pages/Files';
-import Vault from '@/pages/Vault';
-import Habito from '@/pages/Habito';
-import Assistant from '@/pages/Assistant';
-import More from '@/pages/More';
-import Settings from '@/pages/Settings';
+import { ThemeProvider } from 'next-themes';
+const Home = React.lazy(() => import('@/pages/Home'));
+const Notes = React.lazy(() => import('@/pages/Notes'));
+const Tasks = React.lazy(() => import('@/pages/Tasks'));
+const CalendarPage = React.lazy(() => import('@/pages/CalendarPage'));
+const Finance = React.lazy(() => import('@/pages/Finance'));
+const Files = React.lazy(() => import('@/pages/Files'));
+const Vault = React.lazy(() => import('@/pages/Vault'));
+const Habito = React.lazy(() => import('@/pages/Habito'));
+const Assistant = React.lazy(() => import('@/pages/Assistant'));
+const More = React.lazy(() => import('@/pages/More'));
+const Settings = React.lazy(() => import('@/pages/Settings'));
 const ClimoraPage = React.lazy(() => import('@/pages/ClimoraUltra'));
 const ORADOCS = React.lazy(() => import('@/pages/ORADOCS'));
 const Scanner = React.lazy(() => import('@/pages/Scanner'));
@@ -108,22 +109,24 @@ function App() {
   }, []);
 
   return (
-    <ErrorBoundary>
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AnimatePresence>
-            {showSplash && <AppSplashScreen key="splash" onComplete={handleSplashComplete} />}
-          </AnimatePresence>
-          <StartupValidator>
-            <AuthenticatedApp />
-          </StartupValidator>
-        </Router>
-        <Toaster />
-        <SonnerToaster position="bottom-center" />
-      </QueryClientProvider>
-    </AuthProvider>
-    </ErrorBoundary>
+    <ThemeProvider defaultTheme="system" attribute="class">
+      <ErrorBoundary>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router>
+            <AnimatePresence>
+              {showSplash && <AppSplashScreen key="splash" onComplete={handleSplashComplete} />}
+            </AnimatePresence>
+            <StartupValidator>
+              <AuthenticatedApp />
+            </StartupValidator>
+          </Router>
+          <Toaster />
+          <SonnerToaster position="bottom-center" />
+        </QueryClientProvider>
+      </AuthProvider>
+      </ErrorBoundary>
+    </ThemeProvider>
   )
 }
 

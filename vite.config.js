@@ -16,11 +16,26 @@ export default defineConfig(({ command, mode }) => {
         '@': path.resolve(__dirname, 'src')
       }
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom', '@tanstack/react-query'],
+            ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-popover', '@radix-ui/react-tooltip', 'framer-motion'],
+            map: ['leaflet', 'react-leaflet']
+          }
+        }
+      }
+    },
     plugins: [
       react(),
       createApiProxyPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+          maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+        },
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
         manifest: {
           name: 'ORAs Application',

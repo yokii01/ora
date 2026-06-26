@@ -9,6 +9,8 @@ import {
   Activity, Book, Droplets, Dumbbell, PenLine, Moon, Target, Star, Brain, Palette, Utensils, Briefcase, DollarSign, Music, Wind, Plane, Crosshair
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -89,7 +91,7 @@ const HabitCard = React.memo(({ habit, selectedDate, onToggle, onDelete, index }
           <CircleProgress percent={weekPercent} color={habit.color} size={52} stroke={3} />
           <button
             onClick={() => onToggle(habit)}
-            className="absolute inset-0 flex items-center justify-center transition-transform hover:scale-90 active:scale-75"
+            className="absolute inset-0 flex items-center justify-center transition-transform hover:scale-90 active:scale-75 touch-target-safe"
           >
             <AnimatePresence mode="wait">
               {doneToday ? (
@@ -392,24 +394,12 @@ export default function Habito() {
       </div>
 
       {activeHabits.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16"
-        >
-          <motion.div
-            animate={{ y: [0, -8, 0] }}
-            transition={{ repeat: Infinity, duration: 3 }}
-            className="flex justify-center mb-4 text-primary"
-          >
-            <Target className="w-12 h-12" />
-          </motion.div>
-          <p className="text-lg font-semibold">Build powerful habits</p>
-          <p className="text-sm text-muted-foreground mt-1">Start your journey to a better you</p>
-          <Button onClick={() => setShowAdd(true)} className="mt-4 rounded-full gap-1.5 px-6">
-            <Plus className="w-4 h-4" /> Create First Habit
-          </Button>
-        </motion.div>
+        <EmptyState 
+          icon={<Target />} 
+          title="Track your first habit" 
+          description="Build consistency, one day at a time. Start your journey to a better you."
+          action={{ label: "Add Habit", icon: <Plus className="w-4 h-4" />, onClick: () => setShowAdd(true) }}
+        />
       )}
 
       {/* Add Dialog */}

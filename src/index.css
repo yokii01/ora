@@ -282,3 +282,12 @@ video {
 .animate-pulse-glow {
   animation: pulse-glow 2s infinite;
 }
+
+/* Touch Target Accessibility Safe Area */
+.touch-target-safe {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

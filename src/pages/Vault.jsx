@@ -2,6 +2,7 @@ const db = globalThis.__B44_DB__ || { auth:{ isAuthenticated: async()=>false, me
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { encryptVaultItem, decryptVaultItem } from '@/lib/vaultCrypto';
 
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,7 +14,8 @@ import VaultItemDetail from '@/components/vault/VaultItemDetail';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -284,7 +286,11 @@ export default function Vault() {
 
   const { data: entries = [] } = useQuery({
     queryKey: ['passwords'],
-    queryFn: () => db.entities.PasswordEntry.list('-created_date'),
+    queryFn: async () => {
+      const rawList = await db.entities.PasswordEntry.list('-created_date');
+      const currentPin = loadVaultPin();
+      return Promise.all(rawList.map(item => decryptVaultItem(item, currentPin)));
+    },
     enabled: unlocked,
   });
 
@@ -328,10 +334,12 @@ export default function Vault() {
     setShowAdd(true);
   };
 
-  const saveEntry = () => {
+  const saveEntry = async () => {
     if (!editEntry?.site_name?.trim()) return;
-    if (editEntry.id) updateMutation.mutate({ id: editEntry.id, data: editEntry });
-    else createMutation.mutate(editEntry);
+    const currentPin = loadVaultPin();
+    const encrypted = await encryptVaultItem(editEntry, currentPin);
+    if (editEntry.id) updateMutation.mutate({ id: editEntry.id, data: encrypted });
+    else createMutation.mutate(encrypted);
     setShowAdd(false);
     setEditEntry(null);
   };
@@ -373,10 +381,16 @@ export default function Vault() {
           <Button onClick={() => setShowChangePin(true)} size="sm" variant="outline" className="rounded-full gap-1.5 text-xs px-3">
             <KeyRound className="w-3.5 h-3.5" /> PIN
           </Button>
-          <Button onClick={() => openAdd('password')} size="sm" className="rounded-full gap-1.5 px-4 shadow-md shadow-primary/20">
-            <Plus className="w-4 h-4" /> Add
+          <Button onClick={() => openAdd('password')} size="sm" className="rounded-full gap-1.5 text-xs px-4 shadow-md shadow-primary/20">
+            <Plus className="w-3.5 h-3.5" /> Add
           </Button>
         </div>
+      </div>
+
+      {/* Security Disclaimer Banner */}
+      <div className="p-3 px-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-3 text-xs text-emerald-400">
+        <Shield className="w-4 h-4 shrink-0 text-emerald-500" />
+        <span><strong>Client-Side Shield Active:</strong> All stored credentials are locally encrypted using Web Crypto AES-GCM 256-bit with PBKDF2 PIN derivation. Data never leaves your device in cleartext.</span>
       </div>
 
       {currentPin === DEFAULT_PIN && (
@@ -513,16 +527,12 @@ export default function Vault() {
       </div>
 
       {filtered.length === 0 && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
-          <div className="w-20 h-20 rounded-3xl bg-muted/50 flex items-center justify-center mx-auto mb-4">
-            <Lock className="w-9 h-9 text-muted-foreground/30" />
-          </div>
-          <p className="text-base font-semibold">Nothing here</p>
-          <p className="text-sm text-muted-foreground mt-1">Add passwords, cards, notes, or identities</p>
-          <Button onClick={() => openAdd('password')} className="mt-4 rounded-full px-6" size="sm">
-            <Plus className="w-4 h-4 mr-1.5" /> Add Item
-          </Button>
-        </motion.div>
+        <EmptyState 
+          icon={<Lock />} 
+          title="Secure your sensitive data" 
+          description="Add passwords, credit cards, secure notes, or identities to your encrypted vault."
+          action={{ label: "Add Item", icon: <Plus className="w-4 h-4" />, onClick: () => openAdd('password') }}
+        />
       )}
 
       {/* Add/Edit Dialog */}

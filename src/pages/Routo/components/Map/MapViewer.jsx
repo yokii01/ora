@@ -17,7 +17,12 @@ const MapSync = () => {
     setMapInstance(map);
     // Remove leaflet attribution prefix for cleaner UI
     map.attributionControl?.setPrefix('');
-    return () => setMapInstance(null);
+    return () => {
+      setMapInstance(null);
+      if (map) {
+        map.remove();
+      }
+    };
   }, [map, setMapInstance]);
 
   useEffect(() => {

@@ -7,7 +7,10 @@ import { useLocalStorageState } from '@/hooks/useLocalStorageState';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Pin, Trash2, X, Folder, Hash, FileText, Pencil, Image, Mic, CheckSquare, Palette, Play, Pause, Square, Volume2, ZoomIn, PenTool, Heart, Type, Share, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { jsPDF } from 'jspdf';
+import DOMPurify from 'dompurify';
 import { Input } from '@/components/ui/input';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,6 +18,17 @@ import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
 import { cn } from '@/lib/utils';
+
+// ─── Deferred Quill Wrapper (React 18 Concurrent Mode Failsafe) ────────
+function DeferredQuill(props) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 35);
+    return () => clearTimeout(t);
+  }, []);
+  if (!mounted) return <div className="h-[250px] w-full animate-pulse bg-muted/20 rounded-xl flex items-center justify-center text-xs text-muted-foreground">Initializing Rich Text Editor...</div>;
+  return <ReactQuill {...props} />;
+}
 
 const colorOptions = [
   { value: 'default', class: 'capsule-ui', dot: 'bg-muted-foreground/30' },
@@ -694,7 +708,7 @@ function NotePreviewScreen({ viewNote, onClose, onShare, onEdit }) {
                 style={{ overflowY: 'visible', minHeight: 'auto' }}
               >
                 {viewNote.content ? (
-                  <div dangerouslySetInnerHTML={{ __html: viewNote.content }} />
+                  <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(viewNote.content) }} />
                 ) : (
                   <p className={cn("italic", hasThemeBg ? "text-white/40" : "text-muted-foreground")}>Empty note.</p>
                 )}
@@ -978,13 +992,12 @@ export default function Notes() {
       </div>
 
       {filtered.length === 0 && (
-        <div className="text-center py-16">
-          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-muted-foreground">
-            <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="text-lg font-medium">No notes yet</p>
-            <p className="text-sm mt-1">Create your first note to get started</p>
-          </motion.div>
-        </div>
+        <EmptyState 
+          icon={<FileText />} 
+          title="Write your first note" 
+          description="Capture your thoughts, ideas, and daily journaling instantly."
+          action={{ label: "Add Note", icon: <Plus className="w-4 h-4" />, onClick: openAdd }}
+        />
       )}
 
       {/* ═══ View-only Note Full-Page Preview ═══ */}
@@ -1233,7 +1246,7 @@ export default function Notes() {
                     <BackgroundPicker value={editNote.background || 'none'} onChange={(v) => setEditNote({ ...editNote, background: v })} />
                   </div>
                 </div>
-                <ReactQuill
+                <DeferredQuill
                   theme="snow"
                   placeholder="Write your note..."
                   value={editNote.content || ''}

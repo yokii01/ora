@@ -59,8 +59,8 @@ const Sidebar = React.memo(function Sidebar() {
         }
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="p-1.5 rounded-md hover:bg-muted transition-colors">
-          
+          className="absolute -right-3 top-8 bg-card border shadow-sm p-1.5 rounded-full hover:bg-accent hover:text-accent-foreground transition-colors z-20 touch-target-safe"
+        >
           {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
       </div>

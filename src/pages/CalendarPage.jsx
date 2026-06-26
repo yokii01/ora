@@ -9,10 +9,10 @@ import {
   isSameDay, isToday, addMonths, subMonths, startOfWeek, endOfWeek,
   parseISO, addDays
 } from 'date-fns';
-import {
-  ChevronLeft, ChevronRight, Plus, Trash2, Calendar, Repeat, AlarmClock,
-  Video, Users, Coffee, Clock, Edit3, FileText, Image as ImageIcon, MapPin, X
+import { ChevronLeft, ChevronRight, Plus, Trash2, Calendar, Repeat, AlarmClock,
+  Video, Users, Coffee, Clock, Edit3, FileText, Image as ImageIcon, MapPin, X, CalendarDays
 } from 'lucide-react';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -314,6 +314,17 @@ export default function CalendarPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {events.length === 0 && (
+        <EmptyState 
+          icon={<CalendarDays />} 
+          title="Plan your schedule" 
+          description="Your calendar is completely clear. Start organizing your time, add reminders, and build routines."
+          action={{ label: "Add Event", icon: <Plus className="w-4 h-4" />, onClick: () => openNew() }}
+        />
+      )}
+      
+      <div className={events.length === 0 ? "hidden" : "block"}>
 
       {/* Calendar grid */}
       {view !== 'day' && (
@@ -672,7 +683,7 @@ export default function CalendarPage() {
           )}
         </DialogContent>
       </Dialog>
-
+      </div>
     </div>
   );
 }

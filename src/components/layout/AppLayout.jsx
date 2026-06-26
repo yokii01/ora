@@ -2,7 +2,9 @@ import React, { Suspense, useEffect, useState, useRef } from 'react';
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Sidebar from './Sidebar';
+import BottomNav from './BottomNav';
 import CommandPalette from '@/components/shared/CommandPalette';
+import ErrorBoundary from '@/components/shared/ErrorBoundary';
 import { useReminders } from '@/hooks/useReminders';
 import PersistentTabs from './PersistentTabs';
 
@@ -10,6 +12,7 @@ export default function AppLayout() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [editModeOpen, setEditModeOpen] = useState(false);
   const [fullscreenOverlayOpen, setFullscreenOverlayOpen] = useState(false);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   useReminders();
   const location = useLocation();
   const navigate = useNavigate();
@@ -26,8 +29,18 @@ export default function AppLayout() {
 
   useEffect(() => {
     const handler = (event) => setFullscreenOverlayOpen(Boolean(event.detail?.open));
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => setIsOffline(true);
+    
     window.addEventListener('oras-fullscreen-overlay', handler);
-    return () => window.removeEventListener('oras-fullscreen-overlay', handler);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('oras-fullscreen-overlay', handler);
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
   }, []);
 
   const currentIndex = isTab ? 0 : -1;
@@ -36,6 +49,19 @@ export default function AppLayout() {
     <div className="min-h-screen bg-background">
       {!hideChrome && <Sidebar />}
       <div className={!hideChrome ? 'lg:pl-[240px] flex flex-col min-h-screen' : 'flex flex-col min-h-screen'}>
+        <AnimatePresence>
+          {isOffline && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="bg-red-500/90 text-white text-xs font-medium py-1.5 px-4 text-center z-[100] relative flex items-center justify-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M8.5 16.5a5 5 0 0 1 7 0"/><path d="M2 8.82a15 15 0 0 1 4.17-2.65"/><path d="M10.66 5c4.01-.36 8.14.9 11.34 3.82"/></svg>
+              You are currently offline. Viewing cached data.
+            </motion.div>
+          )}
+        </AnimatePresence>
         {!isHome && (
           <motion.button
             initial={{ opacity: 0, x: -10 }}
@@ -49,7 +75,9 @@ export default function AppLayout() {
 
         <main className={`flex-1 overflow-hidden relative ${hideChrome ? '' : 'pb-[env(safe-area-inset-bottom,16px)] lg:pb-6'}`}>
           {isAssistant ? (
-            <Outlet context={{ editModeOpen, setEditModeOpen }} />
+            <ErrorBoundary>
+              <Outlet context={{ editModeOpen, setEditModeOpen }} />
+            </ErrorBoundary>
           ) : (
             <>
               {/* Always render PersistentTabs to prevent unmount crashes, just hide it if not on a tab route */}
@@ -61,20 +89,25 @@ export default function AppLayout() {
                   pointerEvents: isTab ? 'auto' : 'none' 
                 }}
               >
-                <PersistentTabs context={{ editModeOpen, setEditModeOpen }} />
+                <ErrorBoundary>
+                  <PersistentTabs context={{ editModeOpen, setEditModeOpen }} />
+                </ErrorBoundary>
               </div>
               
               {/* Render Outlet for non-tab routes */}
               {!isTab && (
                 <div className={isClimora || isRouto ? 'w-full h-full gpu-accelerated absolute inset-0 bg-background z-20' : `p-4 lg:p-6 ${!isHome ? 'pt-16 sm:pt-20' : ''} max-w-7xl mx-auto w-full h-full gpu-accelerated absolute inset-0 overflow-y-auto overflow-x-hidden custom-scrollbar bg-background z-20`}>
                   <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="w-8 h-8 rounded-full border-2 border-primary border-t-transparent animate-spin" /></div>}>
-                    <Outlet context={{ editModeOpen, setEditModeOpen }} />
+                    <ErrorBoundary>
+                      <Outlet context={{ editModeOpen, setEditModeOpen }} />
+                    </ErrorBoundary>
                   </Suspense>
                 </div>
               )}
             </>
           )}
         </main>
+        {!hideChrome && <BottomNav />}
       </div>
       {!hideChrome && <CommandPalette open={searchOpen} onOpenChange={setSearchOpen} />}
     </div>

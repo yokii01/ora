@@ -1,19 +1,30 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>ORAs</title>
+  <title>ORAs • Redirecting...</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { margin: 0; background-color: #0c1425; color: #ffffff; font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+    .loader { width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
   <script>
-    // GitHub Pages SPA redirect: save the path, redirect to root
-    var pathSegmentsToKeep = 1; // '/ora/' is 1 segment
-    var l = window.location;
-    sessionStorage.setItem('spa-redirect',
-      l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/') +
-      l.search + l.hash
-    );
-    l.replace(l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/');
+    (function() {
+      // GitHub Pages SPA redirect handler for HashRouter
+      // '/ora/' is 1 segment
+      var pathSegmentsToKeep = 1;
+      var l = window.location;
+      var pathSegments = l.pathname.split('/');
+      var basePath = pathSegments.slice(0, 1 + pathSegmentsToKeep).join('/') + '/';
+      var routePath = pathSegments.slice(1 + pathSegmentsToKeep).join('/');
+      
+      var hashTarget = '#' + (routePath ? '/' + routePath : '') + l.search + l.hash;
+      l.replace(basePath + hashTarget);
+    })();
   </script>
 </head>
 <body>
+  <div class="loader"></div>
 </body>
 </html>

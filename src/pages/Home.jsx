@@ -68,42 +68,52 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
   const assetConfig = useMemo(() => resolveBannerAsset(appId || label), [appId, label]);
   const [src, setSrc] = useState(assetConfig.char);
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     setSrc(assetConfig.char);
     setFailed(false);
+    setLoaded(false);
   }, [assetConfig]);
 
   if (failed) return null;
 
   return (
-    <motion.img
-      initial={{ opacity: 0 }}
-      animate={{ 
-        opacity: 1, 
-        y: shouldReduceMotion ? 0 : [0, -1.2, 0] 
-      }}
-      transition={{ 
-        opacity: { duration: 0.5 },
-        y: { repeat: Infinity, duration: 4, ease: "easeInOut" }
-      }}
-      src={src}
-      alt={`${label} Character`}
-      onError={() => {
-        if (src === assetConfig.char && assetConfig.banner) {
-          setSrc(assetConfig.banner);
-        } else if (src !== './Banner/Calendo.png') {
-          setSrc('./Banner/Calendo.png');
-        } else {
-          setFailed(true);
-        }
-      }}
-      className={cn(
-        "absolute bottom-0 z-0 h-[82%] sm:h-[90%] xl:h-[95%] w-auto object-contain pointer-events-none select-none drop-shadow-[0_12px_22px_rgba(0,0,0,0.55)] group-hover:scale-[1.03] transition-transform duration-300 transform-gpu will-change-transform",
-        getCharacterPositionClass(assetConfig.orientation),
-        assetConfig.scale
+    <>
+      {!loaded && (
+        <div className="absolute bottom-2 right-4 w-24 h-32 rounded-lg bg-white/5 animate-pulse pointer-events-none z-0" />
       )}
-    />
+      <motion.img
+        initial={{ opacity: 0 }}
+        animate={{ 
+          opacity: loaded ? 1 : 0, 
+          y: shouldReduceMotion || !loaded ? 0 : [0, -1.2, 0] 
+        }}
+        transition={{ 
+          opacity: { duration: 0.5 },
+          y: { repeat: Infinity, duration: 4, ease: "easeInOut" }
+        }}
+        src={src}
+        alt={`${label} Character`}
+        width="300"
+        height="300"
+        onLoad={() => setLoaded(true)}
+        onError={() => {
+          if (src === assetConfig.char && assetConfig.banner) {
+            setSrc(assetConfig.banner);
+          } else if (src !== './Banner/Calendo.png') {
+            setSrc('./Banner/Calendo.png');
+          } else {
+            setFailed(true);
+          }
+        }}
+        className={cn(
+          "absolute bottom-0 z-0 h-[82%] sm:h-[90%] xl:h-[95%] w-auto object-contain pointer-events-none select-none drop-shadow-[0_12px_22px_rgba(0,0,0,0.55)] group-hover:scale-[1.03] transition-transform duration-300 transform-gpu will-change-transform",
+          getCharacterPositionClass(assetConfig.orientation),
+          assetConfig.scale
+        )}
+      />
+    </>
   );
 });
 

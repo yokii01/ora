@@ -36,6 +36,7 @@ export default function DocumentEditor({ capturedImage, pages, onRetake, onAddPa
   const [activeTool, setActiveTool] = useState(null);
   const [ocrResult, setOcrResult] = useState('');
   const [isOcrLoading, setIsOcrLoading] = useState(false);
+  const [ocrStatus, setOcrStatus] = useState('Initializing OCR Engine...');
   const imgRef = useRef(new Image());
 
   // Load image on mount
@@ -146,9 +147,18 @@ export default function DocumentEditor({ capturedImage, pages, onRetake, onAddPa
 
   const extractText = async () => {
     setIsOcrLoading(true);
+    setOcrStatus('Fetching Tesseract OCR Engine (~10MB)...');
     try {
       const { createWorker } = await import('tesseract.js');
-      const worker = await createWorker('eng');
+      const worker = await createWorker('eng', 1, {
+        logger: m => {
+          if (m.status === 'loading tesseract core') setOcrStatus(`Downloading OCR Core Engine (${Math.round(m.progress * 100)}%)...`);
+          else if (m.status === 'loading language traineddata') setOcrStatus(`Downloading AI Language Data (${Math.round(m.progress * 100)}%)...`);
+          else if (m.status === 'initializing api') setOcrStatus('Initializing Recognition Engine...');
+          else if (m.status === 'recognizing text') setOcrStatus(`Extracting Text (${Math.round(m.progress * 100)}%)...`);
+          else if (m.status) setOcrStatus(`${m.status}...`);
+        }
+      });
       const dataUrl = canvasRef.current.toDataURL('image/jpeg');
       const { data: { text } } = await worker.recognize(dataUrl);
       setOcrResult(text || "No text found.");
@@ -225,7 +235,7 @@ export default function DocumentEditor({ capturedImage, pages, onRetake, onAddPa
                 {isOcrLoading ? (
                   <div className="h-full flex flex-col items-center justify-center text-muted-foreground gap-4">
                     <LoadingSpinner inline className="w-10 h-10 animate-spin text-primary" />
-                    <span className="font-medium animate-pulse">Analyzing document structure...</span>
+                    <span className="font-medium animate-pulse">{ocrStatus}</span>
                   </div>
                 ) : ocrResult}
               </div>

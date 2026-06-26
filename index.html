@@ -2,10 +2,48 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/jpeg" href="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTU8_M7m9TFx-lH6k6ZHA_q1MZDa_t5zCXhKw&s" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/icon-192.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <link rel="manifest" href="/manifest.json" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline'; connect-src 'self' https://*.base44.com https://api.open-meteo.com; img-src 'self' data: blob:;" />
     <title>ORAs</title>
+    <meta name="description" content="Experience ORAs, the premium privacy-first dashboard platform featuring secure notes, daily habits tracking, offline maps, and offline AI assistance." />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://app.oras.com/" />
+    <meta property="og:title" content="ORAs - Premium Privacy-First Platform" />
+    <meta property="og:description" content="Experience ORAs, the premium privacy-first dashboard platform featuring secure notes, daily habits tracking, offline maps, and offline AI assistance." />
+    <meta property="og:image" content="/logo/NEORA.png" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://app.oras.com/" />
+    <meta property="twitter:title" content="ORAs - Premium Privacy-First Platform" />
+    <meta property="twitter:description" content="Experience ORAs, the premium privacy-first dashboard platform featuring secure notes, daily habits tracking, offline maps, and offline AI assistance." />
+    <meta property="twitter:image" content="/logo/NEORA.png" />
+    <script>
+      (function() {
+        try {
+          var isDark = false;
+          var stored = localStorage.getItem('ORAs_settings');
+          var theme = 'system';
+          if (stored) {
+            var parsed = JSON.parse(stored);
+            if (parsed && parsed.theme) theme = parsed.theme;
+          } else {
+            var nextTheme = localStorage.getItem('theme');
+            if (nextTheme) theme = nextTheme;
+          }
+          if (theme === 'dark') {
+            isDark = true;
+          } else if (theme === 'system') {
+            isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          }
+          if (isDark) document.documentElement.classList.add('dark');
+        } catch(e) {}
+      })();
+    </script>
     <style>
       /* Splash Screen Styles */
       body { margin: 0; background-color: #0c1425; }
@@ -38,19 +76,6 @@
   </head>
   <body>
     <!-- Preview/Splash Screen -->
-
-    <!-- GitHub Pages SPA redirect handler -->
-    <script>
-      (function() {
-        var redirect = sessionStorage.getItem('spa-redirect');
-        if (redirect) {
-          sessionStorage.removeItem('spa-redirect');
-          var base = document.querySelector('base');
-          var basePath = base ? base.getAttribute('href') : '/';
-          window.history.replaceState(null, '', basePath + redirect);
-        }
-      })();
-    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

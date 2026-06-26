@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { toast } from 'sonner';
 import { useRouto } from '../context/RoutoContext';
 
 const getDistance = (lat1, lon1, lat2, lon2) => {
@@ -78,6 +79,15 @@ export function useGeolocation() {
       },
       (error) => {
         console.error('Geolocation error:', error);
+        if (error.code === error.PERMISSION_DENIED) {
+          toast.error("Location access denied. Please enable it in browser settings or use manual search.");
+        } else if (error.code === error.POSITION_UNAVAILABLE) {
+          toast.error("Location information is unavailable.");
+        } else if (error.code === error.TIMEOUT) {
+          toast.error("Location request timed out.");
+        } else {
+          toast.error("An unknown error occurred while locating.");
+        }
         setIsLocating(false);
       },
       { enableHighAccuracy: true, maximumAge: 0, timeout: 5000 }
@@ -99,6 +109,16 @@ export function useGeolocation() {
     return stopTracking;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isNavigating, autoCenter, mapInstance]);
+
+  // Strict unmount cleanup
+  useEffect(() => {
+    return () => {
+      if (watchId.current !== null) {
+        navigator.geolocation.clearWatch(watchId.current);
+        watchId.current = null;
+      }
+    };
+  }, []);
 
   return { startTracking, stopTracking };
 }

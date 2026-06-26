@@ -21,9 +21,9 @@ function formatHour(hour) {
 function getEventPosition(event) {
   try {
     const start = parseISO(event.start_date);
-    const end = event.end_date ? parseISO(event.end_date) : new Date(start.getTime() + 60 * 60 * 1000);
+    const end = event.end_date ? parseISO(event.end_date) : new Date(start.getTime() + 3600000);
     const startMinutes = getHours(start) * 60 + getMinutes(start);
-    const durationMinutes = Math.max(differenceInMinutes(end, start), 15);
+    const durationMinutes = Math.max(Math.floor(Math.max(end.getTime() - start.getTime(), 0) / 60000), 15);
     const top = (startMinutes / 60) * HOUR_HEIGHT;
     const height = Math.max((durationMinutes / 60) * HOUR_HEIGHT, 20);
     return { top, height, startMinutes, durationMinutes };

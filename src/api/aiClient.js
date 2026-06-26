@@ -170,3 +170,83 @@ export async function invokeAI({ messages, signal }) {
     signal?.removeEventListener('abort', onExternalAbort);
   }
 }
+
+export async function invokeAIStream({ messages, signal, onChunk }) {
+  const callerSystem = messages.find((m) => m.role === 'system')?.content;
+  const mergedSystemPrompt = callerSystem ? `${SYSTEM_PROMPT}\n\n${callerSystem}` : SYSTEM_PROMPT;
+
+  const fullMessages = [
+    { role: 'system', content: mergedSystemPrompt },
+    ...messages.filter((m) => m.role !== 'system'),
+  ];
+
+  const providers = getProviders().filter((p) => p.apiKey);
+  
+  if (providers.length === 0) {
+    const simText = generateLocalSimulation(fullMessages);
+    onChunk(simText);
+    return { text: simText, provider: null };
+  }
+
+  for (const provider of providers) {
+    try {
+      if (signal?.aborted) throw new Error('Aborted');
+      
+      if (provider.endpoint === 'https://text.pollinations.ai/') {
+          // Pollinations does not support streaming standardly like openai, just fetch normal and chunk it
+          const res = await callProviderWithRetry(provider, fullMessages, signal);
+          onChunk(res.text);
+          return res;
+      }
+      
+      const response = await fetch(provider.endpoint, {
+        method: 'POST',
+        headers: provider.headers(provider.apiKey),
+        body: JSON.stringify({
+          model: provider.model,
+          messages: fullMessages,
+          temperature: 0.7,
+          max_tokens: 2048,
+          stream: true
+        }),
+        signal
+      });
+
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let done = false;
+      let fullText = '';
+      
+      while (!done) {
+        if (signal?.aborted) throw new Error('Aborted');
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n');
+          for (const line of lines) {
+            if (line.startsWith('data: ') && line !== 'data: [DONE]') {
+              try {
+                const data = JSON.parse(line.slice(6));
+                const textChunk = data.choices?.[0]?.delta?.content || '';
+                if (textChunk) {
+                  fullText += textChunk;
+                  onChunk(fullText);
+                }
+              } catch (e) {}
+            }
+          }
+        }
+      }
+      return { text: fullText, provider: provider.name };
+    } catch (err) {
+      if (signal?.aborted) throw err;
+    }
+  }
+
+  const simText = generateLocalSimulation(fullMessages);
+  onChunk(simText);
+  return { text: simText, provider: null };
+}

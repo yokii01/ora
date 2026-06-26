@@ -4,6 +4,7 @@ import { Download, ChevronLeft, ChevronRight, File } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import 'highlight.js/styles/github-dark.css';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import DOMPurify from 'dompurify';
 
 // Lazy loaded heavy viewers
 const WordViewer = lazy(() => import('mammoth').then(m => ({ default: function MammothWordViewer({ url }) {
@@ -11,7 +12,7 @@ const WordViewer = lazy(() => import('mammoth').then(m => ({ default: function M
   useEffect(() => {
     fetch(url).then(r => r.arrayBuffer()).then(buf => m.default.convertToHtml({ arrayBuffer: buf })).then(res => setHtml(res.value));
   }, [url]);
-  return <div className="p-4 bg-white text-black rounded-xl overflow-auto w-full h-full" dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div className="p-4 bg-white text-black rounded-xl overflow-auto w-full h-full" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />;
 } })));
 
 const ExcelViewer = lazy(() => import('xlsx').then(m => ({ default: function SheetJSViewer({ url }) {
@@ -23,7 +24,7 @@ const ExcelViewer = lazy(() => import('xlsx').then(m => ({ default: function She
       setHtml(m.default.utils.sheet_to_html(ws));
     });
   }, [url]);
-  return <div className="p-4 bg-white text-black rounded-xl overflow-auto w-full h-full" dangerouslySetInnerHTML={{ __html: html }} />;
+  return <div className="p-4 bg-white text-black rounded-xl overflow-auto w-full h-full" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(html) }} />;
 } })));
 
 const CodeViewer = lazy(() => import('highlight.js/lib/core').then(m => {
@@ -39,7 +40,7 @@ const CodeViewer = lazy(() => import('highlight.js/lib/core').then(m => {
     m.default.registerLanguage('css', langs[2].default);
     m.default.registerLanguage('xml', langs[3].default);
     m.default.registerLanguage('json', langs[4].default);
-    return { default: function HighlightCodeViewer({ code }) { return <pre className="p-4 bg-muted/30 rounded-xl overflow-auto text-xs w-full text-left" dangerouslySetInnerHTML={{ __html: m.default.highlightAuto(code).value }} />; } };
+    return { default: function HighlightCodeViewer({ code }) { return <pre className="p-4 bg-muted/30 rounded-xl overflow-auto text-xs w-full text-left" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(m.default.highlightAuto(code).value) }} />; } };
   });
 }));
 

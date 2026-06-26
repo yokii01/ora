@@ -16,7 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { invokeAI } from '@/api/aiClient';
+import { invokeAIStream } from '@/api/aiClient';
 import ReactMarkdown from 'react-markdown';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -202,11 +202,6 @@ export default function Assistant() {
   const textareaRef = useRef(null);
   const qc = useQueryClient();
   const navigate = useNavigate();
-
-  const { mutateAsync: sendAiRequest } = useApiMutation({
-    mutationFn: invokeAI,
-    retry: 2,
-  });
 
   useEffect(() => {
     return () => {
@@ -532,9 +527,29 @@ Respond in a warm, helpful, concise tone. Be specific about the user's actual da
     ];
 
     try {
-      const aiResult = await sendAiRequest({
+      setConversations(p => p.map(c => c.id === cid ? {
+        ...c, messages: [...c.messages, { role: 'assistant', content: '', streaming: true }]
+      } : c));
+
+      const aiResult = await invokeAIStream({
         messages: aiMessages,
         signal: abortControllerRef.current.signal,
+        onChunk: (textChunk) => {
+           if (activeRequestRef.current !== requestId) return;
+           setLoading(false);
+           setStreaming(true);
+           const display = textChunk.replace(/\[ACTION:[^\]]*\]?/g, '').replace(/\[MEMORY:[^\]]*\]?/g, '');
+           
+           setConversations(p => p.map(c => {
+             if (c.id !== cid) return c;
+             const newMsgs = [...c.messages];
+             const lastIdx = newMsgs.length - 1;
+             if (newMsgs[lastIdx]?.role === 'assistant') {
+               newMsgs[lastIdx] = { ...newMsgs[lastIdx], content: display };
+             }
+             return { ...c, messages: newMsgs };
+           }));
+        }
       });
       const raw = aiResult?.text || (typeof aiResult === 'string' ? aiResult : '');
 
@@ -560,24 +575,16 @@ Respond in a warm, helpful, concise tone. Be specific about the user's actual da
       // Execute actions
       const clean = await execActions(content);
 
-      setStreaming(true);
-      setConversations(p => p.map(c => c.id === cid ? {
-        ...c, messages: [...c.messages, { role: 'assistant', content: clean }]
-      } : c));
-      
-      // Use timeout and abort controllers to prevent getting stuck in loading state
-      const streamDuration = clean.length * 9 + 300;
-      const streamTimeout = setTimeout(() => {
-        if (activeRequestRef.current === requestId) {
-          setStreaming(false);
-        }
-      }, streamDuration);
-      
-      // Clear timeout if aborted
-      abortControllerRef.current.signal.addEventListener('abort', () => {
-        clearTimeout(streamTimeout);
-        setStreaming(false);
-      });
+      setConversations(p => p.map(c => {
+         if (c.id !== cid) return c;
+         const newMsgs = [...c.messages];
+         const lastIdx = newMsgs.length - 1;
+         if (newMsgs[lastIdx]?.role === 'assistant') {
+           newMsgs[lastIdx] = { ...newMsgs[lastIdx], content: clean, streaming: false };
+         }
+         return { ...c, messages: newMsgs };
+      }));
+      setStreaming(false);
       
     } catch (err) {
       if (activeRequestRef.current !== requestId || err.name === 'AbortError') return;
