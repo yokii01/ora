@@ -882,7 +882,7 @@ export default function ClimoraUltra() {
           <div className="flex flex-col items-center justify-center my-4">
             <WeatherIcon size={96} className="text-amber-300 drop-shadow-[0_12px_24px_rgba(245,158,11,0.45)] mb-4 animate-bounce" />
             <div className="flex items-start justify-center">
-              <span className="text-[84px] sm:text-[112px] font-extrabold tracking-tighter leading-none">{weatherData ? Math.round(current.temperature_2m) : '--'}</span>
+              <span className="text-[84px] sm:text-[112px] font-extrabold tracking-tighter leading-none">{current.temperature_2m != null ? Math.round(current.temperature_2m) : '--'}</span>
               <span className="text-4xl sm:text-5xl font-light text-sky-300 mt-2">°C</span>
             </div>
             <div className="text-xl sm:text-2xl font-semibold text-white/90 tracking-wide mt-2">{climateLabel}</div>
@@ -940,7 +940,7 @@ export default function ClimoraUltra() {
                     <div key={i} className="shrink-0 bg-black/40 rounded-2xl p-3.5 text-center min-w-[70px] border border-white/10 flex flex-col items-center">
                       <span className="text-xs text-white/60 font-mono">{i === 0 ? 'Now' : formatTime(h.time)}</span>
                       <HIcon size={24} className="my-2 text-amber-300" />
-                      <span className="font-bold text-sm sm:text-base">{Math.round(h.temperature_2m)}°</span>
+                      <span className="font-bold text-sm sm:text-base">{h.temperature_2m != null ? `${Math.round(h.temperature_2m)}°` : '--'}</span>
                     </div>
                   );
                 })}
@@ -981,7 +981,7 @@ export default function ClimoraUltra() {
                 <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-black/30 hover:bg-white/5 transition-colors border border-white/5">
                   <div className="w-24 font-bold text-sm sm:text-base">{i === 0 ? 'Today' : getDayName(d.time)}</div>
                   <div className="flex items-center gap-3 flex-1 px-4"><DIcon size={22} className="text-amber-300 shrink-0"/> <span className="text-xs sm:text-sm text-white/80">{getWeatherConfig(dCode).label}</span></div>
-                  <div className="font-mono text-sm sm:text-base font-bold"><span className="text-white/50">{Math.round(d.temperature_2m_min)}°</span> / {Math.round(d.temperature_2m_max)}°</div>
+                  <div className="font-mono text-sm sm:text-base font-bold"><span className="text-white/50">{d.temperature_2m_min != null ? `${Math.round(d.temperature_2m_min)}°` : '--'}</span> / {d.temperature_2m_max != null ? `${Math.round(d.temperature_2m_max)}°` : '--'}</div>
                 </div>
               );
             })}
