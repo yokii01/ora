@@ -22,12 +22,12 @@ const APPS = [
   { id: 'files', label: 'Files', desc: 'Organize documents', path: '/files', icon: FolderOpen, gradient: 'from-cyan-500/25 via-sky-500/10 to-transparent border-cyan-500/35 text-cyan-400', glow: 'rgba(6, 182, 212, 0.28)' },
   { id: 'vault', label: 'Vault', desc: 'Secure passwords', path: '/vault', icon: Lock, gradient: 'from-slate-500/30 via-zinc-500/15 to-transparent border-slate-500/35 text-slate-300', glow: 'rgba(148, 163, 184, 0.28)' },
   { id: 'oradocs', label: 'Documents', desc: 'Edit rich text', path: '/oradocs', icon: FileText, gradient: 'from-orange-500/25 via-amber-500/10 to-transparent border-orange-500/35 text-orange-400', glow: 'rgba(249, 115, 22, 0.28)' },
-  { id: 'news', label: 'News', desc: 'Live global updates', path: '/news', icon: Globe, logo: './logo/NEORA.png', gradient: 'from-red-500/25 via-rose-500/10 to-transparent border-red-500/35 text-red-400', glow: 'rgba(239, 68, 68, 0.28)' },
+  { id: 'news', label: 'News', desc: 'Live global updates', path: '/news', icon: Globe, gradient: 'from-red-500/25 via-rose-500/10 to-transparent border-red-500/35 text-red-400', glow: 'rgba(239, 68, 68, 0.28)' },
   { id: 'climora', label: 'Weather', desc: 'Live atmospheric radar', path: '/climora', icon: CloudSun, gradient: 'from-sky-500/25 via-blue-500/10 to-transparent border-sky-500/35 text-sky-400', glow: 'rgba(14, 165, 233, 0.28)' },
-  { id: 'assistant', label: 'AI', desc: 'Ask ORA AI', path: '/assistant', icon: Sparkles, logo: './logo/Ora AI.png', gradient: 'from-violet-500/35 via-fuchsia-500/20 to-transparent border-violet-500/45 text-violet-300', glow: 'rgba(139, 92, 246, 0.42)' },
+  { id: 'assistant', label: 'AI', desc: 'Ask ORA AI', path: '/assistant', icon: Sparkles, gradient: 'from-violet-500/35 via-fuchsia-500/20 to-transparent border-violet-500/45 text-violet-300', glow: 'rgba(139, 92, 246, 0.42)' },
   { id: 'browser', label: 'Browser', desc: 'Fast & Secure', path: '/browser', icon: Compass, gradient: 'from-indigo-500/25 via-purple-500/10 to-transparent border-indigo-400/35 text-indigo-300', glow: 'rgba(99, 102, 241, 0.28)' },
-  { id: 'routo', label: 'Maps', desc: 'Explore routes', path: '/routo', icon: Map, logo: './logo/Routo.jpg', gradient: 'from-teal-500/25 via-emerald-500/10 to-transparent border-teal-500/35 text-teal-400', glow: 'rgba(20, 184, 166, 0.28)' },
-  { id: 'festo', label: 'FESTO', desc: 'Celebrate moments', path: '/festo', icon: PartyPopper, logo: './logo/FESTA.png', gradient: 'from-orange-500/25 via-yellow-500/10 to-transparent border-orange-500/35 text-orange-400', glow: 'rgba(249, 115, 22, 0.28)' },
+  { id: 'routo', label: 'Maps', desc: 'Explore routes', path: '/routo', icon: Map, gradient: 'from-teal-500/25 via-emerald-500/10 to-transparent border-teal-500/35 text-teal-400', glow: 'rgba(20, 184, 166, 0.28)' },
+  { id: 'festo', label: 'FESTO', desc: 'Celebrate moments', path: '/festo', icon: PartyPopper, gradient: 'from-orange-500/25 via-yellow-500/10 to-transparent border-orange-500/35 text-orange-400', glow: 'rgba(249, 115, 22, 0.28)' },
   { id: 'music', label: 'Music', desc: 'Listen to beats', path: '/music', icon: Music, gradient: 'from-pink-500/25 via-rose-500/10 to-transparent border-pink-500/35 text-pink-400', glow: 'rgba(236, 72, 153, 0.28)' },
   { id: 'gallery', label: 'Gallery', desc: 'View memories', path: '/gallery', icon: ImageIcon, gradient: 'from-fuchsia-500/25 via-purple-500/10 to-transparent border-fuchsia-500/35 text-fuchsia-400', glow: 'rgba(217, 70, 239, 0.28)' },
   { id: 'translator', label: 'Translator', desc: 'Break barriers', path: '/translator', icon: Languages, gradient: 'from-blue-400/25 via-cyan-400/10 to-transparent border-blue-400/35 text-blue-300', glow: 'rgba(96, 165, 250, 0.28)' },
@@ -49,7 +49,7 @@ const getWeatherCodeLabel = (code) => {
   return 'Clear';
 };
 
-// ─── MEMOIZED SMART CHARACTER ILLUSTRATION LOADER ────────────────────────────
+// ─── MEMOIZED FLOOR-STANDING CHARACTER ILLUSTRATION ENGINE ───────────────────
 const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
   const charMap = {
     notes: 'Notes.png',
@@ -60,12 +60,6 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
     files: 'Files.png',
     vault: 'Vault.png',
     oradocs: 'Documents.png',
-    news: 'News.png',
-    climora: 'Weather.png',
-    assistant: 'AI.png',
-    browser: 'Browser.png',
-    routo: 'Maps.png',
-    festo: 'FESTO.png'
   };
 
   const fallbackMap = {
@@ -87,7 +81,7 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
       initial={{ opacity: 0 }}
       animate={{ 
         opacity: 1, 
-        y: shouldReduceMotion ? 0 : [0, -2, 0] 
+        y: shouldReduceMotion ? 0 : [0, -1, 0] 
       }}
       transition={{ 
         opacity: { duration: 0.5 },
@@ -112,12 +106,12 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
           setFailed(true);
         }
       }}
-      className="absolute bottom-2 right-3 sm:bottom-3 sm:right-4 z-0 h-[62%] sm:h-[72%] xl:h-[80%] w-auto object-contain pointer-events-none select-none drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)] group-hover:scale-[1.03] transition-transform duration-300 transform-gpu"
+      className="absolute bottom-0 right-2 sm:bottom-0 sm:right-2.5 z-0 h-[72%] sm:h-[82%] xl:h-[88%] w-auto object-contain pointer-events-none select-none drop-shadow-[0_12px_18px_rgba(0,0,0,0.5)] group-hover:scale-[1.03] transition-transform duration-300 transform-gpu"
     />
   );
 });
 
-// ─── MEMOIZED COMPACT WIDGET CARD (aspect-[4/3] + LEFT TEXT + RIGHT CHAR) ──
+// ─── MEMOIZED COMPACT WIDGET CARD (aspect-[4/3] + STRICT NO LOGOS) ───────────
 const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
   const isAI = app.id === 'assistant';
   const isSettings = app.id === 'settings';
@@ -125,7 +119,7 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
   return (
     <motion.button
       whileHover={shouldReduceMotion ? {} : { y: -5, scale: 1.02 }}
-      whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
+      whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
       onClick={() => onNavigate(app.path)}
       className="group relative w-full aspect-[4/3] text-left focus:outline-none select-none gpu-accelerated flex"
     >
@@ -141,7 +135,7 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
         app.gradient,
         "border-white/20 dark:border-white/[0.12]"
       )}>
-        {/* Layered Lighting & Crisp Inner Top Highlight */}
+        {/* Crisp Inner Top Highlight */}
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/25 to-transparent pointer-events-none" />
 
         {isAI && !shouldReduceMotion && (
@@ -152,31 +146,27 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
           />
         )}
 
-        {/* ─── RIGHT-SIDE BACKGROUND CHARACTER ILLUSTRATION (z-0) ─────────── */}
+        {/* ─── RIGHT-SIDE FLOOR-STANDING CHARACTER ILLUSTRATION (z-0) ─────── */}
         <CharacterImage 
           appId={app.id} 
           label={app.label} 
           shouldReduceMotion={shouldReduceMotion} 
         />
 
-        {/* ─── LEFT-SIDE PROTECTED TEXT HIERARCHY (z-10) ──────────────────── */}
-        <div className="relative z-10 max-w-[62%] sm:max-w-[65%] flex flex-col justify-between h-full pointer-events-none">
+        {/* ─── LEFT-SIDE PROTECTED TEXT & ICON HIERARCHY (z-10) ───────────── */}
+        <div className="relative z-10 max-w-[58%] sm:max-w-[62%] flex flex-col justify-between h-full pointer-events-none">
           
-          {/* Top: App Icon Capsule */}
+          {/* Top: Small Lucide Vector App Icon Only */}
           <div className="flex items-start justify-between w-full">
             <div className="relative shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-[18px] bg-white/15 dark:bg-black/35 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-md overflow-hidden group-hover:scale-105 transition-transform duration-300">
-              {app.logo ? (
-                <img src={app.logo} alt={app.label} className="w-full h-full object-cover rounded-[18px] pointer-events-none" />
-              ) : (
-                <motion.div
-                  animate={isSettings && !shouldReduceMotion ? { rotate: 0 } : {}}
-                  whileHover={isSettings && !shouldReduceMotion ? { rotate: 45 } : {}}
-                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                  className="flex items-center justify-center w-full h-full"
-                >
-                  <app.icon className="w-6 h-6 sm:w-7 sm:h-7 text-current drop-shadow-md" strokeWidth={1.5} />
-                </motion.div>
-              )}
+              <motion.div
+                animate={isSettings && !shouldReduceMotion ? { rotate: 0 } : {}}
+                whileHover={isSettings && !shouldReduceMotion ? { rotate: 45 } : {}}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                className="flex items-center justify-center w-full h-full"
+              >
+                <app.icon className="w-6 h-6 sm:w-7 sm:h-7 text-current drop-shadow-md" strokeWidth={1.5} />
+              </motion.div>
             </div>
           </div>
 
@@ -192,7 +182,7 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
 
         </div>
 
-        {/* Ripple & Active Overlay */}
+        {/* Active Ripple Overlay */}
         <div className="absolute inset-0 rounded-[26px] bg-white/0 group-active:bg-white/10 dark:group-active:bg-white/[0.08] transition-colors pointer-events-none z-20" />
       </div>
     </motion.button>
@@ -323,7 +313,7 @@ export default function Home() {
       
       <div className="relative z-10 px-4 sm:px-8 max-w-6xl mx-auto space-y-6 sm:space-y-8 w-full">
         
-        {/* ─── WEATHER BANNER (CLEAN DARK BG + INDEPENDENT BELL + ENLARGED CHIP) ── */}
+        {/* ─── WEATHER BANNER ─────────────────────────────────────────────── */}
         <motion.div 
           initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -332,12 +322,10 @@ export default function Home() {
           onMouseLeave={handleMouseLeave}
           className="relative mx-auto max-w-2xl select-none w-full"
         >
-          {/* Frosted Glass Hero Card */}
           <motion.div 
             style={shouldReduceMotion ? {} : { x: parallaxX, y: parallaxY }}
             className="relative overflow-hidden rounded-[32px] sm:rounded-[36px] p-8 sm:p-10 bg-indigo-950/80 dark:bg-black/60 backdrop-blur-[24px] border border-white/15 dark:border-white/[0.12] shadow-[0_15px_45px_rgba(0,0,0,0.35)] flex flex-col items-center justify-center text-center min-h-[220px]"
           >
-            {/* Top-Right Independent Notification Bell Button */}
             <div className="absolute top-5 right-5 sm:top-6 sm:right-6 z-30">
               <motion.button
                 onClick={() => setNotifOpen(!notifOpen)}
@@ -363,7 +351,6 @@ export default function Home() {
               <NotificationCenter open={notifOpen} onClose={() => setNotifOpen(false)} onCountChange={setNotifCount} />
             </div>
 
-            {/* Video Background Engine */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none bg-gradient-to-br from-indigo-950 via-purple-950 to-black">
               {!videoFailed && (
                 <video 
@@ -379,16 +366,13 @@ export default function Home() {
 
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/25 to-transparent" />
 
-            {/* Centered Content Layer */}
             <div className="relative z-20 space-y-4 sm:space-y-5 w-full text-white pt-1">
               
-              {/* Enlarged Readable Location Chip */}
               <div className="inline-flex items-center justify-center gap-2 px-4.5 py-1.5 rounded-full bg-white/15 dark:bg-white/10 backdrop-blur-md border border-white/20 text-sm sm:text-base font-semibold tracking-wide shadow-sm max-w-[75%] sm:max-w-[80%] mx-auto">
                 <Map className="w-4 h-4 text-sky-300 shrink-0" />
                 <span className="truncate">{weather.shortCity}</span>
               </div>
 
-              {/* Luxury Digital Clock & Date */}
               <div>
                 <div className="flex items-baseline justify-center gap-2">
                   <span className="text-[68px] sm:text-[84px] font-extrabold tracking-tighter leading-none drop-shadow-lg font-sans">
@@ -403,7 +387,6 @@ export default function Home() {
                 </div>
               </div>
               
-              {/* Compact Meteorological Capsule */}
               <div className="flex items-center justify-center pt-1">
                 {weather.loading ? (
                   <div className="text-xs sm:text-sm text-white/70">Locating live radar...</div>
@@ -421,14 +404,13 @@ export default function Home() {
           </motion.div>
         </motion.div>
 
-        {/* ─── SEARCH BAR + PROPORTIONAL 52-54px AI FLOATING BUTTON ────────── */}
+        {/* ─── SEARCH BAR + 52-54px AI FAB ────────────────────────────────── */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.96 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1, duration: 0.4 }}
           className="relative max-w-2xl mx-auto flex items-center gap-3 sm:gap-3.5 w-full"
         >
-          {/* Search Pill */}
           <div className="relative flex-1 group">
             <div className="relative flex items-center justify-between w-full h-[52px] sm:h-[54px] rounded-full px-6 backdrop-blur-2xl bg-white/25 dark:bg-white/[0.07] border border-white/30 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-all duration-300 group-focus-within:border-primary/60 group-focus-within:shadow-[0_0_25px_rgba(139,92,246,0.35)]">
               <Search className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-muted-foreground mr-3 shrink-0 group-focus-within:text-primary transition-colors" />
@@ -444,7 +426,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Proportional 52-54px AI FAB */}
           <motion.button
             whileHover={{ scale: 1.05, y: -1 }}
             whileTap={{ scale: 0.95 }}
@@ -466,7 +447,7 @@ export default function Home() {
           </motion.button>
         </motion.div>
 
-        {/* ─── RESPONSIVE COMPACT APP GRID WITH CHARACTERS (aspect-[4/3]) ──── */}
+        {/* ─── RESPONSIVE APP GRID WITH FLOOR-STANDING CHARACTERS ONLY ────── */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
