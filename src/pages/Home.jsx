@@ -49,7 +49,75 @@ const getWeatherCodeLabel = (code) => {
   return 'Clear';
 };
 
-// ─── MEMOIZED COMPACT WIDGET CARD (aspect-[4/3]) ─────────────────────────────
+// ─── MEMOIZED SMART CHARACTER ILLUSTRATION LOADER ────────────────────────────
+const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
+  const charMap = {
+    notes: 'Notes.png',
+    tasks: 'Tasks.png',
+    calendar: 'Calendar.png',
+    scanner: 'Scanner.png',
+    finance: 'Finance.png',
+    files: 'Files.png',
+    vault: 'Vault.png',
+    oradocs: 'Documents.png',
+    news: 'News.png',
+    climora: 'Weather.png',
+    assistant: 'AI.png',
+    browser: 'Browser.png',
+    routo: 'Maps.png',
+    festo: 'FESTO.png'
+  };
+
+  const fallbackMap = {
+    tasks: 'Task.png',
+    calendar: 'Calendo.png',
+    files: 'File holder.png'
+  };
+
+  const filename = charMap[appId];
+  if (!filename) return null;
+
+  const [src, setSrc] = useState(`./Banner/Characters/${filename}`);
+  const [failed, setFailed] = useState(false);
+
+  if (failed) return null;
+
+  return (
+    <motion.img
+      initial={{ opacity: 0 }}
+      animate={{ 
+        opacity: 1, 
+        y: shouldReduceMotion ? 0 : [0, -2, 0] 
+      }}
+      transition={{ 
+        opacity: { duration: 0.5 },
+        y: { repeat: Infinity, duration: 4, ease: "easeInOut" }
+      }}
+      src={src}
+      alt={`${label} Character`}
+      onError={() => {
+        if (src.startsWith('./Banner/Characters/')) {
+          if (fallbackMap[appId]) {
+            setSrc(`./Banner/Characters/${fallbackMap[appId]}`);
+          } else {
+            setSrc(`./Banner/${filename}`);
+          }
+        } else if (src.startsWith('./Banner/')) {
+          if (fallbackMap[appId]) {
+            setSrc(`./Banner/${fallbackMap[appId]}`);
+          } else {
+            setFailed(true);
+          }
+        } else {
+          setFailed(true);
+        }
+      }}
+      className="absolute bottom-2 right-3 sm:bottom-3 sm:right-4 z-0 h-[62%] sm:h-[72%] xl:h-[80%] w-auto object-contain pointer-events-none select-none drop-shadow-[0_8px_18px_rgba(0,0,0,0.45)] group-hover:scale-[1.03] transition-transform duration-300 transform-gpu"
+    />
+  );
+});
+
+// ─── MEMOIZED COMPACT WIDGET CARD (aspect-[4/3] + LEFT TEXT + RIGHT CHAR) ──
 const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
   const isAI = app.id === 'assistant';
   const isSettings = app.id === 'settings';
@@ -63,62 +131,69 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
     >
       {!shouldReduceMotion && (
         <div 
-          className="absolute -inset-1 rounded-[26px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"
+          className="absolute -inset-1 rounded-[30px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none -z-10"
           style={{ backgroundColor: app.glow }}
         />
       )}
 
       <div className={cn(
-        "relative overflow-hidden rounded-[22px] p-4 sm:p-4.5 bg-gradient-to-br backdrop-blur-2xl border flex flex-col justify-between transition-all duration-300 w-full h-full shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] group-hover:shadow-[0_16px_38px_rgba(0,0,0,0.6)]",
+        "relative overflow-hidden rounded-[26px] p-4 sm:p-4.5 bg-gradient-to-br backdrop-blur-2xl border flex flex-col justify-between transition-all duration-300 w-full h-full shadow-[0_8px_24px_rgba(0,0,0,0.18)] dark:shadow-[0_8px_24px_rgba(0,0,0,0.45)] group-hover:shadow-[0_16px_38px_rgba(0,0,0,0.6)]",
         app.gradient,
         "border-white/20 dark:border-white/[0.12]"
       )}>
-        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/20 to-transparent pointer-events-none" />
+        {/* Layered Lighting & Crisp Inner Top Highlight */}
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/25 to-transparent pointer-events-none" />
 
         {isAI && !shouldReduceMotion && (
           <motion.div 
             animate={{ scale: [1, 1.3, 1], opacity: [0.25, 0.65, 0.25] }}
             transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-            className="absolute -right-8 -top-8 w-32 h-32 bg-fuchsia-500/30 rounded-full blur-2xl pointer-events-none"
+            className="absolute -right-8 -top-8 w-32 h-32 bg-fuchsia-500/30 rounded-full blur-2xl pointer-events-none z-0"
           />
         )}
 
-        <div className="flex items-start justify-between w-full z-10">
-          <div className="relative shrink-0 w-11 h-11 sm:w-13 sm:h-13 rounded-[18px] bg-white/15 dark:bg-black/30 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-md overflow-hidden group-hover:scale-105 transition-transform duration-300">
-            {app.logo ? (
-              <img src={app.logo} alt={app.label} className="w-full h-full object-cover rounded-[18px] pointer-events-none" />
-            ) : (
-              <motion.div
-                animate={isSettings && !shouldReduceMotion ? { rotate: 0 } : {}}
-                whileHover={isSettings && !shouldReduceMotion ? { rotate: 45 } : {}}
-                transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                className="flex items-center justify-center w-full h-full"
-              >
-                <app.icon className="w-6.5 h-6.5 sm:w-7.5 sm:h-7.5 text-current drop-shadow-md" strokeWidth={1.5} />
-              </motion.div>
-            )}
+        {/* ─── RIGHT-SIDE BACKGROUND CHARACTER ILLUSTRATION (z-0) ─────────── */}
+        <CharacterImage 
+          appId={app.id} 
+          label={app.label} 
+          shouldReduceMotion={shouldReduceMotion} 
+        />
+
+        {/* ─── LEFT-SIDE PROTECTED TEXT HIERARCHY (z-10) ──────────────────── */}
+        <div className="relative z-10 max-w-[62%] sm:max-w-[65%] flex flex-col justify-between h-full pointer-events-none">
+          
+          {/* Top: App Icon Capsule */}
+          <div className="flex items-start justify-between w-full">
+            <div className="relative shrink-0 w-11 h-11 sm:w-12 sm:h-12 rounded-[18px] bg-white/15 dark:bg-black/35 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-md overflow-hidden group-hover:scale-105 transition-transform duration-300">
+              {app.logo ? (
+                <img src={app.logo} alt={app.label} className="w-full h-full object-cover rounded-[18px] pointer-events-none" />
+              ) : (
+                <motion.div
+                  animate={isSettings && !shouldReduceMotion ? { rotate: 0 } : {}}
+                  whileHover={isSettings && !shouldReduceMotion ? { rotate: 45 } : {}}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  className="flex items-center justify-center w-full h-full"
+                >
+                  <app.icon className="w-6 h-6 sm:w-7 sm:h-7 text-current drop-shadow-md" strokeWidth={1.5} />
+                </motion.div>
+              )}
+            </div>
           </div>
 
-          {isAI && !shouldReduceMotion && (
-            <motion.div
-              animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.2, 0.8] }}
-              transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-            >
-              <Sparkles className="w-4 h-4 text-fuchsia-300 drop-shadow-[0_0_8px_rgba(217,70,239,0.9)]" />
-            </motion.div>
-          )}
+          {/* Bottom: App Name & Subtitle */}
+          <div className="flex flex-col min-w-0 pt-2">
+            <span className="font-bold text-foreground tracking-tight text-sm sm:text-base truncate drop-shadow-sm font-sans">
+              {app.label}
+            </span>
+            <span className="text-[11px] sm:text-xs font-medium text-muted-foreground/90 truncate mt-0.5 group-hover:text-foreground transition-colors">
+              {app.desc}
+            </span>
+          </div>
+
         </div>
 
-        <div className="flex flex-col min-w-0 z-10 pt-1.5">
-          <span className="font-bold text-foreground tracking-tight text-sm sm:text-base truncate drop-shadow-sm font-sans">
-            {app.label}
-          </span>
-          <span className="text-[11px] sm:text-xs font-medium text-muted-foreground/85 truncate mt-0.5 group-hover:text-foreground/90 transition-colors">
-            {app.desc}
-          </span>
-        </div>
-
-        <div className="absolute inset-0 rounded-[22px] bg-white/0 group-active:bg-white/10 dark:group-active:bg-white/[0.08] transition-colors pointer-events-none" />
+        {/* Ripple & Active Overlay */}
+        <div className="absolute inset-0 rounded-[26px] bg-white/0 group-active:bg-white/10 dark:group-active:bg-white/[0.08] transition-colors pointer-events-none z-20" />
       </div>
     </motion.button>
   );
@@ -152,7 +227,7 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // Cleaner Weather Telemetry (Temp, Condition, Short City)
+  // Weather Telemetry
   const [weather, setWeather] = useState({ 
     temp: null, desc: 'Loading radar...', shortCity: 'Locating...', loading: true 
   });
@@ -307,7 +382,7 @@ export default function Home() {
             {/* Centered Content Layer */}
             <div className="relative z-20 space-y-4 sm:space-y-5 w-full text-white pt-1">
               
-              {/* Enlarged Readable Location Chip (max-w-[75%], full readable size) */}
+              {/* Enlarged Readable Location Chip */}
               <div className="inline-flex items-center justify-center gap-2 px-4.5 py-1.5 rounded-full bg-white/15 dark:bg-white/10 backdrop-blur-md border border-white/20 text-sm sm:text-base font-semibold tracking-wide shadow-sm max-w-[75%] sm:max-w-[80%] mx-auto">
                 <Map className="w-4 h-4 text-sky-300 shrink-0" />
                 <span className="truncate">{weather.shortCity}</span>
@@ -353,7 +428,7 @@ export default function Home() {
           transition={{ delay: 0.1, duration: 0.4 }}
           className="relative max-w-2xl mx-auto flex items-center gap-3 sm:gap-3.5 w-full"
         >
-          {/* Search Pill (h-[52px] sm:h-[54px]) */}
+          {/* Search Pill */}
           <div className="relative flex-1 group">
             <div className="relative flex items-center justify-between w-full h-[52px] sm:h-[54px] rounded-full px-6 backdrop-blur-2xl bg-white/25 dark:bg-white/[0.07] border border-white/30 dark:border-white/15 shadow-[0_12px_30px_rgba(0,0,0,0.15)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-all duration-300 group-focus-within:border-primary/60 group-focus-within:shadow-[0_0_25px_rgba(139,92,246,0.35)]">
               <Search className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-muted-foreground mr-3 shrink-0 group-focus-within:text-primary transition-colors" />
@@ -369,7 +444,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Proportional 52-54px AI Floating Action Button matching Search Bar height */}
+          {/* Proportional 52-54px AI FAB */}
           <motion.button
             whileHover={{ scale: 1.05, y: -1 }}
             whileTap={{ scale: 0.95 }}
@@ -391,7 +466,7 @@ export default function Home() {
           </motion.button>
         </motion.div>
 
-        {/* ─── RESPONSIVE COMPACT APP GRID (aspect-[4/3]) ──────────────────── */}
+        {/* ─── RESPONSIVE COMPACT APP GRID WITH CHARACTERS (aspect-[4/3]) ──── */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
