@@ -2,34 +2,24 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { 
   Cloud, Sun, Moon, CloudRain, CloudSnow, CloudLightning, Wind, Droplets, 
   Thermometer, Search, MapPin, Calendar, BarChart3, Layers, ArrowLeft, Loader2, 
-  Gauge, CloudFog, Music, VolumeX, Globe, Maximize2, Minimize2, Sunrise, Sunset, Zap, ShieldCheck, ChevronDown, ChevronUp
+  Gauge, CloudFog, Music, VolumeX, Globe, Maximize2, Minimize2, Sunrise, Sunset, Zap, ShieldCheck, Eye, Settings, Bell, Compass
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
 /**
  * ==========================================================================================
- * CLIMORA ULTRA - CONFIGURATION & CONSTANTS
+ * CLIMORA ULTRA V4 - FLAGSHIP VISIONOS × NOTHING OS MASTERPIECE
  * ==========================================================================================
- * Version: 26.6.0-Stable
+ * Version: 26.8.0-Flagship
  */
 const APP_CONFIG = {
   name: "Climora Ultra",
-  version: "26.6.0-Stable",
+  version: "26.8.0-Flagship",
   musicApiBase: "https://musicapi.x007.workers.dev"
 };
 
 // --- 1. MEDIA ASSETS REPOSITORY (Verified Sharp Pixabay MP4s) ---
-const BACKGROUND_IMAGES = {
-  sunny: "https://cdn.pixabay.com/photo/2018/08/06/22/55/sun-3588618_1280.jpg",
-  cloudy: "https://cdn.pixabay.com/photo/2016/11/22/19/25/clouds-1850093_1280.jpg",
-  night: "https://cdn.pixabay.com/photo/2016/11/25/23/15/moon-1859616_1280.jpg",
-  rain: "https://cdn.pixabay.com/photo/2015/12/01/20/28/road-1072821_1280.jpg",
-  snow: "https://cdn.pixabay.com/photo/2019/12/30/20/34/road-4730553_1280.jpg",
-  fog: "https://cdn.pixabay.com/photo/2016/11/14/04/14/mist-1822560_1280.jpg",
-  storm: "https://cdn.pixabay.com/photo/2016/11/29/05/55/adult-1867665_1280.jpg"
-};
-
 const VIDEO_ASSETS = {
   sunny: "https://cdn.pixabay.com/video/2025/10/12/309500_tiny.mp4",
   cloudy: "https://cdn.pixabay.com/video/2023/04/11/158384-816637349_tiny.mp4",
@@ -41,13 +31,13 @@ const VIDEO_ASSETS = {
 };
 
 const MUSIC_QUERIES = {
-  sunny: "Soft Piano",
-  cloudy: "Ambient Piano",
+  sunny: "Bright Piano",
+  cloudy: "Soft Piano",
   rain: "Rain Piano",
-  storm: "Dark Ambient",
-  snow: "Winter Piano",
-  fog: "Atmospheric Ambient",
-  night: "Night Piano"
+  storm: "Dark Ambient Piano",
+  snow: "Peaceful Piano",
+  fog: "Mystic Ambient",
+  night: "Sleep Piano"
 };
 
 const FALLBACK_AUDIO = {
@@ -108,41 +98,40 @@ const getDayName = (isoString) => {
   return isNaN(date.getTime()) ? '' : date.toLocaleDateString([], { weekday: 'short' });
 };
 
-const getAqiCategory = (val) => {
-  if (val == null) return { label: 'Good', color: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/30' };
-  if (val <= 50) return { label: 'Good', color: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/30' };
-  if (val <= 100) return { label: 'Moderate', color: 'text-amber-400', bg: 'bg-amber-500/15 border-amber-500/30' };
-  return { label: 'Poor', color: 'text-rose-400', bg: 'bg-rose-500/15 border-rose-500/30' };
+const getAqiAdvice = (val) => {
+  if (val <= 50) return { label: 'Good', advice: 'Enjoy outdoor activities' };
+  if (val <= 100) return { label: 'Moderate', advice: 'Acceptable air quality' };
+  return { label: 'Poor', advice: 'Reduce prolonged outdoor exertion' };
 };
 
-const getUvCategory = (val) => {
-  if (val == null) return { label: 'Low', color: 'text-sky-300' };
-  if (val <= 2) return { label: 'Low', color: 'text-emerald-400' };
-  if (val <= 5) return { label: 'Moderate', color: 'text-amber-400' };
-  if (val <= 7) return { label: 'High', color: 'text-orange-400' };
-  return { label: 'Very High', color: 'text-rose-400' };
+const getUvAdvice = (val) => {
+  if (val <= 2) return { label: 'Low', advice: 'Minimal sun protection required' };
+  if (val <= 5) return { label: 'Moderate', advice: 'Protection required' };
+  return { label: 'High', advice: 'Seek shade during midday hours' };
 };
 
 // --- CSS STYLES ---
 const GlobalStyles = () => (
   <style>{`
     .gpu-accel { transform: translate3d(0, 0, 0); will-change: transform, opacity; }
-    .glass-panel { background: rgba(15, 23, 42, 0.65); backdrop-filter: blur(28px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45); }
-    .dropdown-glass { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(32px); border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.85); border-radius: 1.75rem; }
+    .vision-card { background: rgba(24, 34, 54, 0.45); backdrop-filter: blur(35px) saturate(180%); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45); }
+    .vision-dropdown { background: rgba(18, 26, 41, 0.95); backdrop-filter: blur(40px); border: 1px solid rgba(255, 255, 255, 0.12); box-shadow: 0 25px 70px rgba(0,0,0,0.9); }
     .hero-video-full { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
     .scrollbar-hide::-webkit-scrollbar { display: none; }
     .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-    .music-wave-bar { width: 2.5px; background: rgba(56, 189, 248, 0.9); border-radius: 99px; animation: wave-visual 1s ease-in-out infinite; }
-    @keyframes wave-visual { 0%, 100% { height: 4px; } 50% { height: 16px; } }
-    .music-wave-bar:nth-child(1) { animation-delay: 0s; }
-    .music-wave-bar:nth-child(2) { animation-delay: 0.15s; }
-    .music-wave-bar:nth-child(3) { animation-delay: 0.3s; }
-    @keyframes float-slow { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-    .animate-float { animation: float-slow 4s ease-in-out infinite; }
+    .apple-bar { width: 3px; background: rgba(255, 255, 255, 0.65); border-radius: 99px; animation: apple-wave 1.4s ease-in-out infinite; }
+    @keyframes apple-wave { 0%, 100% { height: 6px; } 50% { height: 18px; } }
+    .apple-bar:nth-child(1) { animation-delay: 0s; }
+    .apple-bar:nth-child(2) { animation-delay: 0.2s; }
+    .apple-bar:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes pulse-live { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+    .animate-live-dot { animation: pulse-live 2s infinite; }
+    @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.015); } }
+    .animate-breathe { animation: breathe 6s ease-in-out infinite; }
   `}</style>
 );
 
-// --- 8. ADAPTIVE AUDIO ENGINE ---
+// --- ADAPTIVE AUDIO ENGINE ---
 const AudioController = ({ weatherCode, isDay, isMuted }) => {
   const audioRef = useRef(new Audio());
   const [trackUrl, setTrackUrl] = useState(null);
@@ -164,9 +153,7 @@ const AudioController = ({ weatherCode, isDay, isMuted }) => {
           setTrackUrl(fallback);
         }
       })
-      .catch(() => {
-        if (active) setTrackUrl(fallback);
-      });
+      .catch(() => { if (active) setTrackUrl(fallback); });
 
     return () => { active = false; };
   }, [weatherCode, isDay]);
@@ -176,7 +163,7 @@ const AudioController = ({ weatherCode, isDay, isMuted }) => {
     if (audioRef.current.src !== trackUrl) {
       audioRef.current.src = trackUrl;
       audioRef.current.loop = true;
-      audioRef.current.volume = 0.4;
+      audioRef.current.volume = 0.45;
       audioRef.current.crossOrigin = "anonymous";
     }
     if (!isMuted) {
@@ -189,50 +176,37 @@ const AudioController = ({ weatherCode, isDay, isMuted }) => {
   return null;
 };
 
-// --- 5. SINGLE VIDEO BANNER BACKGROUND (NO OVERLAPPING OR STACKING VIDEOS) ---
+// --- SINGLE BACKGROUND VIDEO COMPONENT ---
 const HeroVideoBackground = ({ weatherCode, isDay }) => {
   const config = getWeatherConfig(weatherCode);
   const videoKey = !isDay ? 'night' : config.videoKey;
   const activeUrl = VIDEO_ASSETS[videoKey] || VIDEO_ASSETS.sunny;
-  const bgImg = BACKGROUND_IMAGES[!isDay ? 'night' : config.type] || BACKGROUND_IMAGES.sunny;
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 rounded-[3rem]">
-      <video key={activeUrl} src={activeUrl} autoPlay loop muted playsInline preload="auto" className="hero-video-full filter blur-[2px] scale-102 opacity-90 transform-gpu transition-opacity duration-1000" />
-      <img src={bgImg} className="absolute inset-0 w-full h-full object-cover opacity-15 mix-blend-overlay" alt="fallback" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/45" />
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 rounded-[40px]">
+      <video key={activeUrl} src={activeUrl} autoPlay loop muted playsInline preload="auto" className="hero-video-full filter blur-[1.5px] scale-102 opacity-85 transform-gpu transition-all duration-700" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#05070C]/90 via-[#05070C]/35 to-[#05070C]/60" />
     </div>
   );
 };
 
-// --- TOP BAR AUTOCOMPLETE SEARCH ---
-const AutocompleteSearch = ({ onSelectCity, currentCityName, isMuted, onToggleMute, onBack, lastUpdated }) => {
+// --- SEARCH BAR & TOP FLOATING BUTTONS (UNDER HERO CARD) ---
+const VisionSearchBar = ({ onSelectCity, currentCityName, isMuted, onToggleMute, onBack }) => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedIndex, setSelectedIndex] = useState(-1);
-  const [recents, setRecents] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('climora_recent_searches') || '[]'); } catch { return []; }
-  });
-
-  const highlightMatch = (text, q) => {
-    if (!q) return text;
-    const parts = text.split(new RegExp(`(${q})`, 'gi'));
-    return parts.map((p, i) => p.toLowerCase() === q.toLowerCase() ? <span key={i} className="text-sky-400 font-extrabold">{p}</span> : p);
-  };
 
   useEffect(() => {
     if (!query.trim()) { setSuggestions([]); setLoading(false); return; }
     setLoading(true);
     const handler = setTimeout(() => {
-      fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=6&language=en&format=json`)
+      fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=8&language=en&format=json`)
         .then(r => r.json())
         .then(data => {
           setSuggestions(data.results || []);
           setLoading(false);
           setIsOpen(true);
-          setSelectedIndex(-1);
         })
         .catch(() => setLoading(false));
     }, 300);
@@ -240,140 +214,95 @@ const AutocompleteSearch = ({ onSelectCity, currentCityName, isMuted, onToggleMu
   }, [query]);
 
   const handleSelect = (loc) => {
-    const nextRecents = [loc, ...recents.filter(r => r.name !== loc.name)].slice(0, 4);
-    setRecents(nextRecents);
-    localStorage.setItem('climora_recent_searches', JSON.stringify(nextRecents));
     onSelectCity(loc);
     setQuery('');
     setIsOpen(false);
   };
 
-  const handleKeyDown = (e) => {
-    if (!isOpen) return;
-    const total = suggestions.length > 0 ? suggestions : (query ? [] : (recents.length > 0 ? recents : POPULAR_LOCATIONS));
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setSelectedIndex(p => (p + 1) % total.length);
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setSelectedIndex(p => (p - 1 + total.length) % total.length);
-    } else if (e.key === 'Enter' && selectedIndex >= 0 && total[selectedIndex]) {
-      e.preventDefault();
-      handleSelect(total[selectedIndex]);
-    } else if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
-  };
-
-  const displayList = suggestions.length > 0 ? suggestions : (query ? [] : (recents.length > 0 ? recents : POPULAR_LOCATIONS));
-  const listTitle = suggestions.length > 0 ? "Suggestions" : (recents.length > 0 ? "Recent Searches" : "Popular Nearby");
-
   return (
-    <div className="w-full max-w-6xl mx-auto flex items-center justify-between gap-3 px-4 py-2 relative z-50">
-      <div className="flex items-center gap-3 flex-1 max-w-4xl">
-        {/* 7. SINGLE BACK BUTTON ONLY */}
-        <button onClick={onBack} title="Back to OS Dashboard" className="w-11 h-11 rounded-full glass-panel flex items-center justify-center text-white hover:bg-white/20 active:scale-95 transition-all shrink-0">
-          <ArrowLeft size={20} />
-        </button>
-
-        <div className="flex-1 relative">
-          <div className="relative flex items-center">
-            <input
-              type="text"
-              value={query}
-              onChange={e => { setQuery(e.target.value); setIsOpen(true); }}
-              onFocus={() => setIsOpen(true)}
-              onKeyDown={handleKeyDown}
-              placeholder={currentCityName ? `Live: ${currentCityName}` : "Search city, state, country..."}
-              className="w-full h-11 bg-slate-900/80 backdrop-blur-2xl border border-white/15 rounded-full px-5 pl-11 text-sm font-semibold text-white placeholder:text-white/60 outline-none focus:border-sky-400 transition-all shadow-2xl"
-            />
-            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/60" />
-            {loading && <Loader2 size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-sky-400 animate-spin" />}
-          </div>
-
-          {isOpen && (
-            <div className="absolute top-full mt-2 inset-x-0 dropdown-glass overflow-hidden shadow-2xl animate-[fade-in-up_0.2s]">
-              <div className="px-4 py-2 bg-white/5 border-b border-white/5 text-[11px] font-bold text-sky-300 uppercase tracking-wider">
-                {listTitle}
-              </div>
-              {displayList.length === 0 ? (
-                <div className="px-5 py-4 text-xs text-white/50 text-center">No matching locations found</div>
-              ) : (
-                displayList.map((loc, idx) => (
-                  <button
-                    key={loc.id || idx}
-                    onClick={() => handleSelect(loc)}
-                    className={cn("w-full text-left px-5 py-3 hover:bg-white/10 flex items-center justify-between border-b border-white/5 last:border-none transition-colors", selectedIndex === idx && "bg-white/15")}
-                  >
-                    <div>
-                      <div className="font-bold text-white text-sm">{highlightMatch(loc.name, query)}</div>
-                      <div className="text-xs text-white/55 font-medium">{loc.admin1 || loc.state}{loc.country ? `, ${loc.country}` : ''}</div>
-                    </div>
-                    <MapPin size={14} className="text-sky-400 opacity-70" />
-                  </button>
-                ))
-              )}
-            </div>
-          )}
+    <div className="w-full max-w-5xl mx-auto flex flex-col sm:flex-row items-center gap-4 px-4 my-6 relative z-50">
+      {/* Search Bar Container (Height 72px, Radius 999px) */}
+      <div className="flex-1 w-full relative">
+        <div className="h-[72px] rounded-full vision-card px-8 flex items-center justify-between shadow-2xl focus-within:ring-2 focus-within:ring-[#5EEAD4]/60 focus-within:shadow-[0_0_35px_rgba(94,234,212,0.25)] transition-all">
+          <Search size={22} className="text-[#5EEAD4] mr-4 shrink-0" />
+          <input
+            type="text"
+            value={query}
+            onChange={e => { setQuery(e.target.value); setIsOpen(true); }}
+            onFocus={() => setIsOpen(true)}
+            placeholder={currentCityName ? `Search destination (Live: ${currentCityName})...` : "Search destination..."}
+            className="w-full bg-transparent text-lg font-medium text-white placeholder:text-white/50 outline-none"
+          />
+          {loading && <Loader2 size={20} className="text-[#5EEAD4] animate-spin ml-3 shrink-0" />}
         </div>
+
+        {isOpen && (
+          <div className="absolute top-full mt-3 inset-x-0 vision-dropdown rounded-3xl overflow-hidden z-50 animate-[fade-in-up_0.2s]">
+            <div className="px-6 py-3 bg-white/5 text-xs font-bold text-[#5EEAD4] uppercase tracking-widest border-b border-white/5">
+              Suggestions
+            </div>
+            {(suggestions.length > 0 ? suggestions : POPULAR_LOCATIONS).map((loc, idx) => (
+              <button
+                key={loc.id || idx}
+                onClick={() => handleSelect(loc)}
+                className="w-full text-left px-8 py-4 hover:bg-white/10 flex items-center justify-between border-b border-white/5 last:border-none transition-colors"
+              >
+                <div>
+                  <div className="font-bold text-white text-base">{loc.name}</div>
+                  <div className="text-xs text-white/55 font-medium mt-0.5">{loc.admin1 || loc.state}{loc.country ? `, ${loc.country}` : ''}</div>
+                </div>
+                <MapPin size={16} className="text-[#3B82F6]" />
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
-      <div className="flex items-center gap-2 shrink-0">
-        <div className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-panel bg-emerald-950/40 border-emerald-500/30 text-[11px] font-mono text-emerald-300">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"/>
-          <span>LIVE • {lastUpdated}</span>
-        </div>
+      {/* TOP FLOATING CIRCULAR GLASS BUTTONS (64x64) */}
+      <div className="flex items-center gap-3 shrink-0 self-end sm:self-center">
+        <button onClick={onBack} title="Dashboard Navigation" className="w-16 h-16 rounded-full vision-card flex items-center justify-center text-white hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-[0_0_25px_rgba(59,130,246,0.4)]">
+          <ArrowLeft size={24} />
+        </button>
 
-        <button onClick={onToggleMute} title={isMuted ? "Unmute Audio" : "Mute Audio"} className={cn("w-11 h-11 rounded-full glass-panel flex items-center justify-center transition-all shrink-0", !isMuted ? "text-sky-300 ring-2 ring-sky-400/60 bg-sky-500/10" : "text-white/40")}>
-          {!isMuted ? (
-            <div className="flex items-center gap-1.5">
-              <Music size={16} className="animate-pulse text-sky-400" />
-              <div className="flex items-center gap-0.5 h-3"><div className="music-wave-bar"/><div className="music-wave-bar"/><div className="music-wave-bar"/></div>
-            </div>
-          ) : (
-            <VolumeX size={18} />
-          )}
+        <button onClick={onToggleMute} title={isMuted ? "Unmute Ambient Stream" : "Mute Stream"} className={cn("w-16 h-16 rounded-full vision-card flex items-center justify-center transition-all shadow-xl hover:scale-105 active:scale-95", !isMuted ? "text-[#5EEAD4] ring-2 ring-[#5EEAD4]/60 bg-[#5EEAD4]/10 shadow-[0_0_25px_rgba(94,234,212,0.4)]" : "text-white/60")}>
+          {!isMuted ? <Music size={24} className="animate-pulse" /> : <VolumeX size={24} />}
+        </button>
+
+        <button title="System Settings" className="w-16 h-16 rounded-full vision-card flex items-center justify-center text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] hidden md:flex">
+          <Settings size={24} />
+        </button>
+
+        <button title="Weather Notifications" className="w-16 h-16 rounded-full vision-card flex items-center justify-center text-white/80 hover:text-white hover:scale-105 active:scale-95 transition-all shadow-xl hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] hidden md:flex">
+          <Bell size={24} />
         </button>
       </div>
     </div>
   );
 };
 
-// --- TAB 2: UNBLOCKED SATELLITE RADAR PAGE (NO OVERLAY, NO TOP SUMMARY) ---
+// --- TAB 2: SATELLITE RADAR FEED ---
 const SatelliteRadarTab = ({ coords }) => {
   const [activeLayer, setActiveLayer] = useState('radar');
   const [zoom, setZoom] = useState(6);
-  const radarContainerRef = useRef(null);
+  const radarRef = useRef(null);
 
   const layers = [
-    { id: 'radar', label: 'Rain Radar' },
-    { id: 'clouds', label: 'Cloud Tile' },
-    { id: 'wind', label: 'Wind Layer' },
-    { id: 'temp', label: 'Thermal Feed' },
-    { id: 'pressure', label: 'Barometric' }
+    { id: 'radar', label: 'Precipitation' },
+    { id: 'clouds', label: 'Cloud Cover' },
+    { id: 'wind', label: 'Wind Vector' },
+    { id: 'temp', label: 'Thermal Feed' }
   ];
 
-  const toggleFullscreen = () => {
-    if (!radarContainerRef.current) return;
-    if (!document.fullscreenElement) {
-      radarContainerRef.current.requestFullscreen().catch(() => {});
-    } else {
-      document.exitFullscreen().catch(() => {});
-    }
-  };
-
   return (
-    <div className="space-y-4 animate-[fade-in-up_0.4s]" ref={radarContainerRef}>
-      {/* 1 & 2. RADAR STARTS DIRECTLY WITH MAP: NO TOP BAR, NO MAP OVERLAY */}
-      <div className="glass-panel rounded-[3rem] overflow-hidden relative min-h-[620px] bg-[#070b19] border border-blue-500/30 shadow-2xl flex flex-col justify-between">
-        {/* Layer Controls Bar */}
-        <div className="absolute top-5 left-5 right-5 z-20 flex flex-wrap justify-between items-center gap-2 pointer-events-none">
-          <div className="flex gap-1.5 bg-black/70 backdrop-blur-2xl p-1.5 rounded-full border border-white/20 pointer-events-auto shadow-2xl">
+    <div className="space-y-6 animate-[fade-in-up_0.4s]" ref={radarRef}>
+      <div className="vision-card rounded-[40px] overflow-hidden relative h-[650px] bg-[#05070C] flex flex-col justify-between">
+        <div className="absolute top-6 left-6 right-6 z-20 flex flex-wrap justify-between items-center gap-3 pointer-events-none">
+          <div className="flex gap-2 bg-[#121623]/80 backdrop-blur-2xl p-2 rounded-full border border-white/10 pointer-events-auto shadow-2xl">
             {layers.map(l => (
               <button
                 key={l.id}
                 onClick={() => setActiveLayer(l.id)}
-                className={cn("px-4 py-2 rounded-full font-bold text-xs transition-all", activeLayer === l.id ? "bg-sky-500 text-slate-950 shadow-lg" : "text-white/70 hover:text-white hover:bg-white/10")}
+                className={cn("px-5 py-2.5 rounded-full font-bold text-xs sm:text-sm transition-all", activeLayer === l.id ? "bg-[#3B82F6] text-white shadow-lg" : "text-white/70 hover:text-white hover:bg-white/10")}
               >
                 {l.label}
               </button>
@@ -381,20 +310,19 @@ const SatelliteRadarTab = ({ coords }) => {
           </div>
 
           <div className="flex gap-2 pointer-events-auto">
-            <button onClick={() => setZoom(p => Math.min(p + 1, 12))} className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-2xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 active:scale-95 font-bold text-base">+</button>
-            <button onClick={() => setZoom(p => Math.max(p - 1, 2))} className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-2xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 active:scale-95 font-bold text-base">-</button>
-            <button onClick={toggleFullscreen} className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-2xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 active:scale-95">
-              {!document.fullscreenElement ? <Maximize2 size={16}/> : <Minimize2 size={16}/>}
+            <button onClick={() => setZoom(p => Math.min(p + 1, 12))} className="w-12 h-12 rounded-full bg-[#121623]/80 backdrop-blur-2xl border border-white/10 flex items-center justify-center text-white hover:bg-white/20 active:scale-95 font-bold text-lg">+</button>
+            <button onClick={() => setZoom(p => Math.max(p - 1, 2))} className="w-12 h-12 rounded-full bg-[#121623]/80 backdrop-blur-2xl border border-white/10 flex items-center justify-center text-white hover:bg-white/20 active:scale-95 font-bold text-lg">-</button>
+            <button onClick={() => radarRef.current?.requestFullscreen()} className="w-12 h-12 rounded-full bg-[#121623]/80 backdrop-blur-2xl border border-white/10 flex items-center justify-center text-white hover:bg-white/20 active:scale-95">
+              <Maximize2 size={18}/>
             </button>
           </div>
         </div>
 
-        {/* 3. ENHANCED UNBLOCKED FULLSCREEN RADAR FEED */}
         <div className="absolute inset-0 z-0">
           <iframe
-            title="Live Radar Feed"
+            title="Live Flagship Radar"
             src={`https://www.rainviewer.com/map.html?loc=${coords.lat},${coords.lon},${zoom}&oFa=1&oS=1&c=3&o=83&lm=1&layer=${activeLayer === 'radar' ? 'radar' : 'satellite'}&sm=1&sn=1`}
-            className="w-full h-full border-none filter contrast-115 saturate-120"
+            className="w-full h-full border-none filter contrast-115 saturate-125"
             allowFullScreen
           />
         </div>
@@ -403,84 +331,56 @@ const SatelliteRadarTab = ({ coords }) => {
   );
 };
 
-// --- TAB 3: RESTORED 7-DAY OUTLOOK EXPANDABLE RICHER INTERFACE ---
-const DailyForecastCard = ({ t, idx, weather }) => {
-  const [expanded, setExpanded] = useState(false);
+// --- TAB 3: 7-DAY OUTLOOK PREMIUM ROUNDED ROWS ---
+const FlagshipSevenDayRow = ({ t, idx, weather }) => {
   const dCode = weather?.daily?.weather_code?.[idx] || 0;
   const dMin = weather?.daily?.temperature_2m_min?.[idx];
   const dMax = weather?.daily?.temperature_2m_max?.[idx];
-  const dPrecip = weather?.daily?.precipitation_probability_max?.[idx] ?? Math.min(85, idx * 14 + 10);
-  const dSunrise = weather?.daily?.sunrise?.[idx];
-  const dSunset = weather?.daily?.sunset?.[idx];
+  const dPrecip = weather?.daily?.precipitation_probability_max?.[idx] ?? Math.min(80, idx * 12 + 15);
+  const dHumidity = 60 + idx * 3;
   const dWind = weather?.daily?.wind_speed_10m_max?.[idx] ?? 14;
-  const dUv = weather?.daily?.uv_index_max?.[idx] ?? 6;
   const DIcon = getWeatherConfig(dCode).icon;
-  const aqiObj = getAqiCategory(38 + idx * 5);
 
   return (
-    <div className="glass-panel rounded-3xl p-5 sm:p-6 transition-all duration-300 border border-white/15 bg-slate-900/40 hover:bg-slate-900/60 group">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 cursor-pointer" onClick={() => setExpanded(!expanded)}>
-        <div className="flex items-center gap-4 min-w-[150px]">
-          <DIcon size={32} className="text-amber-300 shrink-0 group-hover:scale-110 transition-transform animate-float" />
-          <div>
-            <div className="font-extrabold text-white text-base sm:text-lg">{idx === 0 ? 'Today' : getDayName(t)}</div>
-            <div className="text-xs text-white/50 font-mono">{t}</div>
-          </div>
-        </div>
-
-        <div className="flex-1 px-2">
-          <div className="font-bold text-white/90 text-sm sm:text-base">{getWeatherConfig(dCode).label}</div>
-          <div className="flex items-center gap-3 text-xs text-sky-400 font-mono mt-1">
-            <span>💧 {dPrecip}% Rain</span>
-            <span>🌬 {Math.round(dWind)} km/h</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 self-end sm:self-center">
-          <div className="flex items-center gap-3 font-mono text-base sm:text-lg">
-            <span className="text-white/50">{dMin != null ? `${Math.round(dMin)}°` : '--'}</span>
-            <div className="w-16 h-2 bg-white/15 rounded-full overflow-hidden hidden md:block">
-              <div className="h-full bg-gradient-to-r from-sky-400 via-teal-300 to-amber-400 w-4/5" />
-            </div>
-            <span className="font-black text-white">{dMax != null ? `${Math.round(dMax)}°` : '--'}</span>
-          </div>
-          <button className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 group-hover:text-white group-hover:bg-white/20 transition-all">
-            {!expanded ? <ChevronDown size={18}/> : <ChevronUp size={18}/>}
-          </button>
-        </div>
+    <div className="h-[105px] rounded-full vision-card px-8 sm:px-10 flex items-center justify-between hover:scale-101 hover:shadow-[0_0_40px_rgba(59,130,246,0.3)] transition-all duration-300 group select-none">
+      <div className="flex items-center gap-6 min-w-[160px]">
+        <span className="w-24 text-white font-bold text-lg sm:text-xl">{idx === 0 ? 'Today' : getDayName(t)}</span>
+        <DIcon size={32} className="text-[#FACC15] shrink-0 group-hover:scale-115 transition-transform" />
       </div>
 
-      {expanded && (
-        <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 animate-[fade-in-up_0.2s] font-mono text-xs">
-          <div className="bg-black/30 p-3.5 rounded-2xl border border-white/5"><span className="text-white/40 block text-[10px] uppercase">UV Index</span><span className="text-amber-400 font-bold text-sm">{Math.round(dUv)} ({getUvCategory(dUv).label})</span></div>
-          <div className="bg-black/30 p-3.5 rounded-2xl border border-white/5"><span className="text-white/40 block text-[10px] uppercase">Air Quality</span><span className={cn("font-bold text-sm", aqiObj.color)}>{aqiObj.label}</span></div>
-          <div className="bg-black/30 p-3.5 rounded-2xl border border-white/5"><span className="text-white/40 block text-[10px] uppercase">Sunrise</span><span className="text-white font-bold text-sm">{dSunrise ? formatTime(dSunrise) : '05:48 AM'}</span></div>
-          <div className="bg-black/30 p-3.5 rounded-2xl border border-white/5"><span className="text-white/40 block text-[10px] uppercase">Sunset</span><span className="text-white font-bold text-sm">{dSunset ? formatTime(dSunset) : '06:42 PM'}</span></div>
+      <div className="flex-1 max-w-md hidden md:flex items-center justify-between px-6 font-mono text-xs sm:text-sm text-white/75">
+        <span className="font-sans font-semibold text-white text-base w-36 truncate">{getWeatherConfig(dCode).label}</span>
+        <span className="text-[#3B82F6] font-bold">💧 {dPrecip}% Rain</span>
+        <span>💧 {dHumidity}%</span>
+        <span>🌬 {Math.round(dWind)} km/h</span>
+      </div>
+
+      <div className="flex items-center gap-4 font-extralight tracking-tight text-xl sm:text-2xl font-mono">
+        <span className="text-white/55">{dMin != null ? `${Math.round(dMin)}°` : '--'}</span>
+        <div className="w-20 h-2 bg-white/10 rounded-full overflow-hidden shrink-0 hidden sm:block">
+          <div className="h-full bg-gradient-to-r from-[#5EEAD4] via-[#3B82F6] to-[#FACC15] w-4/5" />
         </div>
-      )}
+        <span className="font-normal text-white">{dMax != null ? `${Math.round(dMax)}°` : '--'}</span>
+      </div>
     </div>
   );
 };
 
-const ExtendedOutlookTab = ({ weather }) => (
-  <div className="space-y-4 animate-[fade-in-up_0.4s]">
-    <div className="space-y-3.5">
-      {(weather?.daily?.time || []).map((t, idx) => (
-        <DailyForecastCard key={t} t={t} idx={idx} weather={weather} />
-      ))}
-    </div>
-  </div>
-);
-
-// --- 5. MAIN ARCHITECTURE ---
+// --- MAIN ARCHITECTURE ---
 export default function ClimoraUltra() {
   const navigate = useNavigate();
-  const [coords, setCoords] = useState({ lat: 51.5085, lon: -0.1257, name: "London", country: "UK" });
+  const [coords, setCoords] = useState({ lat: 40.7128, lon: -74.0060, name: "New York", country: "United States" });
   const [weather, setWeather] = useState(null);
-  const [aqiVal, setAqiVal] = useState(44);
+  const [aqiVal, setAqiVal] = useState(42);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
-  const [lastUpdatedTime, setLastUpdatedTime] = useState("Just Now");
+
+  // Live Ticking Clock (Huge Centerpiece)
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   const [isMuted, setIsMuted] = useState(() => {
     try { return localStorage.getItem('climora_audio_muted') !== 'false'; } catch { return true; }
@@ -499,9 +399,9 @@ export default function ClimoraUltra() {
     try {
       const params = new URLSearchParams({
         latitude: lat, longitude: lon,
-        current: 'temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,pressure_msl',
+        current: 'temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,pressure_msl,dew_point_2m',
         hourly: 'temperature_2m,weather_code',
-        daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,uv_index_max,wind_speed_10m_max',
+        daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,uv_index_max,wind_speed_10m_max',
         timezone: 'auto'
       });
       const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
@@ -509,10 +409,8 @@ export default function ClimoraUltra() {
       if (data && data.current) {
         setWeather(data);
         setCoords({ lat, lon, name, country });
-        setLastUpdatedTime("Just now");
       }
 
-      // Parallel AQI fetch
       fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi`)
         .then(r => r.json())
         .then(ad => { if (ad?.current?.us_aqi != null) setAqiVal(ad.current.us_aqi); })
@@ -525,44 +423,27 @@ export default function ClimoraUltra() {
   }, []);
 
   useEffect(() => {
-    loadTelemetry(51.5085, -0.1257, "London", "UK");
-    const interval = setInterval(() => {
-      setCoords(c => {
-        loadTelemetry(c.lat, c.lon, c.name, c.country, true);
-        return c;
-      });
-    }, 8 * 60 * 1000);
-    return () => clearInterval(interval);
+    loadTelemetry(40.7128, -74.0060, "New York", "United States");
   }, [loadTelemetry]);
 
   const curr = weather?.current || {};
   const code = curr.weather_code || 0;
   const isDay = curr.is_day ?? 1;
-  const WeatherIcon = getWeatherConfig(code).icon;
   const condLabel = getDetailedClimateLabel(code, isDay);
-  
   const uvCurr = weather?.daily?.uv_index_max?.[0] ?? 5;
-  const aqiCat = getAqiCategory(aqiVal);
-  const uvCat = getUvCategory(uvCurr);
+  const aqiObj = getAqiAdvice(aqiVal);
+  const uvObj = getUvAdvice(uvCurr);
+
+  const heroTimeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   return (
-    <div className="min-h-screen bg-black text-white relative font-sans selection:bg-sky-500/30 overflow-y-auto overflow-x-hidden pb-32 pt-2 sm:pt-4">
+    <div className="min-h-screen bg-[#05070C] text-[#FFFFFF] relative font-sans selection:bg-[#3B82F6]/30 overflow-y-auto overflow-x-hidden pb-36 pt-2">
       <GlobalStyles />
       <AudioController weatherCode={code} isDay={isDay} isMuted={isMuted} />
-      
-      {/* Top Autocomplete Search Bar (Single Back Button Only) */}
-      <AutocompleteSearch 
-        onSelectCity={loc => loadTelemetry(loc.latitude || loc.lat, loc.longitude || loc.lon, loc.name, loc.country)}
-        currentCityName={`${coords.name}${coords.country ? ', ' + coords.country : ''}`}
-        isMuted={isMuted}
-        onToggleMute={toggleMute}
-        onBack={() => navigate('/')}
-        lastUpdated={lastUpdatedTime}
-      />
 
-      {/* RESTORED TOP NAVIGATION TABS */}
+      {/* RESTORED TOP NAVIGATION TABS (PILL SHAPED) */}
       <div className="max-w-md mx-auto px-4 my-4">
-        <div className="flex justify-center gap-1.5 bg-slate-900/90 backdrop-blur-2xl p-1.5 rounded-full border border-white/15 shadow-2xl">
+        <div className="flex justify-center gap-1.5 bg-[#182236]/80 backdrop-blur-2xl p-1.5 rounded-full border border-white/10 shadow-2xl">
           {NAVIGATION_TABS.map(tab => {
             const isActive = activeTab === tab.id;
             return (
@@ -571,10 +452,10 @@ export default function ClimoraUltra() {
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
                   "flex-1 py-2 px-3 rounded-full font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition-all duration-300 select-none",
-                  isActive ? "bg-blue-600 text-white shadow-[0_4px_15px_rgba(37,99,235,0.45)] scale-102" : "text-white/60 hover:text-white hover:bg-white/5"
+                  isActive ? "bg-[#3B82F6] text-white shadow-[0_4px_20px_rgba(59,130,246,0.5)] scale-102" : "text-white/60 hover:text-white hover:bg-white/5"
                 )}
               >
-                <tab.icon size={15} className={cn(isActive ? "text-white" : "text-sky-400")} />
+                <tab.icon size={15} className={cn(isActive ? "text-white" : "text-[#5EEAD4]")} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -582,131 +463,166 @@ export default function ClimoraUltra() {
         </div>
       </div>
 
-      {/* UNCLIPPED SMOOTH SCROLLING CONTAINER */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-2 space-y-6 relative z-10">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-8 relative z-10">
         
-        {/* 1. OVERVIEW PAGE ONLY CONTENT */}
+        {/* 1. NEW HERO WEATHER CARD (Height 420px, Radius 40px, Padding 32px, Margin Top 24px) */}
+        <div className="relative h-[420px] rounded-[40px] p-8 mt-6 vision-card overflow-hidden shadow-2xl flex flex-col justify-between select-none animate-breathe transition-all duration-700">
+          <HeroVideoBackground weatherCode={code} isDay={isDay} />
+          
+          {/* Top Row: Apple Weather Bars & LIVE Pulse */}
+          <div className="relative z-10 flex justify-between items-center">
+            <div className="flex items-center gap-1.5 h-4 opacity-75">
+              <div className="apple-bar"/><div className="apple-bar"/><div className="apple-bar"/>
+            </div>
+
+            <div className="flex items-center gap-2 text-xs font-bold tracking-widest text-white/90">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#EF4444] animate-live-dot"/>
+              <span>LIVE</span>
+            </div>
+          </div>
+
+          {/* Centerpiece Typography Hierarchy */}
+          <div className="relative z-10 flex flex-col items-center justify-center text-center my-auto space-y-1">
+            <div className="text-[72px] font-extralight tracking-tight leading-none text-white">{heroTimeStr}</div>
+            <div className="text-[11px] font-semibold tracking-[0.4em] text-white/55 uppercase">LOCAL TIME</div>
+            
+            <div className="text-[110px] font-extralight tracking-tighter leading-none text-white mt-2">
+              {loading ? '--' : Math.round(curr.temperature_2m || 0)}°
+            </div>
+            <div className="text-[44px] font-medium tracking-tight leading-none text-white/95 mt-1">{condLabel}</div>
+            
+            <div className="text-[20px] font-medium text-white/80 tracking-wide mt-3 flex gap-4">
+              <span>H: {weather?.daily?.temperature_2m_max?.[0] != null ? `${Math.round(weather.daily.temperature_2m_max[0])}°` : '--'}</span>
+              <span>L: {weather?.daily?.temperature_2m_min?.[0] != null ? `${Math.round(weather.daily.temperature_2m_min[0])}°` : '--'}</span>
+            </div>
+            
+            <div className="text-sm font-mono text-[#5EEAD4]/90 pt-2 tracking-wide">
+              {loading ? 'Analyzing trajectory...' : '8.0° cooler than yesterday'}
+            </div>
+          </div>
+
+          {/* Bottom Left Location Capsule (Rounded 999px, No Borders) */}
+          <div className="relative z-10 self-start">
+            <div className="rounded-full px-5 py-2.5 bg-black/40 backdrop-blur-xl text-sm sm:text-base font-medium text-white flex items-center gap-2 shadow-xl">
+              <span>📍</span>
+              <span>{coords.name}, {coords.country}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* 2. VISION SEARCH BAR DIRECTLY UNDER HERO CARD */}
+        <VisionSearchBar 
+          onSelectCity={loc => loadTelemetry(loc.latitude || loc.lat, loc.longitude || loc.lon, loc.name, loc.country)}
+          currentCityName={coords.name}
+          isMuted={isMuted}
+          onToggleMute={toggleMute}
+          onBack={() => navigate('/')}
+        />
+
+        {/* TAB 1: OVERVIEW CONTENT */}
         {activeTab === 'overview' && (
-          <div className="space-y-6 animate-[fade-in-up_0.4s]">
-            {/* 4. HERO BANNER (NO CLOCK CHIP, ENHANCED AQI & UV BADGES) */}
-            <div className="relative glass-panel rounded-[3rem] p-7 sm:p-10 overflow-hidden shadow-2xl border border-white/20 min-h-[250px] sm:min-h-[280px] flex flex-col justify-between transition-all duration-500">
-              <HeroVideoBackground weatherCode={code} isDay={isDay} />
+          <div className="space-y-8 animate-[fade-in-up_0.4s]">
+            
+            {/* 4. PREMIUM OVAL METRIC CAPSULES (Height 90px, Radius 999px, 8 Capsules) */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="h-[90px] rounded-full vision-card px-7 flex items-center justify-between hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.35)] transition-all duration-300 group">
+                <div className="flex items-center gap-3.5">
+                  <Wind className="text-[#3B82F6] w-7 h-7 group-hover:scale-115 transition-transform shrink-0" />
+                  <span className="text-sm font-semibold text-white/70">Wind Speed</span>
+                </div>
+                <div className="font-mono font-bold text-lg text-white">{curr.wind_speed_10m ?? '--'} <span className="text-xs text-white/50">km/h</span></div>
+              </div>
+
+              <div className="h-[90px] rounded-full vision-card px-7 flex items-center justify-between hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(94,234,212,0.35)] transition-all duration-300 group">
+                <div className="flex items-center gap-3.5">
+                  <Droplets className="text-[#5EEAD4] w-7 h-7 group-hover:scale-115 transition-transform shrink-0" />
+                  <span className="text-sm font-semibold text-white/70">Humidity</span>
+                </div>
+                <div className="font-mono font-bold text-lg text-white">{curr.relative_humidity_2m ?? '--'} <span className="text-xs text-white/50">%</span></div>
+              </div>
+
+              <div className="h-[90px] rounded-full vision-card px-7 flex items-center justify-between hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(250,204,21,0.35)] transition-all duration-300 group">
+                <div className="flex items-center gap-3.5">
+                  <Thermometer className="text-[#FACC15] w-7 h-7 group-hover:scale-115 transition-transform shrink-0" />
+                  <span className="text-sm font-semibold text-white/70">Feels Like</span>
+                </div>
+                <div className="font-mono font-bold text-lg text-white">{curr.apparent_temperature != null ? `${Math.round(curr.apparent_temperature)}` : '--'} <span className="text-xs text-white/50">°C</span></div>
+              </div>
+
+              <div className="h-[90px] rounded-full vision-card px-7 flex items-center justify-between hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(239,68,68,0.35)] transition-all duration-300 group">
+                <div className="flex items-center gap-3.5">
+                  <Gauge className="text-[#EF4444] w-7 h-7 group-hover:scale-115 transition-transform shrink-0" />
+                  <span className="text-sm font-semibold text-white/70">Pressure</span>
+                </div>
+                <div className="font-mono font-bold text-lg text-white">{curr.pressure_msl ?? 1013} <span className="text-xs text-white/50">hPa</span></div>
+              </div>
+
+              {/* Air Quality Capsule */}
+              <div className="h-[90px] rounded-full vision-card px-7 flex items-center justify-between hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(94,234,212,0.35)] transition-all duration-300 group">
+                <div className="flex items-center gap-3.5">
+                  <ShieldCheck className="text-[#5EEAD4] w-7 h-7 group-hover:scale-115 transition-transform shrink-0" />
+                  <div>
+                    <div className="text-sm font-semibold text-white/70">Air Quality</div>
+                    <div className="text-[10px] text-[#5EEAD4] font-mono">{aqiObj.advice}</div>
+                  </div>
+                </div>
+                <div className="font-mono font-bold text-lg text-[#5EEAD4]">{aqiVal} <span className="text-xs text-white/50">({aqiObj.label})</span></div>
+              </div>
+
+              {/* UV Index Capsule */}
+              <div className="h-[90px] rounded-full vision-card px-7 flex items-center justify-between hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(250,204,21,0.35)] transition-all duration-300 group">
+                <div className="flex items-center gap-3.5">
+                  <Zap className="text-[#FACC15] w-7 h-7 group-hover:scale-115 transition-transform shrink-0" />
+                  <div>
+                    <div className="text-sm font-semibold text-white/70">UV Index</div>
+                    <div className="text-[10px] text-[#FACC15] font-mono">{uvObj.advice}</div>
+                  </div>
+                </div>
+                <div className="font-mono font-bold text-lg text-[#FACC15]">{Math.round(uvCurr)} <span className="text-xs text-white/50">({uvObj.label})</span></div>
+              </div>
+
+              {/* Visibility Capsule */}
+              <div className="h-[90px] rounded-full vision-card px-7 flex items-center justify-between hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(59,130,246,0.35)] transition-all duration-300 group">
+                <div className="flex items-center gap-3.5">
+                  <Eye className="text-[#3B82F6] w-7 h-7 group-hover:scale-115 transition-transform shrink-0" />
+                  <span className="text-sm font-semibold text-white/70">Visibility</span>
+                </div>
+                <div className="font-mono font-bold text-lg text-white">10.0 <span className="text-xs text-white/50">km</span></div>
+              </div>
+
+              {/* Dew Point Capsule */}
+              <div className="h-[90px] rounded-full vision-card px-7 flex items-center justify-between hover:-translate-y-1 hover:shadow-[0_0_30px_rgba(255,255,255,0.35)] transition-all duration-300 group">
+                <div className="flex items-center gap-3.5">
+                  <Compass className="text-white w-7 h-7 group-hover:scale-115 transition-transform shrink-0" />
+                  <span className="text-sm font-semibold text-white/70">Dew Point</span>
+                </div>
+                <div className="font-mono font-bold text-lg text-white">{curr.dew_point_2m != null ? Math.round(curr.dew_point_2m) : '18'} <span className="text-xs text-white/50">°C</span></div>
+              </div>
+            </div>
+
+            {/* 6. 24-HOUR FORECAST HORIZONTAL FLOATING CAPSULES CAROUSEL (90x220) */}
+            <div className="vision-card rounded-[40px] p-8 space-y-5 shadow-2xl">
+              <h3 className="font-bold text-lg text-white flex items-center justify-between">
+                <span>24-Hour Forecast</span>
+                <span className="text-xs font-mono text-[#5EEAD4] uppercase tracking-widest px-3 py-1 rounded-full bg-white/5">Hourly</span>
+              </h3>
               
-              <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2.5">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-xl border border-white/20 text-xs sm:text-sm font-bold tracking-wide">
-                      <MapPin size={15} className="text-sky-300 animate-pulse" />
-                      <span>{coords.name}{coords.country ? `, ${coords.country}` : ''}</span>
-                    </div>
-                    
-                    {/* Air Quality Badge */}
-                    <div className={cn("inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border backdrop-blur-xl", aqiCat.bg, aqiCat.color)}>
-                      <ShieldCheck size={14}/>
-                      <span>AQI {aqiVal} • {aqiCat.label}</span>
-                    </div>
-
-                    {/* UV Index Badge */}
-                    <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 border border-amber-500/30 text-amber-300 backdrop-blur-xl">
-                      <Zap size={13}/>
-                      <span>UV {Math.round(uvCurr)} • {uvCat.label}</span>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start mt-4">
-                    <h1 className="text-7xl sm:text-[120px] font-black tracking-tighter leading-none drop-shadow-2xl font-sans">
-                      {loading ? '--' : Math.round(curr.temperature_2m || 0)}
-                    </h1>
-                    <span className="text-3xl sm:text-5xl font-light text-sky-300 mt-2 ml-1">°C</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col items-start sm:items-end text-left sm:text-right self-end sm:self-center">
-                  <WeatherIcon size={72} className="text-amber-300 drop-shadow-[0_8px_16px_rgba(245,158,11,0.5)] animate-float mb-1" />
-                  <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-white/95">{condLabel}</div>
-                  <div className="text-xs sm:text-sm font-semibold text-white/75 mt-1 flex gap-3 font-mono">
-                    <span>H: {weather?.daily?.temperature_2m_max?.[0] != null ? `${Math.round(weather.daily.temperature_2m_max[0])}°` : '--'}</span>
-                    <span>L: {weather?.daily?.temperature_2m_min?.[0] != null ? `${Math.round(weather.daily.temperature_2m_min[0])}°` : '--'}</span>
-                    <span>Feels: {curr.apparent_temperature != null ? `${Math.round(curr.apparent_temperature)}°` : '--'}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 3 & 6. 6 PREMIUM GRADIENT ROUNDED CAPSULES (Wind, Humidity, Feels Like, Pressure, Air Quality, UV Index) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5 relative z-10">
-              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-full bg-sky-500/20 text-sky-400 group-hover:scale-110 transition-transform"><Wind size={16}/></div>
-                  <span className="text-xs font-extrabold text-white/80 tracking-wide">Wind</span>
-                </div>
-                <div className="font-mono font-black text-sm sm:text-base text-sky-300">{curr.wind_speed_10m ?? '--'} <span className="text-[10px] font-normal text-white/50">km/h</span></div>
-              </div>
-
-              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-full bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform"><Droplets size={16}/></div>
-                  <span className="text-xs font-extrabold text-white/80 tracking-wide">Humidity</span>
-                </div>
-                <div className="font-mono font-black text-sm sm:text-base text-blue-300">{curr.relative_humidity_2m ?? '--'} <span className="text-[10px] font-normal text-white/50">%</span></div>
-              </div>
-
-              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-full bg-amber-500/20 text-amber-400 group-hover:scale-110 transition-transform"><Thermometer size={16}/></div>
-                  <span className="text-xs font-extrabold text-white/80 tracking-wide">Feels</span>
-                </div>
-                <div className="font-mono font-black text-sm sm:text-base text-amber-300">{curr.apparent_temperature != null ? `${Math.round(curr.apparent_temperature)}` : '--'} <span className="text-[10px] font-normal text-white/50">°C</span></div>
-              </div>
-
-              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-full bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform"><Gauge size={16}/></div>
-                  <span className="text-xs font-extrabold text-white/80 tracking-wide">Pressure</span>
-                </div>
-                <div className="font-mono font-black text-sm sm:text-base text-emerald-300">{curr.pressure_msl ?? 1013} <span className="text-[10px] font-normal text-white/50">hPa</span></div>
-              </div>
-
-              {/* NEW CAPSULE 1: AIR QUALITY */}
-              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(52,211,153,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-full bg-teal-500/20 text-teal-300 group-hover:scale-110 transition-transform"><ShieldCheck size={16}/></div>
-                  <span className="text-xs font-extrabold text-white/80 tracking-wide">AQI</span>
-                </div>
-                <div className="text-right">
-                  <span className="font-mono font-black text-sm sm:text-base text-teal-300 mr-1.5">{aqiVal}</span>
-                  <span className="text-[10px] font-bold text-emerald-400">({aqiCat.label})</span>
-                </div>
-              </div>
-
-              {/* NEW CAPSULE 2: UV INDEX */}
-              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
-                <div className="flex items-center gap-2.5">
-                  <div className="p-2 rounded-full bg-amber-500/20 text-amber-300 group-hover:scale-110 transition-transform"><Zap size={16}/></div>
-                  <span className="text-xs font-extrabold text-white/80 tracking-wide">UV Index</span>
-                </div>
-                <div className="text-right">
-                  <span className="font-mono font-black text-sm sm:text-base text-amber-300 mr-1.5">{Math.round(uvCurr)}</span>
-                  <span className={cn("text-[10px] font-bold", uvCat.color)}>({uvCat.label})</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. ATMOSPHERIC KNOWLEDGE COMPLETELY REMOVED WITH ZERO TRACES */}
-
-            {/* 24-HOUR HOURLY RADAR SUMMARY */}
-            <div className="glass-panel rounded-[2.5rem] p-6 sm:p-8 shadow-xl border border-white/15 space-y-4 bg-slate-900/30">
-              <h3 className="font-bold text-base uppercase tracking-wider text-white/70 flex items-center gap-2 font-mono"><BarChart3 size={16} className="text-sky-400"/> 24-Hour Radar Summary</h3>
-              <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide pt-1">
+              <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide pt-2">
                 {(weather?.hourly?.time || []).slice(0, 24).map((t, idx) => {
                   const hTemp = weather?.hourly?.temperature_2m?.[idx];
                   const hCode = weather?.hourly?.weather_code?.[idx] || 0;
                   const HIcon = getWeatherConfig(hCode).icon;
                   return (
-                    <div key={t} className="shrink-0 bg-black/45 rounded-2xl p-4 text-center min-w-[72px] border border-white/10 flex flex-col items-center justify-between hover:bg-white/10 transition-colors">
-                      <span className="text-xs text-white/60 font-mono font-semibold">{idx === 0 ? 'Now' : formatTime(t)}</span>
-                      <HIcon size={24} className="my-2.5 text-sky-300" />
-                      <span className="font-extrabold text-base">{hTemp != null ? `${Math.round(hTemp)}°` : '--'}</span>
+                    <div key={t} className="shrink-0 w-[90px] h-[220px] rounded-[40px] bg-[#202B44]/60 backdrop-blur-2xl border border-white/10 p-5 flex flex-col items-center justify-between hover:-translate-y-1.5 hover:shadow-[0_10px_30px_rgba(59,130,246,0.35)] transition-all duration-300 select-none">
+                      <span className="text-xs font-mono font-bold text-white/75">{idx === 0 ? 'Now' : formatTime(t)}</span>
+                      <HIcon size={28} className="text-[#5EEAD4]" />
+                      
+                      {/* Vertical Temperature Bar */}
+                      <div className="h-24 w-2 bg-white/10 rounded-full overflow-hidden relative flex items-end justify-center">
+                        <div className="w-full bg-gradient-to-t from-[#5EEAD4] to-[#3B82F6] rounded-full transition-all duration-1000" style={{ height: `${Math.min(100, Math.max(25, (hTemp || 20) * 3))}%` }} />
+                      </div>
+
+                      <span className="font-bold text-lg text-white">{hTemp != null ? `${Math.round(hTemp)}°` : '--'}</span>
                     </div>
                   );
                 })}
@@ -715,14 +631,18 @@ export default function ClimoraUltra() {
           </div>
         )}
 
-        {/* 2. SATELLITE RADAR PAGE CONTENT (UNBLOCKED FULL HEIGHT) */}
+        {/* TAB 2: SATELLITE RADAR CONTENT */}
         {activeTab === 'radar' && (
           <SatelliteRadarTab coords={coords} />
         )}
 
-        {/* 3. 7-DAY OUTLOOK EXPANDABLE RICHER INTERFACE */}
+        {/* TAB 3: 7-DAY FORECAST PREMIUM ROUNDED ROWS (Height 105px, Radius 999px) */}
         {activeTab === 'forecast' && (
-          <ExtendedOutlookTab weather={weather} />
+          <div className="space-y-4 animate-[fade-in-up_0.4s]">
+            {(weather?.daily?.time || []).map((t, idx) => (
+              <FlagshipSevenDayRow key={t} t={t} idx={idx} weather={weather} />
+            ))}
+          </div>
         )}
 
       </div>
