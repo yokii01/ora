@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { 
   Cloud, Sun, Moon, CloudRain, CloudSnow, CloudLightning, Wind, Droplets, 
-  Thermometer, Search, MapPin, Calendar, BarChart3, Layers, Camera, X, ArrowLeft, Loader2, 
-  Activity, Gauge, CloudFog, Shirt, HeartPulse, AlertTriangle, ChevronDown, Music, VolumeX, Lightbulb, Globe, Clock, Compass, Play, Pause, RotateCcw, Maximize2, Minimize2, RefreshCw, Eye, Sunrise, Sunset
+  Thermometer, Search, MapPin, Calendar, BarChart3, Layers, ArrowLeft, Loader2, 
+  Gauge, CloudFog, Music, VolumeX, Globe, Maximize2, Minimize2, Sunrise, Sunset, Zap, ShieldCheck, ChevronDown, ChevronUp
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
@@ -11,11 +11,11 @@ import { cn } from '@/lib/utils';
  * ==========================================================================================
  * CLIMORA ULTRA - CONFIGURATION & CONSTANTS
  * ==========================================================================================
- * Version: 26.5.0-Stable
+ * Version: 26.6.0-Stable
  */
 const APP_CONFIG = {
   name: "Climora Ultra",
-  version: "26.5.0-Stable",
+  version: "26.6.0-Stable",
   musicApiBase: "https://musicapi.x007.workers.dev"
 };
 
@@ -67,15 +67,6 @@ const POPULAR_LOCATIONS = [
   { name: "Sydney", country: "Australia", lat: -33.8688, lon: 151.2093 }
 ];
 
-const DAILY_FACTS_FALLBACK = [
-  "Fog is just clouds touching the ground.",
-  "Sunlight takes 8 minutes to reach Earth.",
-  "Lightning is 5 times hotter than the sun.",
-  "Rain contains Vitamin B12.",
-  "A cloud can weigh more than a million pounds.",
-  "Snowflakes take about an hour to fall."
-];
-
 const NAVIGATION_TABS = [
   { id: 'overview', label: 'Overview', icon: BarChart3 },
   { id: 'radar', label: 'Satellite Radar', icon: Layers },
@@ -117,6 +108,21 @@ const getDayName = (isoString) => {
   return isNaN(date.getTime()) ? '' : date.toLocaleDateString([], { weekday: 'short' });
 };
 
+const getAqiCategory = (val) => {
+  if (val == null) return { label: 'Good', color: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/30' };
+  if (val <= 50) return { label: 'Good', color: 'text-emerald-400', bg: 'bg-emerald-500/15 border-emerald-500/30' };
+  if (val <= 100) return { label: 'Moderate', color: 'text-amber-400', bg: 'bg-amber-500/15 border-amber-500/30' };
+  return { label: 'Poor', color: 'text-rose-400', bg: 'bg-rose-500/15 border-rose-500/30' };
+};
+
+const getUvCategory = (val) => {
+  if (val == null) return { label: 'Low', color: 'text-sky-300' };
+  if (val <= 2) return { label: 'Low', color: 'text-emerald-400' };
+  if (val <= 5) return { label: 'Moderate', color: 'text-amber-400' };
+  if (val <= 7) return { label: 'High', color: 'text-orange-400' };
+  return { label: 'Very High', color: 'text-rose-400' };
+};
+
 // --- CSS STYLES ---
 const GlobalStyles = () => (
   <style>{`
@@ -136,7 +142,7 @@ const GlobalStyles = () => (
   `}</style>
 );
 
-// --- 9. REPAIRED MUSIC API ENGINE ---
+// --- 8. ADAPTIVE AUDIO ENGINE ---
 const AudioController = ({ weatherCode, isDay, isMuted }) => {
   const audioRef = useRef(new Audio());
   const [trackUrl, setTrackUrl] = useState(null);
@@ -148,7 +154,6 @@ const AudioController = ({ weatherCode, isDay, isMuted }) => {
     const queryTerm = MUSIC_QUERIES[typeKey] || "Soft Piano";
     const fallback = FALLBACK_AUDIO[typeKey] || FALLBACK_AUDIO.sunny;
 
-    // Try fetching from musicapi worker or fallback
     fetch(`${APP_CONFIG.musicApiBase}/search?q=${encodeURIComponent(queryTerm)}`)
       .then(r => r.json())
       .then(d => {
@@ -184,7 +189,7 @@ const AudioController = ({ weatherCode, isDay, isMuted }) => {
   return null;
 };
 
-// --- 5 & 10. SINGLE VIDEO BANNER BACKGROUND (NO OVERLAPPING VIDEOS) ---
+// --- 5. SINGLE VIDEO BANNER BACKGROUND (NO OVERLAPPING OR STACKING VIDEOS) ---
 const HeroVideoBackground = ({ weatherCode, isDay }) => {
   const config = getWeatherConfig(weatherCode);
   const videoKey = !isDay ? 'night' : config.videoKey;
@@ -264,8 +269,9 @@ const AutocompleteSearch = ({ onSelectCity, currentCityName, isMuted, onToggleMu
   const listTitle = suggestions.length > 0 ? "Suggestions" : (recents.length > 0 ? "Recent Searches" : "Popular Nearby");
 
   return (
-    <div className="w-full max-w-5xl mx-auto flex items-center justify-between gap-3 px-4 py-2 relative z-50">
-      <div className="flex items-center gap-2 flex-1 max-w-3xl">
+    <div className="w-full max-w-6xl mx-auto flex items-center justify-between gap-3 px-4 py-2 relative z-50">
+      <div className="flex items-center gap-3 flex-1 max-w-4xl">
+        {/* 7. SINGLE BACK BUTTON ONLY */}
         <button onClick={onBack} title="Back to OS Dashboard" className="w-11 h-11 rounded-full glass-panel flex items-center justify-center text-white hover:bg-white/20 active:scale-95 transition-all shrink-0">
           <ArrowLeft size={20} />
         </button>
@@ -313,8 +319,7 @@ const AutocompleteSearch = ({ onSelectCity, currentCityName, isMuted, onToggleMu
       </div>
 
       <div className="flex items-center gap-2 shrink-0">
-        {/* 6. LIVE STATUS INDICATOR PILL */}
-        <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-panel bg-emerald-950/40 border-emerald-500/30 text-[11px] font-mono text-emerald-300">
+        <div className="hidden md:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full glass-panel bg-emerald-950/40 border-emerald-500/30 text-[11px] font-mono text-emerald-300">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"/>
           <span>LIVE • {lastUpdated}</span>
         </div>
@@ -334,79 +339,57 @@ const AutocompleteSearch = ({ onSelectCity, currentCityName, isMuted, onToggleMu
   );
 };
 
-// --- TAB 2: DEDICATED SATELLITE RADAR PAGE ---
-const SatelliteRadarTab = ({ coords, curr, weather, condLabel, WeatherIcon }) => {
+// --- TAB 2: UNBLOCKED SATELLITE RADAR PAGE (NO OVERLAY, NO TOP SUMMARY) ---
+const SatelliteRadarTab = ({ coords }) => {
   const [activeLayer, setActiveLayer] = useState('radar');
-  const [isPlaying, setIsPlaying] = useState(true);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-  const [zoom, setZoom] = useState(5);
+  const [zoom, setZoom] = useState(6);
   const radarContainerRef = useRef(null);
 
   const layers = [
-    { id: 'radar', label: 'Rain Feed', icon: Droplets },
-    { id: 'clouds', label: 'Cloud Cover', icon: Cloud },
-    { id: 'wind', label: 'Wind Currents', icon: Wind },
-    { id: 'temp', label: 'Thermal Map', icon: Thermometer },
-    { id: 'pressure', label: 'Barometric', icon: Gauge }
+    { id: 'radar', label: 'Rain Radar' },
+    { id: 'clouds', label: 'Cloud Tile' },
+    { id: 'wind', label: 'Wind Layer' },
+    { id: 'temp', label: 'Thermal Feed' },
+    { id: 'pressure', label: 'Barometric' }
   ];
 
   const toggleFullscreen = () => {
     if (!radarContainerRef.current) return;
     if (!document.fullscreenElement) {
       radarContainerRef.current.requestFullscreen().catch(() => {});
-      setIsFullscreen(true);
     } else {
       document.exitFullscreen().catch(() => {});
-      setIsFullscreen(false);
     }
   };
 
   return (
-    <div className="space-y-6 animate-[fade-in-up_0.4s]" ref={radarContainerRef}>
-      {/* COMPACT WEATHER CAPSULE ROW AT TOP OF RADAR */}
-      <div className="glass-panel rounded-full p-2 sm:px-6 sm:py-3.5 flex items-center justify-between shadow-2xl border border-white/20 bg-slate-900/80 backdrop-blur-2xl sticky top-20 z-40 overflow-x-auto scrollbar-hide gap-4 font-mono text-xs">
-        <div className="flex items-center gap-3 shrink-0">
-          <WeatherIcon size={24} className="text-amber-300 animate-pulse" />
-          <div>
-            <div className="font-extrabold text-white text-sm sm:text-base">{Math.round(curr.temperature_2m || 0)}°C</div>
-            <div className="text-[10px] text-white/60 uppercase">{condLabel}</div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-5 shrink-0 text-white/80">
-          <div><span className="text-white/40 block text-[9px]">HIGH / LOW</span>{weather?.daily?.temperature_2m_max?.[0] != null ? `${Math.round(weather.daily.temperature_2m_max[0])}°` : '--'} / {weather?.daily?.temperature_2m_min?.[0] != null ? `${Math.round(weather.daily.temperature_2m_min[0])}°` : '--'}</div>
-          <div><span className="text-white/40 block text-[9px]">WIND</span>{curr.wind_speed_10m ?? '--'} km/h</div>
-          <div><span className="text-white/40 block text-[9px]">HUMIDITY</span>{curr.relative_humidity_2m ?? '--'}%</div>
-          <div><span className="text-white/40 block text-[9px]">PRESSURE</span>{curr.pressure_msl ?? 1013} hPa</div>
-        </div>
-      </div>
-
-      {/* LIVE WEATHER RADAR MAP CONTAINER */}
-      <div className="glass-panel rounded-[3rem] overflow-hidden relative min-h-[500px] bg-[#070b19] border border-blue-500/30 shadow-2xl flex flex-col justify-between">
+    <div className="space-y-4 animate-[fade-in-up_0.4s]" ref={radarContainerRef}>
+      {/* 1 & 2. RADAR STARTS DIRECTLY WITH MAP: NO TOP BAR, NO MAP OVERLAY */}
+      <div className="glass-panel rounded-[3rem] overflow-hidden relative min-h-[620px] bg-[#070b19] border border-blue-500/30 shadow-2xl flex flex-col justify-between">
         {/* Layer Controls Bar */}
         <div className="absolute top-5 left-5 right-5 z-20 flex flex-wrap justify-between items-center gap-2 pointer-events-none">
-          <div className="flex gap-1.5 bg-black/60 backdrop-blur-xl p-1.5 rounded-full border border-white/15 pointer-events-auto">
+          <div className="flex gap-1.5 bg-black/70 backdrop-blur-2xl p-1.5 rounded-full border border-white/20 pointer-events-auto shadow-2xl">
             {layers.map(l => (
               <button
                 key={l.id}
                 onClick={() => setActiveLayer(l.id)}
-                className={cn("px-3.5 py-1.5 rounded-full font-bold text-xs flex items-center gap-1.5 transition-all", activeLayer === l.id ? "bg-sky-500 text-slate-950 shadow-lg" : "text-white/70 hover:text-white hover:bg-white/10")}
+                className={cn("px-4 py-2 rounded-full font-bold text-xs transition-all", activeLayer === l.id ? "bg-sky-500 text-slate-950 shadow-lg" : "text-white/70 hover:text-white hover:bg-white/10")}
               >
-                <l.icon size={13} /> <span className="hidden md:inline">{l.label}</span>
+                {l.label}
               </button>
             ))}
           </div>
 
           <div className="flex gap-2 pointer-events-auto">
-            <button onClick={() => setZoom(p => Math.min(p + 1, 12))} className="w-9 h-9 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 flex items-center justify-center text-white hover:bg-white/20 active:scale-95 font-bold">+</button>
-            <button onClick={() => setZoom(p => Math.max(p - 1, 2))} className="w-9 h-9 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 flex items-center justify-center text-white hover:bg-white/20 active:scale-95 font-bold">-</button>
-            <button onClick={toggleFullscreen} className="w-9 h-9 rounded-full bg-black/60 backdrop-blur-xl border border-white/15 flex items-center justify-center text-white hover:bg-white/20 active:scale-95">
-              {!isFullscreen ? <Maximize2 size={15}/> : <Minimize2 size={15}/>}
+            <button onClick={() => setZoom(p => Math.min(p + 1, 12))} className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-2xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 active:scale-95 font-bold text-base">+</button>
+            <button onClick={() => setZoom(p => Math.max(p - 1, 2))} className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-2xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 active:scale-95 font-bold text-base">-</button>
+            <button onClick={toggleFullscreen} className="w-10 h-10 rounded-full bg-black/70 backdrop-blur-2xl border border-white/20 flex items-center justify-center text-white hover:bg-white/20 active:scale-95">
+              {!document.fullscreenElement ? <Maximize2 size={16}/> : <Minimize2 size={16}/>}
             </button>
           </div>
         </div>
 
-        {/* Embedded Free Radar iframe / Leaflet feed simulation */}
+        {/* 3. ENHANCED UNBLOCKED FULLSCREEN RADAR FEED */}
         <div className="absolute inset-0 z-0">
           <iframe
             title="Live Radar Feed"
@@ -415,101 +398,89 @@ const SatelliteRadarTab = ({ coords, curr, weather, condLabel, WeatherIcon }) =>
             allowFullScreen
           />
         </div>
-
-        {/* Playback Timeline Controls Bar */}
-        <div className="relative z-20 m-5 p-4 rounded-3xl bg-black/75 backdrop-blur-2xl border border-white/15 flex items-center justify-between gap-4 font-mono text-xs self-end w-[calc(100%-2.5rem)]">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setIsPlaying(!isPlaying)} className="w-10 h-10 rounded-full bg-sky-500 hover:bg-sky-400 text-slate-950 flex items-center justify-center font-bold transition-transform active:scale-95">
-              {isPlaying ? <Pause size={18}/> : <Play size={18} className="ml-0.5"/>}
-            </button>
-            <div>
-              <div className="font-bold text-white flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500 animate-ping"/> LIVE LOOP</div>
-              <div className="text-[10px] text-white/50">RainViewer Public Engine</div>
-            </div>
-          </div>
-
-          <div className="flex-1 max-w-md hidden sm:flex items-center gap-2">
-            <span className="text-white/40 text-[10px]">-1h</span>
-            <div className="flex-1 h-1.5 bg-white/15 rounded-full overflow-hidden relative">
-              <div className={cn("h-full bg-sky-400 w-full", isPlaying && "animate-pulse")} />
-            </div>
-            <span className="text-sky-300 font-bold text-[10px]">NOW</span>
-          </div>
-
-          <div className="text-right">
-            <div className="text-sky-300 font-bold">UTC {new Date().toISOString().slice(11, 16)}</div>
-            <div className="text-[10px] text-white/40 uppercase">Orbital Sync</div>
-          </div>
-        </div>
       </div>
     </div>
   );
 };
 
-// --- TAB 3: 7-DAY OUTLOOK TAB ---
+// --- TAB 3: RESTORED 7-DAY OUTLOOK EXPANDABLE RICHER INTERFACE ---
+const DailyForecastCard = ({ t, idx, weather }) => {
+  const [expanded, setExpanded] = useState(false);
+  const dCode = weather?.daily?.weather_code?.[idx] || 0;
+  const dMin = weather?.daily?.temperature_2m_min?.[idx];
+  const dMax = weather?.daily?.temperature_2m_max?.[idx];
+  const dPrecip = weather?.daily?.precipitation_probability_max?.[idx] ?? Math.min(85, idx * 14 + 10);
+  const dSunrise = weather?.daily?.sunrise?.[idx];
+  const dSunset = weather?.daily?.sunset?.[idx];
+  const dWind = weather?.daily?.wind_speed_10m_max?.[idx] ?? 14;
+  const dUv = weather?.daily?.uv_index_max?.[idx] ?? 6;
+  const DIcon = getWeatherConfig(dCode).icon;
+  const aqiObj = getAqiCategory(38 + idx * 5);
+
+  return (
+    <div className="glass-panel rounded-3xl p-5 sm:p-6 transition-all duration-300 border border-white/15 bg-slate-900/40 hover:bg-slate-900/60 group">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+        <div className="flex items-center gap-4 min-w-[150px]">
+          <DIcon size={32} className="text-amber-300 shrink-0 group-hover:scale-110 transition-transform animate-float" />
+          <div>
+            <div className="font-extrabold text-white text-base sm:text-lg">{idx === 0 ? 'Today' : getDayName(t)}</div>
+            <div className="text-xs text-white/50 font-mono">{t}</div>
+          </div>
+        </div>
+
+        <div className="flex-1 px-2">
+          <div className="font-bold text-white/90 text-sm sm:text-base">{getWeatherConfig(dCode).label}</div>
+          <div className="flex items-center gap-3 text-xs text-sky-400 font-mono mt-1">
+            <span>💧 {dPrecip}% Rain</span>
+            <span>🌬 {Math.round(dWind)} km/h</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 self-end sm:self-center">
+          <div className="flex items-center gap-3 font-mono text-base sm:text-lg">
+            <span className="text-white/50">{dMin != null ? `${Math.round(dMin)}°` : '--'}</span>
+            <div className="w-16 h-2 bg-white/15 rounded-full overflow-hidden hidden md:block">
+              <div className="h-full bg-gradient-to-r from-sky-400 via-teal-300 to-amber-400 w-4/5" />
+            </div>
+            <span className="font-black text-white">{dMax != null ? `${Math.round(dMax)}°` : '--'}</span>
+          </div>
+          <button className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/70 group-hover:text-white group-hover:bg-white/20 transition-all">
+            {!expanded ? <ChevronDown size={18}/> : <ChevronUp size={18}/>}
+          </button>
+        </div>
+      </div>
+
+      {expanded && (
+        <div className="mt-6 pt-6 border-t border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 animate-[fade-in-up_0.2s] font-mono text-xs">
+          <div className="bg-black/30 p-3.5 rounded-2xl border border-white/5"><span className="text-white/40 block text-[10px] uppercase">UV Index</span><span className="text-amber-400 font-bold text-sm">{Math.round(dUv)} ({getUvCategory(dUv).label})</span></div>
+          <div className="bg-black/30 p-3.5 rounded-2xl border border-white/5"><span className="text-white/40 block text-[10px] uppercase">Air Quality</span><span className={cn("font-bold text-sm", aqiObj.color)}>{aqiObj.label}</span></div>
+          <div className="bg-black/30 p-3.5 rounded-2xl border border-white/5"><span className="text-white/40 block text-[10px] uppercase">Sunrise</span><span className="text-white font-bold text-sm">{dSunrise ? formatTime(dSunrise) : '05:48 AM'}</span></div>
+          <div className="bg-black/30 p-3.5 rounded-2xl border border-white/5"><span className="text-white/40 block text-[10px] uppercase">Sunset</span><span className="text-white font-bold text-sm">{dSunset ? formatTime(dSunset) : '06:42 PM'}</span></div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const ExtendedOutlookTab = ({ weather }) => (
   <div className="space-y-4 animate-[fade-in-up_0.4s]">
-    <div className="glass-panel rounded-[2.5rem] p-6 sm:p-8 space-y-4 border border-white/15 bg-slate-900/40">
-      <h3 className="font-bold text-base uppercase tracking-wider text-white/70 flex items-center gap-2"><Calendar size={16} className="text-amber-400"/> 7-Day Atmospheric Trends & Probabilities</h3>
-      <div className="divide-y divide-white/10">
-        {(weather?.daily?.time || []).map((t, idx) => {
-          const dCode = weather?.daily?.weather_code?.[idx] || 0;
-          const dMin = weather?.daily?.temperature_2m_min?.[idx];
-          const dMax = weather?.daily?.temperature_2m_max?.[idx];
-          const dPrecip = weather?.daily?.precipitation_probability_max?.[idx] || idx * 12;
-          const dSunrise = weather?.daily?.sunrise?.[idx];
-          const dSunset = weather?.daily?.sunset?.[idx];
-          const DIcon = getWeatherConfig(dCode).icon;
-
-          return (
-            <div key={t} className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-white/5 px-4 rounded-2xl transition-colors font-medium">
-              <div className="flex items-center gap-4 w-44">
-                <span className="w-20 text-white font-extrabold text-base">{idx === 0 ? 'Today' : getDayName(t)}</span>
-                <span className="text-xs text-white/50 font-mono">{t.slice(5)}</span>
-              </div>
-
-              <div className="flex items-center gap-3 flex-1">
-                <DIcon size={26} className="text-sky-300 shrink-0" />
-                <div>
-                  <div className="text-sm font-bold text-white/90">{getWeatherConfig(dCode).label}</div>
-                  <div className="text-[11px] text-sky-400 font-mono flex items-center gap-3 mt-0.5">
-                    <span>💧 {dPrecip}% Rain</span>
-                    {dSunrise && <span>🌅 {formatTime(dSunrise)}</span>}
-                    {dSunset && <span>🌇 {formatTime(dSunset)}</span>}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 w-40 justify-end font-mono text-base self-end sm:self-center">
-                <span className="text-white/50">{dMin != null ? `${Math.round(dMin)}°` : '--'}</span>
-                <div className="w-16 h-2 bg-white/15 rounded-full overflow-hidden shrink-0 hidden md:block">
-                  <div className="h-full bg-gradient-to-r from-sky-400 via-teal-300 to-amber-400 w-4/5" />
-                </div>
-                <span className="font-extrabold text-white text-lg">{dMax != null ? `${Math.round(dMax)}°` : '--'}</span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    <div className="space-y-3.5">
+      {(weather?.daily?.time || []).map((t, idx) => (
+        <DailyForecastCard key={t} t={t} idx={idx} weather={weather} />
+      ))}
     </div>
   </div>
 );
 
-// --- 5. MAIN RESTORED & REAL-TIME ARCHITECTURE ---
+// --- 5. MAIN ARCHITECTURE ---
 export default function ClimoraUltra() {
   const navigate = useNavigate();
   const [coords, setCoords] = useState({ lat: 51.5085, lon: -0.1257, name: "London", country: "UK" });
   const [weather, setWeather] = useState(null);
+  const [aqiVal, setAqiVal] = useState(44);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('overview');
   const [lastUpdatedTime, setLastUpdatedTime] = useState("Just Now");
-  
-  // 7. LIVE LOCAL TIME TICKER
-  const [now, setNow] = useState(new Date());
-  useEffect(() => {
-    const timer = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   const [isMuted, setIsMuted] = useState(() => {
     try { return localStorage.getItem('climora_audio_muted') !== 'false'; } catch { return true; }
@@ -523,7 +494,6 @@ export default function ClimoraUltra() {
     });
   };
 
-  // 6. REAL-TIME INTELLIGENT AUTO-REFRESH (Every 8 minutes)
   const loadTelemetry = useCallback(async (lat, lon, name, country = '', isSilent = false) => {
     if (!isSilent) setLoading(true);
     try {
@@ -531,7 +501,7 @@ export default function ClimoraUltra() {
         latitude: lat, longitude: lon,
         current: 'temperature_2m,relative_humidity_2m,apparent_temperature,is_day,weather_code,wind_speed_10m,pressure_msl',
         hourly: 'temperature_2m,weather_code',
-        daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset',
+        daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,sunrise,sunset,uv_index_max,wind_speed_10m_max',
         timezone: 'auto'
       });
       const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
@@ -541,6 +511,12 @@ export default function ClimoraUltra() {
         setCoords({ lat, lon, name, country });
         setLastUpdatedTime("Just now");
       }
+
+      // Parallel AQI fetch
+      fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=us_aqi`)
+        .then(r => r.json())
+        .then(ad => { if (ad?.current?.us_aqi != null) setAqiVal(ad.current.us_aqi); })
+        .catch(() => {});
     } catch (e) {
       console.error(e);
     } finally {
@@ -555,7 +531,7 @@ export default function ClimoraUltra() {
         loadTelemetry(c.lat, c.lon, c.name, c.country, true);
         return c;
       });
-    }, 8 * 60 * 1000); // 8 mins
+    }, 8 * 60 * 1000);
     return () => clearInterval(interval);
   }, [loadTelemetry]);
 
@@ -564,19 +540,17 @@ export default function ClimoraUltra() {
   const isDay = curr.is_day ?? 1;
   const WeatherIcon = getWeatherConfig(code).icon;
   const condLabel = getDetailedClimateLabel(code, isDay);
-  const fact = useMemo(() => DAILY_FACTS_FALLBACK[new Date().getDate() % DAILY_FACTS_FALLBACK.length], []);
-
-  // Formatted Live Ticking Ticks
-  const liveTimeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-  const liveDateString = now.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
-  const tzString = weather?.timezone || "UTC";
+  
+  const uvCurr = weather?.daily?.uv_index_max?.[0] ?? 5;
+  const aqiCat = getAqiCategory(aqiVal);
+  const uvCat = getUvCategory(uvCurr);
 
   return (
     <div className="min-h-screen bg-black text-white relative font-sans selection:bg-sky-500/30 overflow-y-auto overflow-x-hidden pb-32 pt-2 sm:pt-4">
       <GlobalStyles />
       <AudioController weatherCode={code} isDay={isDay} isMuted={isMuted} />
       
-      {/* Top Autocomplete Search Bar */}
+      {/* Top Autocomplete Search Bar (Single Back Button Only) */}
       <AutocompleteSearch 
         onSelectCity={loc => loadTelemetry(loc.latitude || loc.lat, loc.longitude || loc.lon, loc.name, loc.country)}
         currentCityName={`${coords.name}${coords.country ? ', ' + coords.country : ''}`}
@@ -609,95 +583,120 @@ export default function ClimoraUltra() {
       </div>
 
       {/* UNCLIPPED SMOOTH SCROLLING CONTAINER */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-2 space-y-6 relative z-10">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-2 space-y-6 relative z-10">
         
         {/* 1. OVERVIEW PAGE ONLY CONTENT */}
         {activeTab === 'overview' && (
           <div className="space-y-6 animate-[fade-in-up_0.4s]">
-            {/* COMPACT HERO BANNER (NO EMOJIS, LIVE LOCAL TIME) */}
+            {/* 4. HERO BANNER (NO CLOCK CHIP, ENHANCED AQI & UV BADGES) */}
             <div className="relative glass-panel rounded-[3rem] p-7 sm:p-10 overflow-hidden shadow-2xl border border-white/20 min-h-[250px] sm:min-h-[280px] flex flex-col justify-between transition-all duration-500">
               <HeroVideoBackground weatherCode={code} isDay={isDay} />
               
               <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/15 backdrop-blur-xl border border-white/20 text-xs sm:text-sm font-bold tracking-wide">
-                      <MapPin size={14} className="text-sky-300 animate-pulse" />
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-xl border border-white/20 text-xs sm:text-sm font-bold tracking-wide">
+                      <MapPin size={15} className="text-sky-300 animate-pulse" />
                       <span>{coords.name}{coords.country ? `, ${coords.country}` : ''}</span>
                     </div>
-                    {/* 7. LIVE LOCAL TIME TICKER CHIP */}
-                    <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-xs font-mono text-sky-300">
-                      <Clock size={13} />
-                      <span>{liveTimeString} • {liveDateString} ({tzString})</span>
+                    
+                    {/* Air Quality Badge */}
+                    <div className={cn("inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold border backdrop-blur-xl", aqiCat.bg, aqiCat.color)}>
+                      <ShieldCheck size={14}/>
+                      <span>AQI {aqiVal} • {aqiCat.label}</span>
+                    </div>
+
+                    {/* UV Index Badge */}
+                    <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold bg-amber-500/15 border border-amber-500/30 text-amber-300 backdrop-blur-xl">
+                      <Zap size={13}/>
+                      <span>UV {Math.round(uvCurr)} • {uvCat.label}</span>
                     </div>
                   </div>
 
                   <div className="flex items-start mt-4">
-                    <h1 className="text-7xl sm:text-[115px] font-black tracking-tighter leading-none drop-shadow-2xl font-sans">
+                    <h1 className="text-7xl sm:text-[120px] font-black tracking-tighter leading-none drop-shadow-2xl font-sans">
                       {loading ? '--' : Math.round(curr.temperature_2m || 0)}
                     </h1>
-                    <span className="text-3xl sm:text-5xl font-light text-sky-300 mt-1 ml-1">°C</span>
+                    <span className="text-3xl sm:text-5xl font-light text-sky-300 mt-2 ml-1">°C</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col items-start sm:items-end text-left sm:text-right self-end sm:self-center">
-                  <WeatherIcon size={68} className="text-amber-300 drop-shadow-[0_8px_16px_rgba(245,158,11,0.5)] animate-float mb-1" />
-                  <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-white/95">{condLabel}</div>
+                  <WeatherIcon size={72} className="text-amber-300 drop-shadow-[0_8px_16px_rgba(245,158,11,0.5)] animate-float mb-1" />
+                  <div className="text-xl sm:text-3xl font-extrabold tracking-tight text-white/95">{condLabel}</div>
                   <div className="text-xs sm:text-sm font-semibold text-white/75 mt-1 flex gap-3 font-mono">
                     <span>H: {weather?.daily?.temperature_2m_max?.[0] != null ? `${Math.round(weather.daily.temperature_2m_max[0])}°` : '--'}</span>
                     <span>L: {weather?.daily?.temperature_2m_min?.[0] != null ? `${Math.round(weather.daily.temperature_2m_min[0])}°` : '--'}</span>
+                    <span>Feels: {curr.apparent_temperature != null ? `${Math.round(curr.apparent_temperature)}°` : '--'}</span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* WEATHER METRIC CAPSULES BELOW BANNER */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 relative z-10">
-              <div className="glass-panel rounded-full px-5 py-4 sm:py-4 flex items-center justify-between shadow-xl hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-slate-900/50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-full bg-sky-500/15 text-sky-400 group-hover:scale-110 transition-transform"><Wind size={18}/></div>
-                  <span className="text-xs font-bold text-white/70 tracking-wider">Wind Speed</span>
+            {/* 3 & 6. 6 PREMIUM GRADIENT ROUNDED CAPSULES (Wind, Humidity, Feels Like, Pressure, Air Quality, UV Index) */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3.5 relative z-10">
+              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(56,189,248,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-full bg-sky-500/20 text-sky-400 group-hover:scale-110 transition-transform"><Wind size={16}/></div>
+                  <span className="text-xs font-extrabold text-white/80 tracking-wide">Wind</span>
                 </div>
-                <div className="font-mono font-extrabold text-sm sm:text-base text-sky-300">{curr.wind_speed_10m ?? '--'} <span className="text-[10px] font-normal text-white/50">km/h</span></div>
+                <div className="font-mono font-black text-sm sm:text-base text-sky-300">{curr.wind_speed_10m ?? '--'} <span className="text-[10px] font-normal text-white/50">km/h</span></div>
               </div>
 
-              <div className="glass-panel rounded-full px-5 py-4 sm:py-4 flex items-center justify-between shadow-xl hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-slate-900/50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-full bg-blue-500/15 text-blue-400 group-hover:scale-110 transition-transform"><Droplets size={18}/></div>
-                  <span className="text-xs font-bold text-white/70 tracking-wider">Humidity</span>
+              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(59,130,246,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-full bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform"><Droplets size={16}/></div>
+                  <span className="text-xs font-extrabold text-white/80 tracking-wide">Humidity</span>
                 </div>
-                <div className="font-mono font-extrabold text-sm sm:text-base text-blue-300">{curr.relative_humidity_2m ?? '--'} <span className="text-[10px] font-normal text-white/50">%</span></div>
+                <div className="font-mono font-black text-sm sm:text-base text-blue-300">{curr.relative_humidity_2m ?? '--'} <span className="text-[10px] font-normal text-white/50">%</span></div>
               </div>
 
-              <div className="glass-panel rounded-full px-5 py-4 sm:py-4 flex items-center justify-between shadow-xl hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-slate-900/50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-full bg-amber-500/15 text-amber-400 group-hover:scale-110 transition-transform"><Thermometer size={18}/></div>
-                  <span className="text-xs font-bold text-white/70 tracking-wider">Feels Like</span>
+              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(245,158,11,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-full bg-amber-500/20 text-amber-400 group-hover:scale-110 transition-transform"><Thermometer size={16}/></div>
+                  <span className="text-xs font-extrabold text-white/80 tracking-wide">Feels</span>
                 </div>
-                <div className="font-mono font-extrabold text-sm sm:text-base text-amber-300">{curr.apparent_temperature != null ? `${Math.round(curr.apparent_temperature)}` : '--'} <span className="text-[10px] font-normal text-white/50">°C</span></div>
+                <div className="font-mono font-black text-sm sm:text-base text-amber-300">{curr.apparent_temperature != null ? `${Math.round(curr.apparent_temperature)}` : '--'} <span className="text-[10px] font-normal text-white/50">°C</span></div>
               </div>
 
-              <div className="glass-panel rounded-full px-5 py-4 sm:py-4 flex items-center justify-between shadow-xl hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-slate-900/50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-full bg-emerald-500/15 text-emerald-400 group-hover:scale-110 transition-transform"><Gauge size={18}/></div>
-                  <span className="text-xs font-bold text-white/70 tracking-wider">Pressure</span>
+              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(16,185,129,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-full bg-emerald-500/20 text-emerald-400 group-hover:scale-110 transition-transform"><Gauge size={16}/></div>
+                  <span className="text-xs font-extrabold text-white/80 tracking-wide">Pressure</span>
                 </div>
-                <div className="font-mono font-extrabold text-sm sm:text-base text-emerald-300">{curr.pressure_msl ?? 1013} <span className="text-[10px] font-normal text-white/50">hPa</span></div>
+                <div className="font-mono font-black text-sm sm:text-base text-emerald-300">{curr.pressure_msl ?? 1013} <span className="text-[10px] font-normal text-white/50">hPa</span></div>
+              </div>
+
+              {/* NEW CAPSULE 1: AIR QUALITY */}
+              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(52,211,153,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-full bg-teal-500/20 text-teal-300 group-hover:scale-110 transition-transform"><ShieldCheck size={16}/></div>
+                  <span className="text-xs font-extrabold text-white/80 tracking-wide">AQI</span>
+                </div>
+                <div className="text-right">
+                  <span className="font-mono font-black text-sm sm:text-base text-teal-300 mr-1.5">{aqiVal}</span>
+                  <span className="text-[10px] font-bold text-emerald-400">({aqiCat.label})</span>
+                </div>
+              </div>
+
+              {/* NEW CAPSULE 2: UV INDEX */}
+              <div className="glass-panel rounded-full px-5 py-4 flex items-center justify-between shadow-xl hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:-translate-y-0.5 active:scale-98 transition-all duration-300 border border-white/15 group bg-gradient-to-r from-slate-900/90 to-slate-800/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-full bg-amber-500/20 text-amber-300 group-hover:scale-110 transition-transform"><Zap size={16}/></div>
+                  <span className="text-xs font-extrabold text-white/80 tracking-wide">UV Index</span>
+                </div>
+                <div className="text-right">
+                  <span className="font-mono font-black text-sm sm:text-base text-amber-300 mr-1.5">{Math.round(uvCurr)}</span>
+                  <span className={cn("text-[10px] font-bold", uvCat.color)}>({uvCat.label})</span>
+                </div>
               </div>
             </div>
 
-            {/* ATMOSPHERIC KNOWLEDGE FACT */}
-            <div className="glass-panel rounded-[2.5rem] p-6 flex items-start gap-4 border-l-4 border-amber-400 bg-amber-500/10">
-              <div className="p-3 bg-amber-400/20 rounded-2xl text-amber-300 shrink-0"><Lightbulb size={24} /></div>
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-amber-200 mb-1">Atmospheric Knowledge</h4>
-                <p className="text-base font-medium text-white/95 leading-relaxed">"{fact}"</p>
-              </div>
-            </div>
+            {/* 2. ATMOSPHERIC KNOWLEDGE COMPLETELY REMOVED WITH ZERO TRACES */}
 
             {/* 24-HOUR HOURLY RADAR SUMMARY */}
             <div className="glass-panel rounded-[2.5rem] p-6 sm:p-8 shadow-xl border border-white/15 space-y-4 bg-slate-900/30">
-              <h3 className="font-bold text-base uppercase tracking-wider text-white/70 flex items-center gap-2"><Clock size={16} className="text-sky-400"/> 24-Hour Radar Summary</h3>
+              <h3 className="font-bold text-base uppercase tracking-wider text-white/70 flex items-center gap-2 font-mono"><BarChart3 size={16} className="text-sky-400"/> 24-Hour Radar Summary</h3>
               <div className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide pt-1">
                 {(weather?.hourly?.time || []).slice(0, 24).map((t, idx) => {
                   const hTemp = weather?.hourly?.temperature_2m?.[idx];
@@ -716,12 +715,12 @@ export default function ClimoraUltra() {
           </div>
         )}
 
-        {/* 2. SATELLITE RADAR PAGE CONTENT */}
+        {/* 2. SATELLITE RADAR PAGE CONTENT (UNBLOCKED FULL HEIGHT) */}
         {activeTab === 'radar' && (
-          <SatelliteRadarTab coords={coords} curr={curr} weather={weather} condLabel={condLabel} WeatherIcon={WeatherIcon} />
+          <SatelliteRadarTab coords={coords} />
         )}
 
-        {/* 11. 7-DAY OUTLOOK UNIQUE CONTENT */}
+        {/* 3. 7-DAY OUTLOOK EXPANDABLE RICHER INTERFACE */}
         {activeTab === 'forecast' && (
           <ExtendedOutlookTab weather={weather} />
         )}
