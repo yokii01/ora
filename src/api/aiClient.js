@@ -2,7 +2,7 @@
  * ORAs Intelligence — Direct AI Provider Client
  *
  * Calls external LLM APIs directly from the browser in a cascading
- * fallback order: OpenRouter → NVIDIA → AQ API → Pollinations Free Cloud → Local Simulation.
+ * fallback order with exponential backoff retries.
  */
 
 import { safeFetch } from '@/lib/safeFetch';
@@ -77,32 +77,47 @@ function generateLocalSimulation(messages) {
   return "I am ORAs Intelligence. I've processed your request locally. I'm ready to help you optimize your schedule, organize your files, and elevate your daily productivity!";
 }
 
-async function callProvider(provider, messages, signal) {
-  try {
-    const data = await safeFetch(
-      provider.endpoint,
-      {
-        method: 'POST',
-        headers: provider.headers(provider.apiKey),
-        body: JSON.stringify({
-          model: provider.model,
-          messages,
-          temperature: 0.7,
-          max_tokens: 2048,
-        }),
-      },
-      AI_TIMEOUT_MS
-    );
+const sleep = (ms) => new Promise(res => setTimeout(res, ms));
 
-    const text = data?.choices?.[0]?.message?.content || (typeof data === 'string' ? data : null);
+async function callProviderWithRetry(provider, messages, signal, maxRetries = 2) {
+  let attempt = 0;
+  while (attempt <= maxRetries) {
+    try {
+      if (signal?.aborted) throw new Error('Aborted');
+      
+      const data = await safeFetch(
+        provider.endpoint,
+        {
+          method: 'POST',
+          headers: provider.headers(provider.apiKey),
+          body: JSON.stringify({
+            model: provider.model,
+            messages,
+            temperature: 0.7,
+            max_tokens: 2048,
+          }),
+        },
+        AI_TIMEOUT_MS
+      );
 
-    if (typeof text !== 'string' || !text.trim()) {
-      throw new Error(`${provider.name} returned an empty response`);
+      const text = data?.choices?.[0]?.message?.content || (typeof data === 'string' ? data : null);
+
+      if (typeof text !== 'string' || !text.trim()) {
+        throw new Error(`${provider.name} returned empty payload`);
+      }
+
+      return { text: text.trim(), provider: provider.name };
+    } catch (error) {
+      if (signal?.aborted || error.name === 'AbortError') {
+        throw error;
+      }
+      attempt++;
+      if (attempt > maxRetries) {
+        throw error;
+      }
+      // Exponential backoff: 500ms -> 1500ms
+      await sleep(500 * Math.pow(3, attempt - 1));
     }
-
-    return { text: text.trim(), provider: provider.name };
-  } catch (error) {
-    throw new Error(`${provider.name} failed: ${error.message}`);
   }
 }
 
@@ -126,7 +141,7 @@ export async function invokeAI({ messages, signal }) {
   try {
     for (const provider of providers) {
       try {
-        const result = await callProvider(
+        const result = await callProviderWithRetry(
           provider,
           fullMessages,
           controller.signal
@@ -137,9 +152,9 @@ export async function invokeAI({ messages, signal }) {
       }
     }
 
-    // Fallback to Local Simulation if all cloud providers fail or keys missing
+    // Silent Fallback to Local Simulation
     const simText = generateLocalSimulation(fullMessages);
-    return { text: simText, provider: 'ORAs Embedded Engine (Local)' };
+    return { text: simText, provider: null };
 
   } catch (err) {
     if (err.name === 'AbortError' || controller.signal.aborted) {
@@ -149,8 +164,7 @@ export async function invokeAI({ messages, signal }) {
           : 'AI request timed out. Please try again.'
       );
     }
-    // Final absolute safety fallback
-    return { text: generateLocalSimulation(fullMessages), provider: 'ORAs Embedded Engine (Safety)' };
+    return { text: generateLocalSimulation(fullMessages), provider: null };
   } finally {
     clearTimeout(timeout);
     signal?.removeEventListener('abort', onExternalAbort);

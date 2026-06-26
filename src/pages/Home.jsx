@@ -3,7 +3,6 @@ import {
   motion, AnimatePresence, useMotionValue, useSpring, useReducedMotion 
 } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/lib/AuthContext';
 import { format } from 'date-fns';
 import { 
   StickyNote, CheckSquare, Calendar, Wallet, Target, FolderOpen, 
@@ -49,17 +48,30 @@ const getWeatherCodeLabel = (code) => {
   return 'Clear';
 };
 
-// ─── MEMOIZED FLOOR-STANDING CHARACTER ILLUSTRATION ENGINE ───────────────────
+// ─── THEME MODE DETECTOR HOOK ────────────────────────────────────────────────
+const useThemeMode = () => {
+  const [isDark, setIsDark] = useState(() => document.documentElement.classList.contains('dark'));
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+  return isDark;
+};
+
+// ─── NORMALIZED CENTERPIECE FLOOR-STANDING CHARACTER ENGINE (135-160% Scale) ──
 const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
-  const charMap = {
-    notes: 'Notes.png',
-    tasks: 'Tasks.png',
-    calendar: 'Calendar.png',
-    scanner: 'Scanner.png',
-    finance: 'Finance.png',
-    files: 'Files.png',
-    vault: 'Vault.png',
-    oradocs: 'Documents.png',
+  const charConfig = {
+    notes: { file: 'Notes.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
+    tasks: { file: 'Tasks.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
+    calendar: { file: 'Calendar.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
+    scanner: { file: 'Scanner.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
+    finance: { file: 'Finance.png', scale: 'scale-[1.50] sm:scale-[1.62]' }, // proportional upscaling for transparent canvas
+    files: { file: 'Files.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
+    vault: { file: 'Vault.png', scale: 'scale-[1.48] sm:scale-[1.58]' },
+    oradocs: { file: 'Documents.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
   };
 
   const fallbackMap = {
@@ -68,10 +80,10 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
     files: 'File holder.png'
   };
 
-  const filename = charMap[appId];
-  if (!filename) return null;
+  const config = charConfig[appId];
+  if (!config) return null;
 
-  const [src, setSrc] = useState(`./Banner/Characters/${filename}`);
+  const [src, setSrc] = useState(`./Banner/Characters/${config.file}`);
   const [failed, setFailed] = useState(false);
 
   if (failed) return null;
@@ -81,7 +93,7 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
       initial={{ opacity: 0 }}
       animate={{ 
         opacity: 1, 
-        y: shouldReduceMotion ? 0 : [0, -1, 0] 
+        y: shouldReduceMotion ? 0 : [0, -1.2, 0] 
       }}
       transition={{ 
         opacity: { duration: 0.5 },
@@ -94,7 +106,7 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
           if (fallbackMap[appId]) {
             setSrc(`./Banner/Characters/${fallbackMap[appId]}`);
           } else {
-            setSrc(`./Banner/${filename}`);
+            setSrc(`./Banner/${config.file}`);
           }
         } else if (src.startsWith('./Banner/')) {
           if (fallbackMap[appId]) {
@@ -106,12 +118,15 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
           setFailed(true);
         }
       }}
-      className="absolute bottom-0 right-2 sm:bottom-0 sm:right-2.5 z-0 h-[72%] sm:h-[82%] xl:h-[88%] w-auto object-contain pointer-events-none select-none drop-shadow-[0_12px_18px_rgba(0,0,0,0.5)] group-hover:scale-[1.03] transition-transform duration-300 transform-gpu"
+      className={cn(
+        "absolute bottom-0 right-2 sm:bottom-0 sm:right-2.5 z-0 h-[82%] sm:h-[90%] xl:h-[95%] w-auto object-contain origin-bottom-right pointer-events-none select-none drop-shadow-[0_12px_22px_rgba(0,0,0,0.55)] group-hover:scale-[1.03] transition-transform duration-300 transform-gpu will-change-transform",
+        config.scale
+      )}
     />
   );
 });
 
-// ─── MEMOIZED COMPACT WIDGET CARD (aspect-[4/3] + STRICT NO LOGOS) ───────────
+// ─── MEMOIZED WIDGET CARD (aspect-[4/3] + CENTERPIECE CHARACTERS ONLY) ───────
 const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
   const isAI = app.id === 'assistant';
   const isSettings = app.id === 'settings';
@@ -146,7 +161,7 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
           />
         )}
 
-        {/* ─── RIGHT-SIDE FLOOR-STANDING CHARACTER ILLUSTRATION (z-0) ─────── */}
+        {/* ─── RIGHT-SIDE CENTERPIECE FLOOR-STANDING CHARACTER (z-0) ──────── */}
         <CharacterImage 
           appId={app.id} 
           label={app.label} 
@@ -154,7 +169,7 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
         />
 
         {/* ─── LEFT-SIDE PROTECTED TEXT & ICON HIERARCHY (z-10) ───────────── */}
-        <div className="relative z-10 max-w-[58%] sm:max-w-[62%] flex flex-col justify-between h-full pointer-events-none">
+        <div className="relative z-10 max-w-[56%] sm:max-w-[60%] flex flex-col justify-between h-full pointer-events-none">
           
           {/* Top: Small Lucide Vector App Icon Only */}
           <div className="flex items-start justify-between w-full">
@@ -193,6 +208,7 @@ export default function Home() {
   const navigate = useNavigate();
   const isNavigatingRef = useRef(false);
   const shouldReduceMotion = useReducedMotion();
+  const isDark = useThemeMode();
   const [searchQ, setSearchQ] = useState('');
   const [videoFailed, setVideoFailed] = useState(false);
   
@@ -308,12 +324,15 @@ export default function Home() {
     }
   };
 
+  const darkVideoUrl = "https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4";
+  const lightVideoUrl = "https://assets.mixkit.co/videos/preview/mixkit-sun-shining-through-the-clouds-of-a-blue-sky-42456-large.mp4";
+
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden w-full max-w-[100vw] font-sans selection:bg-primary/30 pt-4 sm:pt-6 pb-24">
       
       <div className="relative z-10 px-4 sm:px-8 max-w-6xl mx-auto space-y-6 sm:space-y-8 w-full">
         
-        {/* ─── WEATHER BANNER ─────────────────────────────────────────────── */}
+        {/* ─── LOOPING VIDEO HERO BANNER WITH 14px FROSTED BLUR & OVERLAYS ── */}
         <motion.div 
           initial={{ opacity: 0, y: shouldReduceMotion ? 0 : 15 }}
           animate={{ opacity: 1, y: 0 }}
@@ -351,17 +370,24 @@ export default function Home() {
               <NotificationCenter open={notifOpen} onClose={() => setNotifOpen(false)} onCountChange={setNotifCount} />
             </div>
 
+            {/* Hardware-Accelerated Video Engine */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none bg-gradient-to-br from-indigo-950 via-purple-950 to-black">
               {!videoFailed && (
                 <video 
+                  key={isDark ? 'dark-vid' : 'light-vid'}
                   autoPlay loop muted playsInline 
                   onError={() => setVideoFailed(true)}
-                  className="w-full h-full object-cover scale-105 filter blur-[12px] brightness-75 opacity-90 transition-opacity duration-700 pointer-events-none"
+                  className="w-full h-full object-cover scale-105 filter blur-[14px] brightness-80 opacity-95 transition-opacity duration-1000 pointer-events-none transform-gpu"
                 >
-                  <source src="https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4" type="video/mp4" />
+                  <source src={isDark ? darkVideoUrl : lightVideoUrl} type="video/mp4" />
                 </video>
               )}
-              <div className="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/45" />
+              {/* Premium Theme Overlays */}
+              <div className={cn(
+                "absolute inset-0 transition-colors duration-700 pointer-events-none",
+                isDark ? "bg-black/55" : "bg-indigo-950/25"
+              )} />
+              <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/45 pointer-events-none" />
             </div>
 
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 dark:via-white/25 to-transparent" />
@@ -447,7 +473,7 @@ export default function Home() {
           </motion.button>
         </motion.div>
 
-        {/* ─── RESPONSIVE APP GRID WITH FLOOR-STANDING CHARACTERS ONLY ────── */}
+        {/* ─── RESPONSIVE APP GRID WITH MASSIVE CENTERPIECE CHARACTERS ────── */}
         <motion.div 
           variants={containerVariants}
           initial="hidden"
