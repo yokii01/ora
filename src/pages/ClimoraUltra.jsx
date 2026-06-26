@@ -6,6 +6,7 @@ import {
   Activity, Gauge, Radiation, CloudFog, Home, ChevronUp, ChevronDown,
   Volume2, VolumeX, Music, Menu, Camera, FileText, AlertTriangle, HeartPulse, Shirt, Newspaper, Bell, PlusCircle, Edit2, Image as ImageIcon, Check, Heart, Bookmark, Share2, Send, Type, Crop, PenTool, BookOpen, RefreshCw, Lock, Globe, Lightbulb, Play, Pause, RotateCcw
 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const SearchIcon = Search;
 
