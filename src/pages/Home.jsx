@@ -72,6 +72,20 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
     files: { file: 'Files.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
     vault: { file: 'Vault.png', scale: 'scale-[1.48] sm:scale-[1.58]' },
     oradocs: { file: 'Documents.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
+    news: { file: 'Documents.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
+    climora: { file: 'Scanner.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
+    assistant: { file: 'Vault.png', scale: 'scale-[1.48] sm:scale-[1.58]' },
+    browser: { file: 'Files.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
+    routo: { file: 'Tasks.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
+    festo: { file: 'Calendar.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
+    music: { file: 'Notes.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
+    gallery: { file: 'Files.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
+    translator: { file: 'Documents.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
+    settings: { file: 'Scanner.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
+    calculator: { file: 'Finance.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
+    clock: { file: 'Calendar.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
+    habits: { file: 'Tasks.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
+    passwords: { file: 'Vault.png', scale: 'scale-[1.48] sm:scale-[1.58]' },
   };
 
   const fallbackMap = {
