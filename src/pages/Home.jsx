@@ -68,7 +68,7 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
     tasks: { file: 'Tasks.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
     calendar: { file: 'Calendar.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
     scanner: { file: 'Scanner.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
-    finance: { file: 'Finance.png', scale: 'scale-[1.50] sm:scale-[1.62]' }, // proportional upscaling for transparent canvas
+    finance: { file: 'Finance.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
     files: { file: 'Files.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
     vault: { file: 'Vault.png', scale: 'scale-[1.48] sm:scale-[1.58]' },
     oradocs: { file: 'Documents.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
@@ -324,8 +324,10 @@ export default function Home() {
     }
   };
 
-  const darkVideoUrl = "https://assets.mixkit.co/videos/preview/mixkit-stars-in-space-1610-large.mp4";
-  const lightVideoUrl = "https://assets.mixkit.co/videos/preview/mixkit-sun-shining-through-the-clouds-of-a-blue-sky-42456-large.mp4";
+  // Verified 200-OK Pixabay Direct MP4 Download CDNs
+  const darkVideoUrl = "https://pixabay.com/videos/download/video-169951_medium.mp4";
+  const lightVideoUrl = "https://pixabay.com/videos/download/video-212102_medium.mp4";
+  const currentVid = isDark ? darkVideoUrl : lightVideoUrl;
 
   return (
     <div className="min-h-screen bg-background relative overflow-x-hidden w-full max-w-[100vw] font-sans selection:bg-primary/30 pt-4 sm:pt-6 pb-24">
@@ -370,17 +372,16 @@ export default function Home() {
               <NotificationCenter open={notifOpen} onClose={() => setNotifOpen(false)} onCountChange={setNotifCount} />
             </div>
 
-            {/* Hardware-Accelerated Video Engine */}
+            {/* Hardware-Accelerated Video Engine (Direct src attribute mounting) */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none -z-10 select-none bg-gradient-to-br from-indigo-950 via-purple-950 to-black">
               {!videoFailed && (
                 <video 
-                  key={isDark ? 'dark-vid' : 'light-vid'}
+                  key={currentVid}
+                  src={currentVid}
                   autoPlay loop muted playsInline 
                   onError={() => setVideoFailed(true)}
                   className="w-full h-full object-cover scale-105 filter blur-[14px] brightness-80 opacity-95 transition-opacity duration-1000 pointer-events-none transform-gpu"
-                >
-                  <source src={isDark ? darkVideoUrl : lightVideoUrl} type="video/mp4" />
-                </video>
+                />
               )}
               {/* Premium Theme Overlays */}
               <div className={cn(
