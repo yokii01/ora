@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
   motion, AnimatePresence, useMotionValue, useSpring, useReducedMotion 
 } from 'framer-motion';
@@ -61,44 +61,18 @@ const useThemeMode = () => {
   return isDark;
 };
 
-// ─── NORMALIZED CENTERPIECE FLOOR-STANDING CHARACTER ENGINE (135-160% Scale) ──
+// ─── NORMALIZED CENTERPIECE FLOOR-STANDING CHARACTER ENGINE (Dynamic Resolution) ──
+import { resolveBannerAsset, getCharacterPositionClass } from '@/lib/bannerResolver';
+
 const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
-  const charConfig = {
-    notes: { file: 'Notes.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
-    tasks: { file: 'Tasks.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
-    calendar: { file: 'Calendar.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
-    scanner: { file: 'Scanner.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
-    finance: { file: 'Finance.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
-    files: { file: 'Files.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
-    vault: { file: 'Vault.png', scale: 'scale-[1.48] sm:scale-[1.58]' },
-    oradocs: { file: 'Documents.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
-    news: { file: 'Documents.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
-    climora: { file: 'Scanner.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
-    assistant: { file: 'Vault.png', scale: 'scale-[1.48] sm:scale-[1.58]' },
-    browser: { file: 'Files.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
-    routo: { file: 'Tasks.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
-    festo: { file: 'Calendar.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
-    music: { file: 'Notes.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
-    gallery: { file: 'Files.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
-    translator: { file: 'Documents.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
-    settings: { file: 'Scanner.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
-    calculator: { file: 'Finance.png', scale: 'scale-[1.50] sm:scale-[1.62]' },
-    clock: { file: 'Calendar.png', scale: 'scale-[1.35] sm:scale-[1.45]' },
-    habits: { file: 'Tasks.png', scale: 'scale-[1.40] sm:scale-[1.50]' },
-    passwords: { file: 'Vault.png', scale: 'scale-[1.48] sm:scale-[1.58]' },
-  };
-
-  const fallbackMap = {
-    tasks: 'Task.png',
-    calendar: 'Calendo.png',
-    files: 'File holder.png'
-  };
-
-  const config = charConfig[appId];
-  if (!config) return null;
-
-  const [src, setSrc] = useState(`./Banner/Characters/${config.file}`);
+  const assetConfig = useMemo(() => resolveBannerAsset(appId || label), [appId, label]);
+  const [src, setSrc] = useState(assetConfig.char);
   const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setSrc(assetConfig.char);
+    setFailed(false);
+  }, [assetConfig]);
 
   if (failed) return null;
 
@@ -116,25 +90,18 @@ const CharacterImage = React.memo(({ appId, label, shouldReduceMotion }) => {
       src={src}
       alt={`${label} Character`}
       onError={() => {
-        if (src.startsWith('./Banner/Characters/')) {
-          if (fallbackMap[appId]) {
-            setSrc(`./Banner/Characters/${fallbackMap[appId]}`);
-          } else {
-            setSrc(`./Banner/${config.file}`);
-          }
-        } else if (src.startsWith('./Banner/')) {
-          if (fallbackMap[appId]) {
-            setSrc(`./Banner/${fallbackMap[appId]}`);
-          } else {
-            setFailed(true);
-          }
+        if (src === assetConfig.char && assetConfig.banner) {
+          setSrc(assetConfig.banner);
+        } else if (src !== './Banner/Calendo.png') {
+          setSrc('./Banner/Calendo.png');
         } else {
           setFailed(true);
         }
       }}
       className={cn(
-        "absolute bottom-0 right-2 sm:bottom-0 sm:right-2.5 z-0 h-[82%] sm:h-[90%] xl:h-[95%] w-auto object-contain origin-bottom-right pointer-events-none select-none drop-shadow-[0_12px_22px_rgba(0,0,0,0.55)] group-hover:scale-[1.03] transition-transform duration-300 transform-gpu will-change-transform",
-        config.scale
+        "absolute bottom-0 z-0 h-[82%] sm:h-[90%] xl:h-[95%] w-auto object-contain pointer-events-none select-none drop-shadow-[0_12px_22px_rgba(0,0,0,0.55)] group-hover:scale-[1.03] transition-transform duration-300 transform-gpu will-change-transform",
+        getCharacterPositionClass(assetConfig.orientation),
+        assetConfig.scale
       )}
     />
   );

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
   Wallet, FolderOpen, ScanLine, Lock, Target, Sparkles, Settings, FileText, Calendar, CheckSquare,
-  PartyPopper, CloudSun, Map
+  PartyPopper, CloudSun, Map, Calculator, Languages
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -20,6 +20,8 @@ const CATEGORIES = [
   {
     title: "Tools",
     items: [
+      { path: '/calculator', icon: Calculator, label: 'Calculator', desc: 'Quick math', color: 'bg-orange-500/10 text-orange-500' },
+      { path: '/translator', icon: Languages, label: 'Translator', desc: 'Speakasy AI', color: 'bg-cyan-500/10 text-cyan-400' },
       { path: '/finance', icon: Wallet, label: 'Finance', desc: 'Track spending', color: 'bg-emerald-500/10 text-emerald-600' },
       { path: '/files', icon: FolderOpen, label: 'File Holder', desc: 'Cloud files', color: 'bg-info/10 text-info' },
       { path: '/oradocs', icon: FileText, label: 'ORADOCS', desc: 'Convert documents', color: 'bg-cyan-500/10 text-cyan-500' },
