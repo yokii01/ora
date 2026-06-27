@@ -13,7 +13,7 @@ import {
   Sparkles, Activity, Star,
   Utensils, Car, Home, Lightbulb, Gamepad2, Heart, GraduationCap,
   ShoppingBag, PiggyBank, Briefcase, Laptop, MoreHorizontal,
-  PieChart as PieChartIcon, Scale, Trophy, PartyPopper, Wallet
+  PieChart as PieChartIcon, Scale, Trophy, PartyPopper, Wallet, Plus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/shared/EmptyState';
