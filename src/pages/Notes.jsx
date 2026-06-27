@@ -997,7 +997,7 @@ export default function Notes() {
           icon={<FileText />} 
           title="Write your first note" 
           description="Capture your thoughts, ideas, and daily journaling instantly."
-          action={{ label: "Add Note", icon: <Plus className="w-4 h-4" />, onClick: openAdd }}
+          action={{ label: "Add Note", icon: <Plus className="w-4 h-4" />, onClick: openNewNote }}
         />
       )}
 
@@ -1374,7 +1374,7 @@ export default function Notes() {
           />
         )}
       </AnimatePresence>
-      <FloatingActionButton onClick={openAdd} label="Add Note" />
+      <FloatingActionButton onClick={openNewNote} label="Add Note" />
     </motion.div>
   );
 }
