@@ -34,7 +34,7 @@ const Sidebar = React.memo(function Sidebar() {
     <motion.aside
       animate={{ width: collapsed ? 72 : 240 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      className="hidden lg:flex flex-col h-screen bg-card border-r border-border fixed left-0 top-0 z-40">
+      className="hidden lg:flex flex-col h-screen bg-card/80 backdrop-blur-[24px] border-r border-border/50 shadow-[0_0_50px_rgba(0,0,0,0.15)] fixed left-0 top-0 z-40 supports-[backdrop-filter]:bg-card/60">
       
       {/* Logo */}
       <div className="flex items-center justify-between px-4 h-16 border-b border-border">

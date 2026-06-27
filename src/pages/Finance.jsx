@@ -13,10 +13,11 @@ import {
   Sparkles, Activity, Star,
   Utensils, Car, Home, Lightbulb, Gamepad2, Heart, GraduationCap,
   ShoppingBag, PiggyBank, Briefcase, Laptop, MoreHorizontal,
-  PieChart as PieChartIcon, Scale, Trophy, PartyPopper
+  PieChart as PieChartIcon, Scale, Trophy, PartyPopper, Wallet
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { FloatingActionButton } from '@/components/shared/FloatingActionButton';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -827,6 +828,7 @@ export default function Finance() {
           )}
         </DialogContent>
       </Dialog>
+      <FloatingActionButton onClick={() => { setEditTx({ type: 'expense', category: 'food', date: new Date().toISOString().slice(0, 10) }); setShowAdd(true); }} label="Add Transaction" />
     </div>
   );
 }

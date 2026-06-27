@@ -11,6 +11,7 @@ import { jsPDF } from 'jspdf';
 import DOMPurify from 'dompurify';
 import { Input } from '@/components/ui/input';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { FloatingActionButton } from '@/components/shared/FloatingActionButton';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -1373,6 +1374,7 @@ export default function Notes() {
           />
         )}
       </AnimatePresence>
+      <FloatingActionButton onClick={openAdd} label="Add Note" />
     </motion.div>
   );
 }

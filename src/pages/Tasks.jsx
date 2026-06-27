@@ -11,6 +11,7 @@ import {
   Trash2, Calendar, MoreHorizontal, Pencil, X, Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { FloatingActionButton } from '@/components/shared/FloatingActionButton';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -676,6 +677,7 @@ export default function Tasks() {
           )}
         </DialogContent>
       </Dialog>
+      <FloatingActionButton onClick={() => { setEditTask({}); setShowAdd(true); }} label="Add Task" />
     </div>
   );
 }

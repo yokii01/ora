@@ -291,3 +291,14 @@ video {
   align-items: center;
   justify-content: center;
 }
+
+/* ─── Consistent 6-Step Typography Scale (UX-05) ─── */
+@layer utilities {
+  .type-step-1, .text-[11px] { font-size: 11px; line-height: 16px; font-weight: 500; }
+  .type-step-2, .text-[13px] { font-size: 13px; line-height: 18px; font-weight: 500; }
+  .type-step-3, .text-[15px] { font-size: 15px; line-height: 22px; font-weight: 400; }
+  .type-step-4, .text-[17px] { font-size: 17px; line-height: 24px; font-weight: 600; }
+  .type-step-5, .text-[22px] { font-size: 22px; line-height: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  .type-step-6, .text-[28px] { font-size: 28px; line-height: 34px; font-weight: 800; letter-spacing: -0.03em; }
+}
+

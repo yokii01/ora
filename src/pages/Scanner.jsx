@@ -10,6 +10,7 @@ import DocumentEditor from '@/components/scanner/DocumentEditor';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import LoadingSpinner from '@/components/shared/LoadingSpinner';
+import { SkeletonLoader } from '@/components/shared/SkeletonLoader';
 
 // Fallback DB proxy
 const db = globalThis.__B44_DB__ || {
@@ -366,7 +367,7 @@ export default function Scanner() {
               </div>
 
               {isLoading ? (
-                <div className="py-10 flex justify-center"><LoadingSpinner label="Loading scans..." size="md" /></div>
+                <SkeletonLoader type="grid" count={4} className="py-4" />
               ) : scans.length === 0 ? (
                 <div className="py-12 flex flex-col items-center justify-center text-center rounded-3xl border border-dashed border-gray-200 bg-white shadow-sm">
                   <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mb-4">

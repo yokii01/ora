@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { FloatingActionButton } from '@/components/shared/FloatingActionButton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
@@ -658,6 +659,7 @@ export default function Vault() {
           </div>
         </DialogContent>
       </Dialog>
+      <FloatingActionButton onClick={() => openAdd('password')} label="Add Vault Item" />
     </div>
   );
 }

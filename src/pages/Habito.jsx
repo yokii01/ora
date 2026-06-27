@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { EmptyState } from '@/components/shared/EmptyState';
+import { FloatingActionButton } from '@/components/shared/FloatingActionButton';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -476,6 +477,7 @@ export default function Habito() {
       <AnimatePresence>
         {showVisualization && <HabitoAnalytics habits={activeHabits} onClose={() => setShowVisualization(false)} />}
       </AnimatePresence>
+      <FloatingActionButton onClick={() => setShowAdd(true)} label="Add Habit" />
     </div>
   );
 }

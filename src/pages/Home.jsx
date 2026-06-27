@@ -124,6 +124,8 @@ const AppCard = React.memo(({ app, onNavigate, shouldReduceMotion }) => {
 
   return (
     <motion.button
+      layoutId={`module-card-${app.id}`}
+      style={{ viewTransitionName: `module-card-${app.id}` }}
       whileHover={shouldReduceMotion ? {} : { y: -5, scale: 1.02 }}
       whileTap={shouldReduceMotion ? {} : { scale: 0.98 }}
       onClick={() => onNavigate(app.path)}
@@ -211,7 +213,11 @@ export default function Home() {
   const handleNavigate = useCallback((path) => {
     if (isNavigatingRef.current) return;
     isNavigatingRef.current = true;
-    navigate(path);
+    if (document.startViewTransition) {
+      document.startViewTransition(() => navigate(path));
+    } else {
+      navigate(path);
+    }
     setTimeout(() => {
       isNavigatingRef.current = false;
     }, 600);
