@@ -64,7 +64,7 @@ const AuthenticatedApp = () => {
   );
 };
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion';
 
 function AppSplashScreen({ onComplete }) {
   React.useEffect(() => {
@@ -109,6 +109,7 @@ function App() {
   }, []);
 
   return (
+    <MotionConfig reducedMotion="user">
     <ThemeProvider defaultTheme="system" attribute="class">
       <ErrorBoundary>
       <AuthProvider>
@@ -127,6 +128,7 @@ function App() {
       </AuthProvider>
       </ErrorBoundary>
     </ThemeProvider>
+    </MotionConfig>
   )
 }
 
